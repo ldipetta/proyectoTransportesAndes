@@ -8,6 +8,8 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Usuario
     {
+        [JsonProperty(PropertyName ="id")]
+        public string Id { get; set; }
         [JsonProperty(PropertyName ="usuario")]
         public string Ususario { get; set; }
         [JsonProperty(PropertyName = "password")]

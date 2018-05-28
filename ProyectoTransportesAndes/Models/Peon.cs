@@ -15,7 +15,7 @@ namespace ProyectoTransportesAndes.Models
         [JsonProperty(PropertyName = "documento")]
         public string Documento { get; set; }
         [JsonProperty(PropertyName = "telefono")]
-        public string Telefono { get;set }
+        public string Telefono { get; set; }
         [JsonProperty(PropertyName = "direccion")]
         public string Direccion { get; set; }
         [JsonProperty(PropertyName = "fNacimiento")]

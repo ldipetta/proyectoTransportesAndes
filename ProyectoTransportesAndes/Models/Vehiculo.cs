@@ -8,6 +8,8 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Vehiculo
     {
+        [JsonProperty(PropertyName ="id")]
+        public string Id { get; set; }
         [JsonProperty(PropertyName = "calificacion")]
         public double Calificacion { get; set; }
         [JsonProperty(PropertyName = "matricula")]

@@ -5,13 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ProyectoTransportesAndes.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace ProyectoTransportesAndes.Controllers
 {
     public class HomeController : Controller
     {
+        [HttpGet]
         public IActionResult Index()
         {
+            if (HttpContext.Session.GetString("usuario")!=null)
+            {
+                RedirectToAction("Index", "Administrativo");
+            }
             return View();
         }
 
