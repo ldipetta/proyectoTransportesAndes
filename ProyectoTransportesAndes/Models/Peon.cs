@@ -23,4 +23,5 @@ namespace ProyectoTransportesAndes.Models
         [JsonProperty(PropertyName = "foto")]
         public string Foto { get; set; }
     }
+
 }

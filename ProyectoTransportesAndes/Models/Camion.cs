@@ -8,9 +8,9 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Camion:Vehiculo
     {
-        [JsonProperty(PropertyName = "sucta")]
-        public Sucta Sucta { get; set; }
-        [JsonProperty(PropertyName = "mtop")]
-        public Mtop Mtop { get; set; }
+        [JsonProperty(PropertyName = "vencimientoSucta")]
+        public DateTime VencimientoSucta { get; set; }
+        [JsonProperty(PropertyName = "vencimientoMtop")]
+        public DateTime VecimientoMtop { get; set; }
     }
 }

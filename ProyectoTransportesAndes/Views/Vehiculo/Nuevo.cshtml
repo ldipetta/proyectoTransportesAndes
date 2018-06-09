@@ -13,6 +13,16 @@
     <div class="col-md-4">
         <form asp-action="Nuevo">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @*<div class="form-group">
+                <label asp-for="Id" class="control-label"></label>
+                <input asp-for="Id" class="form-control" />
+                <span asp-validation-for="Id" class="text-danger"></span>
+            </div>*@
+            <div class="form-group">
+                <label asp-for="Numero" class="control-label"></label>
+                <input asp-for="Numero" class="form-control" />
+                <span asp-validation-for="Numero" class="text-danger"></span>
+            </div>
             <div class="form-group">
                 <label asp-for="Calificacion" class="control-label"></label>
                 <input asp-for="Calificacion" class="form-control" />
@@ -42,6 +52,26 @@
                 <label asp-for="CapacidadCargaKg" class="control-label"></label>
                 <input asp-for="CapacidadCargaKg" class="form-control" />
                 <span asp-validation-for="CapacidadCargaKg" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VencimientoPermisoPortuario" class="control-label"></label>
+                <input asp-for="VencimientoPermisoPortuario" class="form-control" />
+                <span asp-validation-for="VencimientoPermisoPortuario" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Tarifa" class="control-label"></label>
+                <input asp-for="Tarifa" class="form-control" />
+                <span asp-validation-for="Tarifa" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VencimientoSeguro" class="control-label"></label>
+                <input asp-for="VencimientoSeguro" class="form-control" />
+                <span asp-validation-for="VencimientoSeguro" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmpresaAseguradora" class="control-label"></label>
+                <input asp-for="EmpresaAseguradora" class="form-control" />
+                <span asp-validation-for="EmpresaAseguradora" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CantidadPasajeros" class="control-label"></label>

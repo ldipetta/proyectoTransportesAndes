@@ -102,5 +102,6 @@ namespace ProyectoTransportesAndes.Persistencia
             return await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(_settings.Value.DataBase, coleccion, id));
         }
 
+
     }
 }

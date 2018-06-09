@@ -11,13 +11,18 @@ namespace ProyectoTransportesAndes.Controllers
 {
     public class HomeController : Controller
     {
-        [HttpGet]
-        public IActionResult Index()
+        private readonly ISession _session;
+        private readonly IHttpContextAccessor _httpContext;
+
+        public HomeController( IHttpContextAccessor httpContextAccessor)
         {
-            if (HttpContext.Session.GetString("usuario")!=null)
-            {
-                RedirectToAction("Index", "Administrativo");
-            }
+            _session = httpContextAccessor.HttpContext.Session;
+            _httpContext = httpContextAccessor;
+        }
+        [HttpGet]
+        [ActionName("Index")]
+        public IActionResult Index()
+        {  
             return View();
         }
 
@@ -39,5 +44,6 @@ namespace ProyectoTransportesAndes.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        
     }
 }

@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace ProyectoTransportesAndes.Models
 {
     public class Chofer:Usuario
     {
+       
+
         [JsonProperty(PropertyName = "carneDeSalud")]
         public CarneDeSalud CarneDeSalud { get; set; }
         [JsonProperty(PropertyName = "libretaDeConducir")]
