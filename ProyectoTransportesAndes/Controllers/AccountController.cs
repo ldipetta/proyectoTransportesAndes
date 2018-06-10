@@ -173,6 +173,7 @@ namespace ProyectoTransportesAndes.Controllers
         {
             return View();
         }
+
         [HttpPost]
         [Route("NuevoCliente")]
         public async Task<ActionResult>NuevoCliente(ViewModelCliente model)
@@ -218,6 +219,38 @@ namespace ProyectoTransportesAndes.Controllers
                 _session.SetString("Token", "");
             }
             return RedirectToAction("Index", "Home");
+        }
+
+        [Route("LoginAPP")]
+        public async Task<JsonResult> LoginAPP(Usuario usuario)
+        {
+            if (ModelState.IsValid)
+            {
+                Usuario user = await DBRepositoryMongo<Usuario>.Login(usuario.User, usuario.Password);
+                if (user != null)
+                {
+                    if (user.Password == usuario.Password)
+                    {
+                        _session.SetString("Token", Usuario.BuildToken(user, _configuration));
+                        _session.SetString("User", usuario.User);
+                        return Json(true);
+                    }
+                    else
+                    {
+                        return Json(false);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt");
+                    return Json(false);
+                }
+            }
+            else
+            {
+                return Json(false);
+            }
+
         }
     }
 }
