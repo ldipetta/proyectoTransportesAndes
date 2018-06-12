@@ -221,34 +221,38 @@ namespace ProyectoTransportesAndes.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        //Servicio para loguearse desde las Apps móviles, devuelve un json con datos del usuario para
+        //ser utilizados por las Apps
+        [HttpGet]
         [Route("LoginAPP")]
-        public async Task<JsonResult> LoginAPP(Usuario usuario)
+        public async Task<JsonResult> LoginAPP(string usuario, string pass)
         {
+            Usuario user = null;
             if (ModelState.IsValid)
             {
-                Usuario user = await DBRepositoryMongo<Usuario>.Login(usuario.User, usuario.Password);
+                user = await DBRepositoryMongo<Usuario>.Login(usuario, pass);
                 if (user != null)
                 {
-                    if (user.Password == usuario.Password)
+                    if (user.Password == pass)
                     {
                         _session.SetString("Token", Usuario.BuildToken(user, _configuration));
-                        _session.SetString("User", usuario.User);
-                        return Json(true);
+                        _session.SetString("User", usuario);
+                        return Json(user);
                     }
                     else
                     {
-                        return Json(false);
+                        return Json(user);
                     }
                 }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                    return Json(false);
+                    return Json(user);
                 }
             }
             else
             {
-                return Json(false);
+                return Json(user);
             }
 
         }
