@@ -22,8 +22,19 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [ActionName("Index")]
         public IActionResult Index()
-        {  
-            return View();
+        {
+            if (_session.GetString("User") == null)
+            {
+                _session.SetString("User", "Cliente");
+                _session.SetString("UserName", "");
+                return View();
+            }
+            else
+            {
+                return View();
+            }
+            
+            
         }
 
         public IActionResult About()

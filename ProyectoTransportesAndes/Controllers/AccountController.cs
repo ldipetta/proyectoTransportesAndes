@@ -68,6 +68,7 @@ namespace ProyectoTransportesAndes.Controllers
             return View();
         }
 
+        //Crea un nuevo usuario administrador o administrativo
         [Route("Create")]
         [HttpPost]
         public async Task<ActionResult> Create(ViewModelUsuario view)
@@ -81,18 +82,12 @@ namespace ProyectoTransportesAndes.Controllers
                     if (ModelState.IsValid)
                     {
                         Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(view.Usuario.User, coleccion);
-                        if (usuario.User == view.Usuario.User)
+                        if (usuario!=null)
                         {
                             return BadRequest("El usuario ya existe");
                         }
                         else
-                        {
-                            if (usuario.Email == view.Usuario.Email)
-                            {
-                                return BadRequest("El email ya se encuentra registrado");
-                            }
-                            else
-                            {
+                        { 
                                 if (view.Administrador)
                                 {
                                     Usuario admin = new Administrador();
@@ -109,7 +104,6 @@ namespace ProyectoTransportesAndes.Controllers
                                     await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
                                     return RedirectToAction("Index");
                                 }
-                            }
                         }
                     }
                     else
@@ -146,8 +140,9 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (user.Password == model.Password)
                     {
-                        _session.SetString("Token", Usuario.BuildToken(user, _configuration));
-                        _session.SetString("User", model.User);
+                        _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
+                        _session.SetString("User", user.Tipo);
+                        _session.SetString("UserName", user.Nombre);
                         return RedirectToAction("Index", "Home");
                     }
                     else
@@ -216,7 +211,10 @@ namespace ProyectoTransportesAndes.Controllers
             var session = _session.GetString("Token");
             if (session != null)
             {
-                _session.SetString("Token", "");
+                //_session.SetString("Token", null);
+                //_session.SetString("User", null);
+                //_session.SetString("UserName", null);
+                _session.Clear();
             }
             return RedirectToAction("Index", "Home");
         }
@@ -235,7 +233,7 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (user.Password == pass)
                     {
-                        _session.SetString("Token", Usuario.BuildToken(user, _configuration));
+                        _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
                         _session.SetString("User", usuario);
                         return Json(user);
                     }

@@ -1,26 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace ProyectoTransportesAndes.Models
 {
     public class Peon
     {
-        [JsonProperty(PropertyName = "nombre")]
+        [BsonId]
+        public ObjectId Id { get; set; }
         public string Nombre { get; set; }
-        [JsonProperty(PropertyName = "apellido")]
+
         public string Apellido { get; set; }
-        [JsonProperty(PropertyName = "documento")]
+
         public string Documento { get; set; }
-        [JsonProperty(PropertyName = "telefono")]
+        [DataType(DataType.PhoneNumber)]
         public string Telefono { get; set; }
-        [JsonProperty(PropertyName = "direccion")]
+
         public string Direccion { get; set; }
-        [JsonProperty(PropertyName = "fNacimiento")]
+        [Display(Name ="Fecha de nacimiento")]
+        [DataType(DataType.Date)]
         public DateTime FNacimiento { get; set; }
-        [JsonProperty(PropertyName = "foto")]
+        [DataType(DataType.ImageUrl)]
         public string Foto { get; set; }
     }
 

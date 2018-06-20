@@ -146,6 +146,23 @@ namespace ProyectoTransportesAndes.Persistencia
                 throw ex;
             }
         }
-        
+        //se deberian unificar los dos metodos para reutilizar codigo
+        public static async Task<T> GetPeon(string documento, string coleccion)
+        {
+            var filter = Builders<T>.Filter.Eq("Documento", documento);
+
+            try
+            {
+                return await _database.GetCollection<T>(coleccion)
+                                .Find(filter)
+                                .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                // log or manage the exception
+                throw ex;
+            }
+        }
+
     }
 }

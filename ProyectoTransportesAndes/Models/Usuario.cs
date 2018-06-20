@@ -51,7 +51,7 @@ namespace ProyectoTransportesAndes.Models
             }
             return "";
         }
-        public static string BuildToken(Usuario user,IConfiguration configuration)
+        public static string BuildToken(Usuario user/*,IConfiguration configuration*/)
         {
             var claims = new Claim[]
             {
@@ -59,7 +59,7 @@ namespace ProyectoTransportesAndes.Models
                 new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Actort,user.Tipo)
             };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Llave"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("gjanvowIINFDk4086206ldvnffnhsdonL"/*configuration["Llave"]*/));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expiration = DateTime.UtcNow.AddHours(1);
             JwtSecurityToken token = new JwtSecurityToken(

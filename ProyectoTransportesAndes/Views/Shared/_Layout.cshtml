@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -8,12 +10,15 @@
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
+        <link href="~/css/Estilos.css" rel="stylesheet" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/Estilos.css" />
+
     </environment>
 </head>
 <body>
@@ -28,18 +33,24 @@
                 </button>
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Transportes Andes</a>
             </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    @*<li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-        <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-          <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>*@
-                    <li><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
-                    <li><a asp-area="" asp-controller="Account" asp-action="Index">Administrador</a></li>
-                    
+            <div class="navbar-collapse collapse" id="contenedorCabecera" data-value="@HttpContextAccessor.HttpContext.Session.GetString("User").ToString()">
+                <ul class="nav navbar-nav" id="menuComun">
+                    <li id="about"><a asp-area="" asp-controller="Home" asp-action="About">Nuestra empresa</a></li>
+                    <li id="contact"><a asp-area="" asp-controller="Home" asp-action="Contact">Contactenos</a></li>
+                    <li class="hidden" id="vehiculos"><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
+                    <li class='dropdown hidden' id="empleados">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Empleados <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Account' asp-action='Index'>Administrativos</a></li>
+                            <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
+                        </ul>
+                    </li>
+                    <li id="solicitarViaje"><a asp-area="" asp-controller="" asp-action="">Solicitar viaje</a></li>
                 </ul>
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Account" asp-action="Login">Iniciar sesion</a></li>
-                    <li><a asp-area="" asp-controller="Account" asp-action="Salir">Salir</a></li>
+                <ul class="nav navbar-nav" style="float:right">
+                    <li id="userName" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserName").ToString()"></li>
+                    @*<li id="salir" class="hidden"><a asp-area="" asp-controller="Account" asp-action="salir">(Salir)</a></li>*@
+                    <li id="salir" class="hidden"><a asp-area="" asp-controller="Account" asp-action="salir"><span class="glyphicon glyphicon-log-out"></span></a></li>
                 </ul>
             </div>
         </div>
@@ -71,6 +82,7 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
+       <script src="~/js/site.js" asp-append-version="true"></script>
     </environment>
 
     @RenderSection("Scripts", required: false)

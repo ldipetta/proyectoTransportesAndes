@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Properties\PublishProfiles\TransportesAndes - Web Deploy.pubxml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.6" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.3" />
@@ -16,6 +20,22 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\css\Estilos.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\css\site.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\site.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

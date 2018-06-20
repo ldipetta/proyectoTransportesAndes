@@ -1,11 +1,11 @@
-﻿@model IEnumerable<ProyectoTransportesAndes.Models.Usuario>
+﻿@model IEnumerable<ProyectoTransportesAndes.Models.Peon>
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Empleados</h2>
+<h2>Peones</h2>
 
 <p>
     <a asp-action="Create">Ingresar nuevo</a>
@@ -13,12 +13,6 @@
 <table class="table">
     <thead>
         <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.User)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Password)
-                </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Nombre)
                 </th>
@@ -38,7 +32,7 @@
                     @Html.DisplayNameFor(model => model.FNacimiento)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Tipo)
+                    @Html.DisplayNameFor(model => model.Foto)
                 </th>
             <th></th>
         </tr>
@@ -46,12 +40,6 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Password)
-            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Nombre)
             </td>
@@ -71,12 +59,11 @@
                 @Html.DisplayFor(modelItem => item.FNacimiento)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Tipo)
+                @Html.DisplayFor(modelItem => item.Foto)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.Id })
             </td>
         </tr>
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,8 @@ namespace ProyectoTransportesAndes
         public IConfiguration Configuration { get; }
         private IOptions<AppSettings> _settings;
         private IOptions<AppSettingsMongo> _settingsMongo;
+        
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -40,13 +43,14 @@ namespace ProyectoTransportesAndes
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "yourDomain.com",
                     ValidAudience = "yourDomain.com",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Llave"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("gjanvowIINFDk4086206ldvnffnhsdonL"/*Configuration["Llave"]*/)),
                     ClockSkew = TimeSpan.Zero 
                 });
             services.AddSession(s => s.IdleTimeout = TimeSpan.FromMinutes(30));
             services.AddMvc();
             services.AddOptions();
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            //services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.Configure<AppSettingsMongo>(Configuration.GetSection("AppSettingsMongo"));
             services.AddDistributedMemoryCache();
            
@@ -76,8 +80,10 @@ namespace ProyectoTransportesAndes
             });
             _settings = appSettings;
             _settingsMongo = appSettingsMongo;
+            
             //DBRepository<AppSettings>.Iniciar(_settings);
             DBRepositoryMongo<AppSettingsMongo>.Iniciar(_settingsMongo);
+
         }
     }
 }

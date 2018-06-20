@@ -11,45 +11,35 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Vehiculo
     {
-        //[JsonProperty(PropertyName ="id")]
         [BsonId]
         public ObjectId Id { get; set; }
-        //[JsonProperty(PropertyName ="numero")]
         public string Numero { get; set; }
-        //[JsonProperty(PropertyName = "calificacion")]
         [Display(Name ="Calificación")]
         public double Calificacion { get; set; }
-        //[JsonProperty(PropertyName = "matricula")]
         [Display(Name ="Matricula")]
         public string Matricula { get; set; }
-        //[JsonProperty(PropertyName = "marca")]
         [Display(Name ="Marca")]
         public string Marca { get; set; }
-        //[JsonProperty(PropertyName = "modelo")]
         [Display(Name ="Modelo")]
         public string Modelo { get; set; }
-        //[JsonProperty(PropertyName = "unidades")]
         [Display(Name ="Paquetes")]
         public int Unidades { get; set; }
-        //[JsonProperty(PropertyName = "capacidadCargaKg")]
         [Display(Name ="Capacidad carga (Kg)")]
         public int CapacidadCargaKg { get; set; }
-        //[JsonProperty(PropertyName = "vencimientoPermisoPortuario")]
-        [Display(Name ="Permiso portuario")]
+        [Display(Name ="Vencimiento permiso portuario")]
+        [DataType(DataType.Date)]
         public DateTime VencimientoPermisoPortuario { get; set; }
-        //[JsonProperty(PropertyName = "tarifa")]
         [Display(Name ="Tarifa")]
+        [DataType(DataType.Currency)]
         public int Tarifa { get; set; }
-        //[JsonProperty(PropertyName = "vencimientoSeguro")]
         [Display(Name ="Vencimiento seguro")]
+        [DataType(DataType.Date)]
         public DateTime VencimientoSeguro { get; set; }
-        //[JsonProperty(PropertyName ="empresaAseguradora")]
         [Display(Name ="Empresa aseguradora")]
         public string EmpresaAseguradora { get; set; }
-        //[JsonProperty(PropertyName = "cantidadPasajeros")]
         [Display(Name ="Cantidad pasajeros")]
         public int CantidadPasajeros { get; set; }
-        //[JsonProperty(PropertyName = "items")]
+        //estos items son las cosas que carga el vehiculo, por defecto debe estar vacio
         public List<Item> Items { get; set; }
 
     }
