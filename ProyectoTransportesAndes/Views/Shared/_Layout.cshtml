@@ -38,6 +38,7 @@
                     <li id="about"><a asp-area="" asp-controller="Home" asp-action="About">Nuestra empresa</a></li>
                     <li id="contact"><a asp-area="" asp-controller="Home" asp-action="Contact">Contactenos</a></li>
                     <li class="hidden" id="vehiculos"><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
+                    <li class="hidden" id="choferes"><a asp-area="" asp-controller="Chofer" asp-action="Index">Choferes</a></li>
                     <li class='dropdown hidden' id="empleados">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Empleados <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
@@ -45,11 +46,12 @@
                             <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
                         </ul>
                     </li>
+                    <li id="ingresarViaje" class="hidden"><a asp-area='' asp-controller='Viaje' asp-action='Index'>Viajes</a></li>
+                    <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
                     <li id="solicitarViaje"><a asp-area="" asp-controller="" asp-action="">Solicitar viaje</a></li>
                 </ul>
                 <ul class="nav navbar-nav" style="float:right">
                     <li id="userName" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserName").ToString()"></li>
-                    @*<li id="salir" class="hidden"><a asp-area="" asp-controller="Account" asp-action="salir">(Salir)</a></li>*@
                     <li id="salir" class="hidden"><a asp-area="" asp-controller="Account" asp-action="salir"><span class="glyphicon glyphicon-log-out"></span></a></li>
                 </ul>
             </div>

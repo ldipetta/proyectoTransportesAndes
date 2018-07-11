@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Models;
@@ -19,37 +15,35 @@ using ProyectoTransportesAndes.ViewModels;
 namespace ProyectoTransportesAndes.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Account")]
-    public class AccountController : Controller
+    [Route("api/Chofer")]
+    public class ChoferController : Controller
     {
-        private string coleccion = "Usuarios";
+        private string coleccion = "Choferes";
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
 
-        public AccountController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public ChoferController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _configuration = configuration;
             _httpContext = httpContextAccessor;
             _settings = settings;
 
-            DBRepositoryMongo<Usuario>.Iniciar(_settings);
+            DBRepositoryMongo<Chofer>.Iniciar(_settings);
         }
 
         [HttpGet]
         [Route("Index")]
-        [ActionName("Index")]
-        public async Task<ActionResult> IndexAsync()
-        {
+        public async Task<IActionResult> Index() {
             var token = _session.GetString("Token");
             if (token != null)
             {
                 var rol = Usuario.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
-                    var items = await DBRepositoryMongo<Usuario>.GetItemsAsync(coleccion);
+                    var items = await DBRepositoryMongo<Chofer>.GetItemsAsync(coleccion);
                     return View(items);
                 }
                 else
@@ -63,16 +57,16 @@ namespace ProyectoTransportesAndes.Controllers
             }
         }
 
-        [Route("Create")]
         [HttpGet]
-        public ActionResult Create() {
+        [Route("Create")]
+        public IActionResult Create()
+        {
             return View();
         }
 
-        //Crea un nuevo usuario administrador o administrativo
-        [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult> Create(ViewModelUsuario view)
+        [Route("Create")]
+        public async Task<ActionResult> Create(ViewModelChofer model)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -82,153 +76,28 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(view.Usuario.User, coleccion);
-                        if (usuario!=null)
+                        Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(model.Chofer.User, coleccion);
+                        if (chofer == null)
                         {
-                            return BadRequest("El usuario ya existe");
+                            Chofer nuevo = new Chofer();
+                            nuevo = model.Chofer;
+                            nuevo.Tipo = "Chofer";
+                            LibretaDeConducir libreta = new LibretaDeConducir();
+                            libreta.FVencimiento = model.Libreta.FVencimiento;
+                            libreta.Categoria = model.Libreta.Categoria;
+                            nuevo.LibretaDeConducir = libreta;
+                            await DBRepositoryMongo<Chofer>.Create(nuevo, coleccion);
+                            return RedirectToAction("Index", "Chofer");
                         }
                         else
-                        { 
-                                if (view.Administrador)
-                                {
-                                    Usuario admin = new Administrador();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrador";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
-                                else
-                                {
-                                    Usuario admin = new Administrativo();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrativo";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
+                        {
+                            return BadRequest("El usuario ya existe");
                         }
                     }
                     else
                     {
                         return BadRequest(ModelState);
                     }
-                }
-                else
-                {
-                    return BadRequest("No posee los permisos");
-                }
-            }
-            else
-            {
-                return BadRequest("Debe iniciar sesión");
-            }
-    }
-
-        [HttpGet]
-        [Route("Login")]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [Route("Login")]
-        public async Task<ActionResult> Login(Usuario model)
-        {
-            if (ModelState.IsValid)
-            {
-                Usuario user =await DBRepositoryMongo<Usuario>.Login(model.User, model.Password);
-                if (user != null)
-                {
-                    if (user.Password == model.Password)
-                    {
-                        _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
-                        _session.SetString("User", user.Tipo);
-                        _session.SetString("UserName", user.Nombre);
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else
-                    {
-                        return BadRequest("Contraseña incorrecta");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                    return BadRequest(ModelState);
-                }
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
-        }
-
-        [Route("Salir")]
-        public IActionResult Salir()
-        {
-            var session = _session.GetString("Token");
-            if (session != null)
-            {
-                //_session.SetString("Token", null);
-                //_session.SetString("User", null);
-                //_session.SetString("UserName", null);
-                _session.Clear();
-            }
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
-        [Route("Delete")]
-        [ActionName("Delete")]
-        public async Task<ActionResult> Delete(string id)
-        {
-            var token = _session.GetString("Token");
-            if (token != null)
-            {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
-                {
-                    if (id == null)
-                    {
-                        return BadRequest();
-                    }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
-                    if (item == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(item);
-                }
-                else
-                {
-                    return BadRequest("No posee los permisos");
-                }
-            }
-            else
-            {
-                return BadRequest("Debe iniciar sesión");
-            }
-        }
-
-        [HttpPost]
-        [Route("Delete")]
-        [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(string id, Usuario usuario)
-        {
-            var token = _session.GetString("Token");
-            if (token != null)
-            {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
-                {
-                    if (ModelState.IsValid)
-                    {
-                        usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.DeleteAsync(usuario.Id, coleccion);
-                        return RedirectToAction("Index");
-                    }
-                    return View(usuario);
                 }
                 else
                 {
@@ -256,22 +125,15 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         return BadRequest();
                     }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
+                    Chofer item = await DBRepositoryMongo<Chofer>.GetItemAsync(id, coleccion);
                     if (item == null)
                     {
                         return NotFound();
                     }
-                    ViewModelUsuario editar = new ViewModelUsuario();
-                    editar.Usuario = item;
+                    ViewModelChofer editar = new ViewModelChofer();
+                    editar.Chofer = item;
+                    editar.Libreta = item.LibretaDeConducir;
                     editar.Id = item.Id.ToString();
-                    if (item.Tipo == "Administrador")
-                    {
-                        editar.Administrador = true;
-                    }
-                    else
-                    {
-                        editar.Administrador = false;
-                    }
                     return View(editar);
                 }
                 else
@@ -290,7 +152,7 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(string id, ViewModelUsuario model)
+        public async Task<ActionResult> Edit(string id, ViewModelChofer model)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -300,11 +162,12 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        model.Usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.UpdateAsync(model.Usuario.Id, model.Usuario, coleccion);
+                        model.Chofer.Id = new ObjectId(id);
+                        model.Chofer.LibretaDeConducir = model.Libreta;
+                        await DBRepositoryMongo<Chofer>.UpdateAsync(model.Chofer.Id, model.Chofer, coleccion);
                         return RedirectToAction("Index");
                     }
-                    return View(model.Usuario);
+                    return View(model.Chofer);
                 }
                 else
                 {
@@ -317,6 +180,71 @@ namespace ProyectoTransportesAndes.Controllers
             }
 
         }
+
+        [HttpGet]
+        [Route("Delete")]
+        [ActionName("Delete")]
+        public async Task<ActionResult> Delete(string id)
+        {
+            var token = _session.GetString("Token");
+            if (token != null)
+            {
+                var rol = Usuario.validarToken(token);
+                if (rol == "Administrador" || rol == "Administrativo")
+                {
+                    if (id == null)
+                    {
+                        return BadRequest();
+                    }
+                    Chofer item = await DBRepositoryMongo<Chofer>.GetItemAsync(id, coleccion);
+                    if (item == null)
+                    {
+                        return NotFound();
+                    }
+                    return View(item);
+                }
+                else
+                {
+                    return BadRequest("No posee los permisos");
+                }
+            }
+            else
+            {
+                return BadRequest("Debe iniciar sesión");
+            }
+        }
+
+        [HttpPost]
+        [Route("Delete")]
+        [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Delete(string id, Chofer chofer)
+        {
+            var token = _session.GetString("Token");
+            if (token != null)
+            {
+                var rol = Usuario.validarToken(token);
+                if (rol == "Administrador" || rol == "Administrativo")
+                {
+                    if (ModelState.IsValid)
+                    {
+                        chofer.Id = new ObjectId(id);
+                        await DBRepositoryMongo<Chofer>.DeleteAsync(chofer.Id, coleccion);
+                        return RedirectToAction("Index");
+                    }
+                    return View(chofer);
+                }
+                else
+                {
+                    return BadRequest("No posee los permisos");
+                }
+            }
+            else
+            {
+                return BadRequest("Debe iniciar sesión");
+            }
+        }
+
 
     }
 }

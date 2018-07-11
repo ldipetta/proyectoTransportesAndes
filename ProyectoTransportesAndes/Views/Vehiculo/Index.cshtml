@@ -8,22 +8,16 @@
 <h2>Vehiculos</h2>
 
 <p>
-    <a asp-action="Nuevo">Ingresar nuevo</a>
+    <a asp-action="Nuevo">Ingresar vehiculo</a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            @*<th>
-                    @Html.DisplayNameFor(model => model.Id)
-                </th>*@
             <th>
-                @Html.DisplayNameFor(model => model.Numero)
+                @Html.DisplayNameFor(model => model.Matricula)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Calificacion)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Matricula)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Marca)
@@ -58,52 +52,46 @@
     <tbody>
         @foreach (var item in Model)
         {
-            <tr>
-                @*<td>
-                        @Html.DisplayFor(modelItem => item.Id)
-                    </td>*@
-                <td>
-                    @Html.DisplayFor(modelItem => item.Numero)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Calificacion)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Matricula)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Marca)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Modelo)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Unidades)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CapacidadCargaKg)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.VencimientoPermisoPortuario)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Tarifa)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.VencimientoSeguro)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.EmpresaAseguradora)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CantidadPasajeros)
-                </td>
-                <td>
-                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                    @*@Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |*@
-                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-                </td>
-            </tr>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Matricula)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Calificacion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Marca)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Modelo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Unidades)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CapacidadCargaKg)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VencimientoPermisoPortuario)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tarifa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VencimientoSeguro)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmpresaAseguradora)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CantidadPasajeros)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @*@Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |*@
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
         }
     </tbody>
 </table>

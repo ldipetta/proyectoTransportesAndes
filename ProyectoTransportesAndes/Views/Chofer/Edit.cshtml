@@ -1,0 +1,100 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelChofer
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>Modificar chofer</h3>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="hidden">
+                <label asp-for="Chofer.Id" class="control-label"></label>
+                <input asp-for="Chofer.Id" class="form-control" />
+                <span asp-validation-for="Chofer.Id" class="text-danger"></span>
+            </div>
+            <div>
+                <label asp-for="Chofer.Numero" class="control-label"></label>
+                <input asp-for="Chofer.Numero" class="form-control" />
+                <span asp-validation-for="Chofer.Numero" class="text-danger"></span>
+            </div>
+            <fieldset>
+                <legend>Datos personales</legend>
+                <div class="form-group">
+                    <label asp-for="Chofer.Nombre" class="control-label"></label>
+                    <input asp-for="Chofer.Nombre" class="form-control" />
+                    <span asp-validation-for="Chofer.Nombre" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Apellido" class="control-label"></label>
+                    <input asp-for="Chofer.Apellido" class="form-control" />
+                    <span asp-validation-for="Chofer.Apellido" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Documento" class="control-label"></label>
+                    <input asp-for="Chofer.Documento" class="form-control" />
+                    <span asp-validation-for="Chofer.Documento" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Telefono" class="control-label"></label>
+                    <input asp-for="Chofer.Telefono" class="form-control" />
+                    <span asp-validation-for="Chofer.Telefono" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Direccion" class="control-label"></label>
+                    <input asp-for="Chofer.Direccion" class="form-control" />
+                    <span asp-validation-for="Chofer.Direccion" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.FNacimiento" class="control-label"></label>
+                    <input asp-for="Chofer.FNacimiento" class="form-control" />
+                    <span asp-validation-for="Chofer.FNacimiento" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Foto" class="control-label"></label>
+                    <input asp-for="Chofer.Foto" class="form-control" />
+                    <span asp-validation-for="Chofer.Foto" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.Email" class="control-label"></label>
+                    <input asp-for="Chofer.Email" class="form-control" />
+                    <span asp-validation-for="Chofer.Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Chofer.VencimientoCarneDeSalud" class="control-label"></label>
+                    <input asp-for="Chofer.VencimientoCarneDeSalud" class="form-control" />
+                    <span asp-validation-for="Chofer.VencimientoCarneDeSalud" class="text-danger"></span>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Libreta de conducir</legend>
+                <div class="form-group">
+                    <label asp-for="Libreta.FVencimiento" class="control-label"></label>
+                    <input asp-for="Libreta.FVencimiento" class="form-control" />
+                    <span asp-validation-for="Libreta.FVencimiento" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Libreta.Categoria" class="control-label"></label>
+                    <input asp-for="Libreta.Categoria" class="form-control" />
+                    <span asp-validation-for="Libreta.Categoria" class="text-danger"></span>
+                </div>
+            </fieldset>
+            <div class="form-group">
+                <input asp-for="Id" class="form-control hidden" />
+                <input type="submit" value="Save" class="btn btn-info" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

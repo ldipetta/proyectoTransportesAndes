@@ -8,7 +8,8 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelCliente
     {
-        public Usuario Usuario { get; set; }
+        public Cliente Cliente { get; set; }
         public TarjetaDeCredito Tarjeta { get; set; }
+        public string Id { get; set; }
     }
 }

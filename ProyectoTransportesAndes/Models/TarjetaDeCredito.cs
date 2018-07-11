@@ -15,6 +15,6 @@ namespace ProyectoTransportesAndes.Models
         public string Numero { get; set; }
         [Display(Name ="Fecha de vencimiento")]
         [DataType(DataType.Date)]
-        public DateTime fVencimiento { get; set; }
+        public string fVencimiento { get; set; }
     }
 }

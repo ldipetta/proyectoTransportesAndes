@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Models;
@@ -19,29 +15,30 @@ using ProyectoTransportesAndes.ViewModels;
 namespace ProyectoTransportesAndes.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Account")]
-    public class AccountController : Controller
+    [Route("api/Cliente")]
+    public class ClienteController : Controller
     {
-        private string coleccion = "Usuarios";
+        private string coleccion = "Clientes";
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
 
-        public AccountController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public ClienteController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _configuration = configuration;
             _httpContext = httpContextAccessor;
             _settings = settings;
-
+            DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Usuario>.Iniciar(_settings);
+            DBRepositoryMongo<Chofer>.Iniciar(_settings);
         }
 
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
-        public async Task<ActionResult> IndexAsync()
+        public async Task<ActionResult> Index()
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -49,7 +46,7 @@ namespace ProyectoTransportesAndes.Controllers
                 var rol = Usuario.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
-                    var items = await DBRepositoryMongo<Usuario>.GetItemsAsync(coleccion);
+                    var items = await DBRepositoryMongo<Cliente>.GetItemsAsync(coleccion);
                     return View(items);
                 }
                 else
@@ -63,118 +60,44 @@ namespace ProyectoTransportesAndes.Controllers
             }
         }
 
-        [Route("Create")]
         [HttpGet]
-        public ActionResult Create() {
-            return View();
-        }
-
-        //Crea un nuevo usuario administrador o administrativo
         [Route("Create")]
-        [HttpPost]
-        public async Task<ActionResult> Create(ViewModelUsuario view)
-        {
-            var token = _session.GetString("Token");
-            if (token != null)
-            {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
-                {
-                    if (ModelState.IsValid)
-                    {
-                        Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(view.Usuario.User, coleccion);
-                        if (usuario!=null)
-                        {
-                            return BadRequest("El usuario ya existe");
-                        }
-                        else
-                        { 
-                                if (view.Administrador)
-                                {
-                                    Usuario admin = new Administrador();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrador";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
-                                else
-                                {
-                                    Usuario admin = new Administrativo();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrativo";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
-                        }
-                    }
-                    else
-                    {
-                        return BadRequest(ModelState);
-                    }
-                }
-                else
-                {
-                    return BadRequest("No posee los permisos");
-                }
-            }
-            else
-            {
-                return BadRequest("Debe iniciar sesión");
-            }
-    }
-
-        [HttpGet]
-        [Route("Login")]
-        public IActionResult Login()
+        public ActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        [Route("Login")]
-        public async Task<ActionResult> Login(Usuario model)
+        [Route("Create")]
+        public async Task<ActionResult> Create(ViewModelCliente model)
         {
             if (ModelState.IsValid)
             {
-                Usuario user =await DBRepositoryMongo<Usuario>.Login(model.User, model.Password);
-                if (user != null)
+                Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(model.Cliente.User, "Usuarios");
+                Cliente cliente = await DBRepositoryMongo<Cliente>.GetUsuario(model.Cliente.User, coleccion);
+                Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(model.Cliente.User, "Choferes");
+                if (usuario == null && cliente==null && chofer==null)
                 {
-                    if (user.Password == model.Password)
-                    {
-                        _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
-                        _session.SetString("User", user.Tipo);
-                        _session.SetString("UserName", user.Nombre);
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else
-                    {
-                        return BadRequest("Contraseña incorrecta");
-                    }
+                    Cliente nuevo = new Cliente();
+                    nuevo = model.Cliente;
+                    nuevo.Tipo = "Cliente";
+                    TarjetaDeCredito tarjeta = new TarjetaDeCredito();
+                    tarjeta.fVencimiento = model.Tarjeta.fVencimiento;
+                    tarjeta.Numero = model.Tarjeta.Numero;
+                    nuevo.Tarjeta = tarjeta;
+                    await DBRepositoryMongo<Cliente>.Create(nuevo, coleccion);
+                    return RedirectToAction("Login", "Account");
+
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                    return BadRequest(ModelState);
+                    return BadRequest("El usuario ya existe");
                 }
             }
             else
             {
                 return BadRequest(ModelState);
             }
-        }
-
-        [Route("Salir")]
-        public IActionResult Salir()
-        {
-            var session = _session.GetString("Token");
-            if (session != null)
-            {
-                //_session.SetString("Token", null);
-                //_session.SetString("User", null);
-                //_session.SetString("UserName", null);
-                _session.Clear();
-            }
-            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -192,7 +115,7 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         return BadRequest();
                     }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
+                    Cliente item = await DBRepositoryMongo<Cliente>.GetItemAsync(id, coleccion);
                     if (item == null)
                     {
                         return NotFound();
@@ -214,7 +137,7 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Delete")]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(string id, Usuario usuario)
+        public async Task<ActionResult> Delete(string id, Cliente cliente)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -224,11 +147,11 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.DeleteAsync(usuario.Id, coleccion);
+                        cliente.Id = new ObjectId(id);
+                        await DBRepositoryMongo<Cliente>.DeleteAsync(cliente.Id, coleccion);
                         return RedirectToAction("Index");
                     }
-                    return View(usuario);
+                    return View(cliente);
                 }
                 else
                 {
@@ -240,6 +163,7 @@ namespace ProyectoTransportesAndes.Controllers
                 return BadRequest("Debe iniciar sesión");
             }
         }
+
 
         [HttpGet]
         [Route("Edit")]
@@ -256,22 +180,15 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         return BadRequest();
                     }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
+                    Cliente item = await DBRepositoryMongo<Cliente>.GetItemAsync(id, coleccion);
                     if (item == null)
                     {
                         return NotFound();
                     }
-                    ViewModelUsuario editar = new ViewModelUsuario();
-                    editar.Usuario = item;
+                    ViewModelCliente editar = new ViewModelCliente();
+                    editar.Cliente = item;
+                    editar.Tarjeta = item.Tarjeta;
                     editar.Id = item.Id.ToString();
-                    if (item.Tipo == "Administrador")
-                    {
-                        editar.Administrador = true;
-                    }
-                    else
-                    {
-                        editar.Administrador = false;
-                    }
                     return View(editar);
                 }
                 else
@@ -290,7 +207,7 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(string id, ViewModelUsuario model)
+        public async Task<ActionResult> Edit(string id, ViewModelCliente model)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -300,11 +217,12 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        model.Usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.UpdateAsync(model.Usuario.Id, model.Usuario, coleccion);
+                        model.Cliente.Id = new ObjectId(id);
+                        model.Cliente.Tarjeta = model.Tarjeta;
+                        await DBRepositoryMongo<Cliente>.UpdateAsync(model.Cliente.Id, model.Cliente, coleccion);
                         return RedirectToAction("Index");
                     }
-                    return View(model.Usuario);
+                    return View(model.Cliente);
                 }
                 else
                 {
@@ -317,6 +235,5 @@ namespace ProyectoTransportesAndes.Controllers
             }
 
         }
-
     }
 }

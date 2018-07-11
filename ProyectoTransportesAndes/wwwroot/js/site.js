@@ -10,9 +10,12 @@ $(document).ready(function () {
         //$("#contenedorCabecera").append("<ul class='nav navbar-nav'><li><a asp-area='' asp-controller='Vehiculo' asp-action='Index'>Vehiculos</a></li></ul>");
         $("#vehiculos").removeClass("hidden");
         $("#empleados").removeClass("hidden");
+        $("#choferes").removeClass("hidden");
         $("#solicitarViaje").addClass("hidden");
         $("#about").addClass("hidden");
         $("#contact").addClass("hidden");
+        $("#ingresarViaje").removeClass("hidden");
+        $("#clientes").removeClass("hidden");
     }
     var userName = $("#userName").data('value');
     if (userName !== "") {
@@ -24,4 +27,5 @@ $(document).ready(function () {
 
        
     }
+    
 });

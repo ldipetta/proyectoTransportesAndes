@@ -13,7 +13,6 @@ namespace ProyectoTransportesAndes.Models
     {
         [BsonId]
         public ObjectId Id { get; set; }
-        public string Numero { get; set; }
         [Display(Name ="Calificación")]
         public double Calificacion { get; set; }
         [Display(Name ="Matricula")]
@@ -30,6 +29,7 @@ namespace ProyectoTransportesAndes.Models
         [DataType(DataType.Date)]
         public DateTime VencimientoPermisoPortuario { get; set; }
         [Display(Name ="Tarifa")]
+        [DisplayFormat(DataFormatString = "{0:d}")]
         [DataType(DataType.Currency)]
         public int Tarifa { get; set; }
         [Display(Name ="Vencimiento seguro")]

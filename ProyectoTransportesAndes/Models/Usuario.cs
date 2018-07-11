@@ -19,12 +19,13 @@ namespace ProyectoTransportesAndes.Models
     {
         [BsonId]
         public ObjectId Id { get; set; }
+        [Display(Name ="Usuario")]
         public string User { get; set; }
         [DataType(DataType.Password)]
         public string Password { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
-        [EmailAddress]
+        [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
         public string Documento { get; set; }
         [DataType(DataType.PhoneNumber)]

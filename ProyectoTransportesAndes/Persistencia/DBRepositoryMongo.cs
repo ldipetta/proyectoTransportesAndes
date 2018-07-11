@@ -29,10 +29,6 @@ namespace ProyectoTransportesAndes.Persistencia
                 if (_database != null)
                 {
                     CrearColecciones(_database);
-                    //if (_database.GetCollection<PruebaMongo>("Prueba") == null)
-                    //{
-                    //    _database.CreateCollection("Prueba");
-                    //}
                 }
             }
         }
