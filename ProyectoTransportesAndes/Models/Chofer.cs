@@ -18,8 +18,13 @@ namespace ProyectoTransportesAndes.Models
         [Display(Name ="Foto")]
         [DataType(DataType.ImageUrl)]
         public string Foto { get; set; }
+        public bool Disponible { get; set; }
+       public string Leyenda { get; set; }
+     
 
-        public Chofer() : base() { }
+        public Chofer() : base()
+        {
+        }
         public Chofer(string usuario, string pass, string nombre, string apellido, string email, string documento, string telefono, string direccion, string fNacimiento, string numero, string vtoCarneSalud, string categoriaLibreta, string fVtoLibreta, string foto) : base()
         {
             User = usuario;
@@ -39,5 +44,6 @@ namespace ProyectoTransportesAndes.Models
             Foto = foto;
             Tipo = "Chofer";
         }
+       
     }
 }

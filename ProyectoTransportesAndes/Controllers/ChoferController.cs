@@ -82,10 +82,12 @@ namespace ProyectoTransportesAndes.Controllers
                             Chofer nuevo = new Chofer();
                             nuevo = model.Chofer;
                             nuevo.Tipo = "Chofer";
+                            nuevo.Disponible = true;
                             LibretaDeConducir libreta = new LibretaDeConducir();
                             libreta.FVencimiento = model.Libreta.FVencimiento;
                             libreta.Categoria = model.Libreta.Categoria;
                             nuevo.LibretaDeConducir = libreta;
+                            nuevo.Leyenda = model.Chofer.Numero + " - " + model.Chofer.Nombre + " " + model.Chofer.Apellido;
                             await DBRepositoryMongo<Chofer>.Create(nuevo, coleccion);
                             return RedirectToAction("Index", "Chofer");
                         }

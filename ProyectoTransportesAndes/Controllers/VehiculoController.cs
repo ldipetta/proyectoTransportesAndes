@@ -9,6 +9,7 @@ using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
+using ProyectoTransportesAndes.ViewModels;
 
 namespace ProyectoTransportesAndes.Controllers
 {
@@ -16,22 +17,22 @@ namespace ProyectoTransportesAndes.Controllers
     [Route("api/Vehiculo")]
     public class VehiculoController : Controller
     {
-        private string coleccion = "Vehiculos";
         private IOptions<AppSettingsMongo> _settings;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        private ControladoraVehiculos _controladoraVehiculos;
         public VehiculoController(IOptions<AppSettingsMongo> settings,IHttpContextAccessor httpContextAccessor)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _httpContext = httpContextAccessor;
             _settings = settings;
-            DBRepositoryMongo<Vehiculo>.Iniciar(_settings);
+            _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
         }
 
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
-        public async Task<ActionResult> IndexAsync()
+        public async Task<IActionResult> IndexAsync()
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -39,8 +40,8 @@ namespace ProyectoTransportesAndes.Controllers
                 var rol = Usuario.validarToken(token);
                 if (rol == "Administrador" || rol=="Administrativo")
                 {
-                    var items = await DBRepositoryMongo<Vehiculo>.GetItemsAsync(coleccion);
-                    return View(items);
+                    var vehiculos = await _controladoraVehiculos.getVehiculos();
+                    return View(vehiculos);
                 }
                 else
                 {
@@ -64,7 +65,8 @@ namespace ProyectoTransportesAndes.Controllers
                 var rol = Usuario.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
-                    return View();
+                    ViewModelVehiculo model = new ViewModelVehiculo(_settings);
+                    return View(model);
                 }
                 else
                 {
@@ -81,7 +83,7 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Nuevo")]
         [ActionName("Nuevo")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> NuevoAsync(Vehiculo vehiculo)
+        public async Task<IActionResult> NuevoAsync(ViewModelVehiculo model)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -91,12 +93,18 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        await DBRepositoryMongo<Vehiculo>.Create(vehiculo, coleccion);
+                        Vehiculo nuevo = model.Vehiculo;
+                        Chofer chofer = await _controladoraVehiculos.getChofer(model.ChoferSeleccionado);
+                        chofer.Disponible = false;
+                        nuevo.Chofer = chofer;
+                        nuevo.Disponible = true;
+                        nuevo.Unidades = _controladoraVehiculos.calcularUnidades(nuevo.Largo,nuevo.Ancho,nuevo.Alto);
+                        await _controladoraVehiculos.nuevoVehiculo(nuevo);
                         return RedirectToAction("Index");
                     }
                     else
                     {
-                        return View(vehiculo);
+                        return View(model.Vehiculo);
                     }
                 }
                 else
@@ -126,7 +134,7 @@ namespace ProyectoTransportesAndes.Controllers
                         {
                             return BadRequest();
                         }
-                        Vehiculo item = await DBRepositoryMongo<Vehiculo>.GetItemAsync(id, coleccion);
+                        Vehiculo item = await _controladoraVehiculos.getVehiculo(id);
                         if (item == null)
                         {
                             return NotFound();
@@ -159,8 +167,7 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        vehiculo.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Vehiculo>.UpdateAsync(vehiculo.Id, vehiculo, coleccion);
+                       await _controladoraVehiculos.editarVehiculo(vehiculo, id);
                         return RedirectToAction("Index");
                     }
                     return View(vehiculo);
@@ -180,7 +187,7 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
-        public async Task<ActionResult> DeleteAsync(string id)
+        public async Task<IActionResult> DeleteAsync(string id)
         {
             var token = _session.GetString("Token");
             if (token != null)
@@ -192,7 +199,7 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         return BadRequest();
                     }
-                    Vehiculo item = await DBRepositoryMongo<Vehiculo>.GetItemAsync(id, coleccion);
+                    var item = await _controladoraVehiculos.getVehiculo(id);
                     if (item == null)
                     {
                         return NotFound();
@@ -224,8 +231,8 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        vehiculo.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Vehiculo>.DeleteAsync(vehiculo.Id, coleccion);
+                        
+                        await _controladoraVehiculos.eliminarVehiculo(vehiculo, id);
                         return RedirectToAction("Index");
                     }
                     return View(vehiculo);

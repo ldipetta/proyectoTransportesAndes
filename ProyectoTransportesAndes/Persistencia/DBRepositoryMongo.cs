@@ -15,7 +15,7 @@ namespace ProyectoTransportesAndes.Persistencia
     {
         private static IOptions<AppSettingsMongo> _settings;
         private static IMongoDatabase _database = null;
-        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones"};
+        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones","ViajesPendientes"};
         private static MongoClient _client;
 
         public static void Iniciar(IOptions<AppSettingsMongo>settings)
@@ -106,16 +106,13 @@ namespace ProyectoTransportesAndes.Persistencia
                 throw ex;
             }
         }
-        public static async Task<T> Login(string user,string pass)
+        public static async Task<T> Login(string user,string pass,string coleccion)
         {
             var filterBuilder = Builders<T>.Filter;
              var filter = Builders<T>.Filter.Eq("User", user);
-            //var filter = filterBuilder.Eq("User", user) & filterBuilder.Eq("Password", pass);
-           
-
             try
             {
-                return await _database.GetCollection<T>("Usuarios")
+                return await _database.GetCollection<T>(coleccion)
                                 .Find(filter)
                                 .FirstOrDefaultAsync();
 
@@ -159,6 +156,8 @@ namespace ProyectoTransportesAndes.Persistencia
                 throw ex;
             }
         }
+       
+        
 
     }
 }

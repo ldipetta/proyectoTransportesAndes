@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace ProyectoTransportesAndes.ControllersAPI
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        private ControladoraViajes _controladoraViajes;
+        private ControladoraVehiculos _controladoraVehiculos;
 
         public APIController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
@@ -28,7 +31,8 @@ namespace ProyectoTransportesAndes.ControllersAPI
             _configuration = configuration;
             _httpContext = httpContextAccessor;
             _settings = settings;
-
+            _controladoraViajes=ControladoraViajes.getInstancia(_settings);
+            _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
             DBRepositoryMongo<Usuario>.Iniciar(_settings);
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Chofer>.Iniciar(_settings);
@@ -42,10 +46,26 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public async Task<JsonResult> LoginAPP(string usuario, string pass)
         {
             Usuario user = null;
+            Cliente cliente = null;
             if (ModelState.IsValid)
             {
-                user = await DBRepositoryMongo<Usuario>.Login(usuario, pass);
-                if (user != null)
+                user = await DBRepositoryMongo<Usuario>.Login(usuario, pass,"Cliente");
+                if (user == null)
+                {
+                    cliente = await DBRepositoryMongo<Cliente>.Login(usuario, pass, "Clientes");
+                    if (cliente != null)
+                    {
+                        _session.SetString("Token", Usuario.BuildToken(cliente/*, _configuration*/));
+                        _session.SetString("User", usuario);
+                        return Json(cliente);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid login attempt");
+                        return Json(user);
+                    }
+                }
+                else
                 {
                     if (user.Password == pass)
                     {
@@ -57,11 +77,6 @@ namespace ProyectoTransportesAndes.ControllersAPI
                     {
                         return Json(user);
                     }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                    return Json(user);
                 }
             }
             else
@@ -106,5 +121,26 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 return Json(null);
             }
         }
+        //La idea es que todos los dispositivos devuelvan su ubicacion. Observer?
+        [Route("UbicacionVehiculo")]
+        public JsonResult CoordenadasVehiculos(string idVehiculo,string latitud, string longitud)
+        {
+           return Json(_controladoraVehiculos.guardarUbicacionVehiculo(idVehiculo, latitud, longitud));
+        }
+        [HttpGet]
+        [Route("CoordenadasClienteWeb")]
+        public JsonResult CoordenadasClienteWeb(string latitud, string longitud)
+        {
+            string idCliente = _session.GetString("UserId");
+            return Json(_controladoraViajes.guardarUbicacionCliente(idCliente,latitud, longitud));
+        }
+        [HttpGet]
+        [Route("CoordenadasCliente")]
+        public JsonResult CoordenadasCliente(string idCliente,string latitud, string longitud)
+        {
+            return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
+        }
+
+
     }
 }

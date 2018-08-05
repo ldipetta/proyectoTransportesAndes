@@ -34,7 +34,7 @@ namespace ProyectoTransportesAndes.Controllers
             _configuration = configuration;
             _httpContext = httpContextAccessor;
             _settings = settings;
-
+            DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Usuario>.Iniciar(_settings);
         }
 
@@ -136,25 +136,47 @@ namespace ProyectoTransportesAndes.Controllers
         {
             if (ModelState.IsValid)
             {
-                Usuario user =await DBRepositoryMongo<Usuario>.Login(model.User, model.Password);
-                if (user != null)
+                Usuario user =await DBRepositoryMongo<Usuario>.Login(model.User, model.Password,"Usuarios");
+                if (user == null)
+                {
+                    Cliente cliente = await DBRepositoryMongo<Cliente>.Login(model.User, model.Password, "Clientes");
+                    if (cliente != null)
+                    {
+                        if (cliente.Password == model.Password)
+                        {
+                            _session.SetString("Token", Usuario.BuildToken(cliente/*, _configuration*/));
+                            _session.SetString("UserTipo", cliente.Tipo);
+                            _session.SetString("UserName", cliente.Nombre);
+                            _session.SetString("UserId", cliente.Id.ToString());
+                            _session.SetString("Session", "si");
+                         
+                            return RedirectToAction("Index", "Home");
+                        }
+                        else
+                        {
+                            return BadRequest("Contraseña incorrecta");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid login attempt");
+                        return BadRequest(ModelState);
+                    }
+                }
+                else
                 {
                     if (user.Password == model.Password)
                     {
                         _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
-                        _session.SetString("User", user.Tipo);
+                        _session.SetString("UserTipo", user.Tipo);
                         _session.SetString("UserName", user.Nombre);
+                        _session.SetString("UserId", user.Id.ToString());
                         return RedirectToAction("Index", "Home");
                     }
                     else
                     {
                         return BadRequest("Contraseña incorrecta");
                     }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                    return BadRequest(ModelState);
                 }
             }
             else
@@ -169,9 +191,6 @@ namespace ProyectoTransportesAndes.Controllers
             var session = _session.GetString("Token");
             if (session != null)
             {
-                //_session.SetString("Token", null);
-                //_session.SetString("User", null);
-                //_session.SetString("UserName", null);
                 _session.Clear();
             }
             return RedirectToAction("Index", "Home");

@@ -1,0 +1,119 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViaje;
+
+@{
+    ViewData["Title"] = "ResumenViaje";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@*<style>
+    #map {
+        height: 500px;
+        background-color: red;
+        margin-bottom: 50px;
+    }
+</style>
+<script>
+    var map, infoWindow;
+    var latitud,longitud;
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: -34.397, lng: 150.644 },
+            zoom: 16
+        });
+        infoWindow = new google.maps.InfoWindow;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                latitud = position.coords.latitude;
+                longitud = position.coords.longitude;
+                infoWindow.setPosition(pos);
+                infoWindow.setContent('Poner direccion usuario.');
+                infoWindow.open(map);
+                map.setCenter(pos);
+            }, function () {
+                handleLocationError(true, infoWindow, map.getCenter());
+            });
+        } else {
+            handleLocationError(false, infoWindow, map.getCenter());
+        }
+
+        function addMarker(latitud,longitud,matricula,marca,modelo) {
+            var coordenadas = { lat: latitud, lng: longitud };
+            var marker = new google.maps.Marker({ position: coordenadas, map: map });
+            infoWindowMarker = new google.maps.InfoWindow;
+            var pos = {lat: latitud,lng: longitud};
+            infoWindowMarker.setPosition(pos);
+            var contentString = '<div><p>' + matricula + '</p><p>'+marca+" "+modelo+'</p></div>';
+            infoWindowMarker.setContent(contentString);
+            google.maps.event.addListener(marker, 'click', function () {
+                infoWindowMarker.open(map, marker);
+            });
+        }
+        @foreach (var item in Model.Vehiculos)
+        {
+            @:addMarker(@item.PosicionSatelital.Latitud,@item.PosicionSatelital.Longitud,"Matricula","Marca","Modelo");
+        }
+
+    }
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+            'Error: The Geolocation service failed.' :
+            'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap">
+</script>*@
+
+<h4>ResumenViaje</h4>
+
+<div>
+    <div class="col-lg-4">
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.Viaje.Fecha)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.Viaje.Fecha.Date)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.HoraInicio)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.HoraInicio)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.HoraEstimadaLlegada)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.HoraEstimadaLlegada)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.Viaje.Comentarios)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.Viaje.Comentarios)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.PrecioEstimado)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.PrecioEstimado)
+            </dd>
+        </dl>
+    </div>
+    <div class="col-lg-8">
+        @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml",Model.Viaje);
+    </div>
+
+
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-action="Index">Back to List</a>
+</div>

@@ -11,6 +11,7 @@
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
         <link href="~/css/Estilos.css" rel="stylesheet" />
+        <link href="~/js/map.js" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -33,8 +34,8 @@
                 </button>
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Transportes Andes</a>
             </div>
-            <div class="navbar-collapse collapse" id="contenedorCabecera" data-value="@HttpContextAccessor.HttpContext.Session.GetString("User").ToString()">
-                <ul class="nav navbar-nav" id="menuComun">
+            <div class="navbar-collapse collapse" id="contenedorCabecera" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserTipo").ToString()">
+                <ul class="nav navbar-nav" id="menuComun" data-value="@HttpContextAccessor.HttpContext.Session.GetString("Session")">
                     <li id="about"><a asp-area="" asp-controller="Home" asp-action="About">Nuestra empresa</a></li>
                     <li id="contact"><a asp-area="" asp-controller="Home" asp-action="Contact">Contactenos</a></li>
                     <li class="hidden" id="vehiculos"><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
@@ -48,7 +49,13 @@
                     </li>
                     <li id="ingresarViaje" class="hidden"><a asp-area='' asp-controller='Viaje' asp-action='Index'>Viajes</a></li>
                     <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
-                    <li id="solicitarViaje"><a asp-area="" asp-controller="" asp-action="">Solicitar viaje</a></li>
+                    <li id="solicitarViaje"><a asp-area="" asp-controller="Viaje" asp-action="SolicitarViaje">Solicitar viaje</a></li>
+                    <li class='dropdown' id="misViajes">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='MisViajes'>Mis viajes</a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav" style="float:right">
                     <li id="userName" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserName").ToString()"></li>
