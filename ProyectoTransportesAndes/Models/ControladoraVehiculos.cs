@@ -257,7 +257,7 @@ namespace ProyectoTransportesAndes.Models
         }
         public void datos()
         {
-            PosicionSatelital hard = new PosicionSatelital("5b60ad9ab73c94313c6c7552", "-34.890875", "-56.137279");
+            PosicionSatelital hard = new PosicionSatelital("5b60ad9ab73c94313c6c7552", "-34.895249", "-56.126989");
             _ubicacionVehiculos["5b60ad9ab73c94313c6c7552"] = hard;
         }
     }

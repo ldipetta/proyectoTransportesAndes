@@ -54,6 +54,32 @@
                 infoWindow.setContent("poner direccion actual segun ubicacion");
                 infoWindow.open(map);
                 map.setCenter(pos);
+                 var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
+        var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
+        var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+
+        var objConfigDR = {
+            map: map
+        }
+        var objConfigDS = {
+            origin: latLongVehiculo,
+            destination: pos,
+            travelMode: google.maps.TravelMode.DRIVING
+        }
+         var ds =  new google.maps.DirectionsService();
+         var dr = new google.maps.DirectionsRenderer(objConfigDR);
+
+        ds.route(objConfigDS, rutear);
+
+        function rutear(resultados, status) {
+            if (status == 'OK') {
+                dr.setDirections(resultados);
+            } else {
+                alert('Error' + status);
+
+            }
+
+        }
             }, function () {
                 handleLocationError(true, infoWindow, map.getCenter());
             });
@@ -73,8 +99,8 @@
                 infoWindowMarker.open(map, marker);
             });
         }
+        addMarker(@Model.Vehiculo.PosicionSatelital.Latitud,@Model.Vehiculo.PosicionSatelital.Longitud, "@Model.Vehiculo.Matricula", "@Model.Vehiculo.Marca", "@Model.Vehiculo.Modelo", "@Model.Vehiculo.Chofer.Nombre" + " " + "@Model.Vehiculo.Chofer.Apellido");
 
-           addMarker(@Model.Vehiculo.PosicionSatelital.Latitud,@Model.Vehiculo.PosicionSatelital.Longitud, "@Model.Vehiculo.Matricula", "@Model.Vehiculo.Marca", "@Model.Vehiculo.Modelo","@Model.Vehiculo.Chofer.Nombre"+" "+"@Model.Vehiculo.Chofer.Apellido");
 
 
     }
