@@ -23,7 +23,7 @@
                 </div>
             </fieldset>
             <fieldset>
-                <legend>Datos personales</legend>
+                <legend>Datos empresariales</legend>
                 <div class="form-group">
                     <label asp-for="Cliente.RazonSocial" class="control-label"></label>
                     <input asp-for="Cliente.RazonSocial" class="form-control" />
@@ -34,6 +34,9 @@
                     <input asp-for="Cliente.Rut" class="form-control" />
                     <span asp-validation-for="Cliente.Rut" class="text-danger"></span>
                 </div>
+            </fieldset>
+            <fieldset>
+                <legend>Datos personales</legend>
                 <div class="form-group">
                     <label asp-for="Cliente.Nombre" class="control-label"></label>
                     <input asp-for="Cliente.Nombre" class="form-control" />

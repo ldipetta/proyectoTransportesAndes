@@ -24,7 +24,10 @@ namespace ProyectoTransportesAndes.ViewModels
         public double PrecioEstimado { get; set; }
         //public TimeSpan HoraEstimadaLlegada { get; set; }
         public string HoraInicio { get; set; }
-        public string HoraEstimadaLlegada { get; set; }
+        public string HoraEstimadaLlegadaHastaCliente { get; set; }
+        public string HoraEstimadaFinalizacionViaje { get; set; }
+        public bool ViajeMarcado { get; set; }
+        public string DireccionDestino { get; set; }
 
         public ViewModelViaje()
         {

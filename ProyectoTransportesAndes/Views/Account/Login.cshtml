@@ -1,46 +1,38 @@
 ﻿
-@model ProyectoTransportesAndes.Models.Usuario
+@model ProyectoTransportesAndes.ViewModels.ViewModelLogin
 @{
     ViewData["Title"] = "Ingreso";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<div>
-    @using (Html.BeginForm())
+<hr />
+@using (Html.BeginForm())
 {
-    @Html.AntiForgeryToken()
-
-    <div class="form-horizontal">
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.User, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-3">
-                @Html.EditorFor(model => model.User, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.User, "", new { @class = "text-danger" })
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="form-horizontal col-lg-3 col-lg-offset-4">
+            <div class="form-group">
+                @Html.EditorFor(model => model.Usuario, new { htmlAttributes = new { @class = "form-control", placeholder = "Usuario" } })
+                @Html.ValidationMessageFor(model => model.Usuario, "", new { @class = "text-danger" })
             </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-3">
-                @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control" } })
+            <div class="form-group">
+                @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control", placeholder = "Contraseña" } })
                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
             </div>
         </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-3 col-md-10">
-                <input type="submit" value="Entrar" class="btn btn-info" />
-            </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-3 col-lg-offset-4">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-1 col-lg-push-5">
+            <input type="submit" value="Entrar" class="btn btn-info" />
         </div>
     </div>
 }
-
-
-</div>
-
-<div>
-    @Html.ActionLink("No se encuentra registrado? Registrese!", "NuevoCliente", "Account")
+<div class="row">
+    <div class="col-lg-offset-4" style="margin-top:20px;">
+        @Html.ActionLink("No se encuentra registrado? Registrese!", "NuevoCliente", "Account")
+    </div>
 </div>

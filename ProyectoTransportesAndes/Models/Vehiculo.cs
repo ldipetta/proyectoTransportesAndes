@@ -16,18 +16,25 @@ namespace ProyectoTransportesAndes.Models
         [Display(Name ="Calificación")]
         public double Calificacion { get; set; }
         [Display(Name ="Matricula")]
+        [Required(ErrorMessage ="Debe ingresar la matricula")]
         public string Matricula { get; set; }
+        [Required(ErrorMessage ="Debe ingresar la marca")]
         [Display(Name ="Marca")]
         public string Marca { get; set; }
         [Display(Name ="Modelo")]
+        [Required(ErrorMessage ="Debe ingresar el modelo")]
         public string Modelo { get; set; }
-
-        [Display(Name ="Largo")]
+        [Required(ErrorMessage ="Debe ingresar el largo")]
+        [Display(Name ="Largo(cm)")]
         public double Largo { get; set; }
+        [Required(ErrorMessage ="Debe ingresar el ancho")]
+        [Display(Name = "Ancho(cm)")]
         public double Ancho { get; set; }
+        [Required(ErrorMessage ="Debe ingresar el alto")]
+        [Display(Name = "Alto(cm)")]
         public double Alto { get; set; }
-
         [Display(Name ="Capacidad carga (Kg)")]
+        [Required(ErrorMessage ="Debe ingresar la capacidad de carga")]
         public double CapacidadCargaKg { get; set; }
         [Display(Name ="Vencimiento permiso portuario")]
         [DataType(DataType.Date)]
@@ -35,13 +42,17 @@ namespace ProyectoTransportesAndes.Models
         [Display(Name ="Tarifa")]
         [DisplayFormat(DataFormatString = "{0:d}")]
         [DataType(DataType.Currency)]
+        [Required(ErrorMessage = "Debe ingresar la tarifa")]
         public int Tarifa { get; set; }
         [Display(Name ="Vencimiento seguro")]
         [DataType(DataType.Date)]
+       [Required(ErrorMessage ="Debe ingresar el vencimiento del seguro")]
         public DateTime VencimientoSeguro { get; set; }
         [Display(Name ="Empresa aseguradora")]
+        [Required(ErrorMessage ="Debe ingresar la empresa aseguradora")]
         public string EmpresaAseguradora { get; set; }
         [Display(Name ="Cantidad pasajeros")]
+        [Required(ErrorMessage ="Debe ingresar la cantidad de pasajeros")]
         public int CantidadPasajeros { get; set; }
         //estos items son las cosas que carga el vehiculo, por defecto debe estar vacio
         public List<Item> Items { get; set; }

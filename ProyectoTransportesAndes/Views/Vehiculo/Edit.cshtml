@@ -6,6 +6,9 @@
 }
 
 <h3>Modificar vehiculo</h3>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -37,16 +40,6 @@
                 <span asp-validation-for="Modelo" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Unidades" class="control-label"></label>
-                <input asp-for="Unidades" class="form-control" />
-                <span asp-validation-for="Unidades" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CapacidadCargaKg" class="control-label"></label>
-                <input asp-for="CapacidadCargaKg" class="form-control" />
-                <span asp-validation-for="CapacidadCargaKg" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="VencimientoPermisoPortuario" class="control-label"></label>
                 <input asp-for="VencimientoPermisoPortuario" class="form-control" />
                 <span asp-validation-for="VencimientoPermisoPortuario" class="text-danger"></span>
@@ -72,15 +65,33 @@
                 <span asp-validation-for="CantidadPasajeros" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-info btn-block" />
+                <label asp-for="Largo" class="control-label"></label>
+                <input asp-for="Largo" class="form-control" />
+                <span asp-validation-for="Largo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Ancho" class="control-label"></label>
+                <input asp-for="Ancho" class="form-control" />
+                <span asp-validation-for="Ancho" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Alto" class="control-label"></label>
+                <input asp-for="Alto" class="form-control" />
+                <span asp-validation-for="Alto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CapacidadCargaKg" class="control-label"></label>
+                <input asp-for="CapacidadCargaKg" class="form-control" />
+                <span asp-validation-for="CapacidadCargaKg" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Modificar" class="btn btn-info btn-block" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

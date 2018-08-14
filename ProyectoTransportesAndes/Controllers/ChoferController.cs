@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
+using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
 using ProyectoTransportesAndes.ViewModels;
@@ -18,42 +19,54 @@ namespace ProyectoTransportesAndes.Controllers
     [Route("api/Chofer")]
     public class ChoferController : Controller
     {
-        private string coleccion = "Choferes";
+        #region Atributos
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        private ControladoraUsuarios _controladoraUsuarios;
+        #endregion
 
+        #region Constructores
         public ChoferController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _configuration = configuration;
             _httpContext = httpContextAccessor;
             _settings = settings;
-
-            DBRepositoryMongo<Chofer>.Iniciar(_settings);
+            _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
         }
+        #endregion
+
+        #region Acciones
 
         [HttpGet]
         [Route("Index")]
-        public async Task<IActionResult> Index() {
-            var token = _session.GetString("Token");
-            if (token != null)
+        public async Task<IActionResult> Index()
+        {
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    var items = await DBRepositoryMongo<Chofer>.GetItemsAsync(coleccion);
+                    var items = await _controladoraUsuarios.getChoferes();
                     return View(items);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
@@ -61,124 +74,141 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Create")]
         public IActionResult Create()
         {
-            return View();
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    return View();
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
+            }
+
         }
 
         [HttpPost]
         [Route("Create")]
-        public async Task<ActionResult> Create(ViewModelChofer model)
+        public async Task<IActionResult> Create(ViewModelChofer model)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(model.Chofer.User, coleccion);
-                        if (chofer == null)
+                        Chofer chofer = await _controladoraUsuarios.CrearChofer(model.Chofer, model.Libreta);
+                        if (chofer != null)
                         {
-                            Chofer nuevo = new Chofer();
-                            nuevo = model.Chofer;
-                            nuevo.Tipo = "Chofer";
-                            nuevo.Disponible = true;
-                            LibretaDeConducir libreta = new LibretaDeConducir();
-                            libreta.FVencimiento = model.Libreta.FVencimiento;
-                            libreta.Categoria = model.Libreta.Categoria;
-                            nuevo.LibretaDeConducir = libreta;
-                            nuevo.Leyenda = model.Chofer.Numero + " - " + model.Chofer.Nombre + " " + model.Chofer.Apellido;
-                            await DBRepositoryMongo<Chofer>.Create(nuevo, coleccion);
                             return RedirectToAction("Index", "Chofer");
                         }
-                        else
-                        {
-                            return BadRequest("El usuario ya existe");
-                        }
+                        return View(model);
                     }
                     else
                     {
-                        return BadRequest(ModelState);
+                        return View(model);
                     }
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
-        public async Task<ActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
+                    Chofer chofer = await _controladoraUsuarios.getChofer(id);
+                    if (chofer == null)
                     {
-                        return BadRequest();
-                    }
-                    Chofer item = await DBRepositoryMongo<Chofer>.GetItemAsync(id, coleccion);
-                    if (item == null)
-                    {
-                        return NotFound();
+                        ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                        return RedirectToAction("Index");
                     }
                     ViewModelChofer editar = new ViewModelChofer();
-                    editar.Chofer = item;
-                    editar.Libreta = item.LibretaDeConducir;
-                    editar.Id = item.Id.ToString();
+                    editar.Chofer = chofer;
+                    editar.Libreta = chofer.LibretaDeConducir;
+                    editar.Id = chofer.Id.ToString();
                     return View(editar);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
             }
-
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
+            }
         }
 
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(string id, ViewModelChofer model)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-                        model.Chofer.Id = new ObjectId(id);
-                        model.Chofer.LibretaDeConducir = model.Libreta;
-                        await DBRepositoryMongo<Chofer>.UpdateAsync(model.Chofer.Id, model.Chofer, coleccion);
-                        return RedirectToAction("Index");
-                    }
-                    return View(model.Chofer);
+                    await _controladoraUsuarios.ModificarChofer(model.Chofer, model.Id);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
 
         }
@@ -188,31 +218,29 @@ namespace ProyectoTransportesAndes.Controllers
         [ActionName("Delete")]
         public async Task<ActionResult> Delete(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
-                    {
-                        return BadRequest();
-                    }
-                    Chofer item = await DBRepositoryMongo<Chofer>.GetItemAsync(id, coleccion);
-                    if (item == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(item);
+                    Chofer chofer = await _controladoraUsuarios.getChofer(id);
+                    return View(chofer);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
@@ -222,31 +250,37 @@ namespace ProyectoTransportesAndes.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(string id, Chofer chofer)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        chofer.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Chofer>.DeleteAsync(chofer.Id, coleccion);
+
+                        await _controladoraUsuarios.EliminarChofer(chofer, id);
                         return RedirectToAction("Index");
                     }
                     return View(chofer);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
-
+        #endregion
     }
 }

@@ -7,6 +7,7 @@
 
 
 <h4>Eliminar vehiculo</h4>
+<a asp-action="Index">Volver a la lista</a>
 <div>
     <hr />
     <dl class="dl-horizontal">
@@ -54,10 +55,9 @@
             @Html.DisplayFor(model => model.CantidadPasajeros)
         </dd>
     </dl>
-    
+
     <form asp-action="Delete">
         <input asp-for="Id" class="form-control hidden" />
-        <input type="submit" value="Eliminar" class="btn btn-info" /> |
-        <a asp-action="Index">Back to List</a>
+        <input type="submit" value="Eliminar" class="btn btn-info" />
     </form>
 </div>

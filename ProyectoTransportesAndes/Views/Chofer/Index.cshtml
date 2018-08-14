@@ -49,9 +49,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.VencimientoCarneDeSalud)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tipo)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -95,11 +92,8 @@
                 @Html.DisplayFor(modelItem => item.VencimientoCarneDeSalud)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Tipo)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                @Html.ActionLink("Modificar", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Eliminar", "Delete", new { id = item.Id })
             </td>
         </tr>
 }

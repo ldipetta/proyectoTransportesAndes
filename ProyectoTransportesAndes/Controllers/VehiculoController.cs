@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
+using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
 using ProyectoTransportesAndes.ViewModels;
@@ -17,40 +18,53 @@ namespace ProyectoTransportesAndes.Controllers
     [Route("api/Vehiculo")]
     public class VehiculoController : Controller
     {
+        #region Atributos
         private IOptions<AppSettingsMongo> _settings;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
         private ControladoraVehiculos _controladoraVehiculos;
-        public VehiculoController(IOptions<AppSettingsMongo> settings,IHttpContextAccessor httpContextAccessor)
+        #endregion
+
+        #region Constructores
+        public VehiculoController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _httpContext = httpContextAccessor;
             _settings = settings;
             _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
         }
+        #endregion
+
+        #region Acciones
 
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
         public async Task<IActionResult> IndexAsync()
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol=="Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     var vehiculos = await _controladoraVehiculos.getVehiculos();
                     return View(vehiculos);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
@@ -59,23 +73,29 @@ namespace ProyectoTransportesAndes.Controllers
         [ActionName("Nuevo")]
         public IActionResult Nuevo()
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     ViewModelVehiculo model = new ViewModelVehiculo(_settings);
                     return View(model);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
@@ -85,21 +105,14 @@ namespace ProyectoTransportesAndes.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> NuevoAsync(ViewModelVehiculo model)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        Vehiculo nuevo = model.Vehiculo;
-                        Chofer chofer = await _controladoraVehiculos.getChofer(model.ChoferSeleccionado);
-                        chofer.Disponible = false;
-                        nuevo.Chofer = chofer;
-                        nuevo.Disponible = true;
-                        nuevo.Unidades = _controladoraVehiculos.calcularUnidades(nuevo.Largo,nuevo.Ancho,nuevo.Alto);
-                        await _controladoraVehiculos.nuevoVehiculo(nuevo);
+                        await _controladoraVehiculos.nuevoVehiculo(model.Vehiculo, model.ChoferSeleccionado);
                         return RedirectToAction("Index");
                     }
                     else
@@ -109,79 +122,87 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
             }
-           
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
+            }
         }
 
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
-        public async Task<ActionResult> EditAsync(string id)
+        public async Task<IActionResult> EditAsync(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                        if (id == null)
-                        {
-                            return BadRequest();
-                        }
-                        Vehiculo item = await _controladoraVehiculos.getVehiculo(id);
-                        if (item == null)
-                        {
-                            return NotFound();
-                        }
-                        return View(item);
+                    Vehiculo vehiculo = await _controladoraVehiculos.getVehiculo(id);
+                    return View(vehiculo);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
             }
-           
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
+            }
         }
 
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditAsync(string id, Vehiculo vehiculo)
+        public async Task<IActionResult> EditAsync(string id, Vehiculo vehiculo)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                       await _controladoraVehiculos.editarVehiculo(vehiculo, id);
-                        return RedirectToAction("Index");
+                        await _controladoraVehiculos.editarVehiculo(vehiculo, id);
+                        return RedirectToAction("Index","Account");
                     }
                     return View(vehiculo);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
             }
-            
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
+            }
         }
 
         [HttpGet]
@@ -189,63 +210,63 @@ namespace ProyectoTransportesAndes.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
-                    {
-                        return BadRequest();
-                    }
-                    var item = await _controladoraVehiculos.getVehiculo(id);
-                    if (item == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(item);
+                    var vehiculo = await _controladoraVehiculos.getVehiculo(id);
+                    return View(vehiculo);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
 
         [HttpPost]
         [Route("Delete")]
         [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteAsync(string id, Vehiculo vehiculo)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-                        
-                        await _controladoraVehiculos.eliminarVehiculo(vehiculo, id);
-                        return RedirectToAction("Index");
-                    }
-                    return View(vehiculo);
+                    await _controladoraVehiculos.eliminarVehiculo(id, vehiculo);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login","Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View();
             }
         }
+
+        #endregion
     }
 }

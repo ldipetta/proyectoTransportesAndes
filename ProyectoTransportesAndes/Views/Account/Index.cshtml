@@ -10,14 +10,12 @@
 <p>
     <a asp-action="Create">Ingresar usuario</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
                 <th>
                     @Html.DisplayNameFor(model => model.User)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Password)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Nombre)
@@ -48,9 +46,6 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.User)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Password)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Nombre)

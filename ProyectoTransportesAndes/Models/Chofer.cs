@@ -10,16 +10,21 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Chofer:Usuario
     {
+
         public string Numero { get; set; }
-        [Display(Name ="Vencimiento carne de salud")]
+        [Display(Name ="Vencimiento carnet de salud")]
         [DataType(DataType.Date)]
+        [Required(ErrorMessage ="El vencimiento del carnet de salud no puede ser vacío")]
         public DateTime VencimientoCarneDeSalud { get; set; }
+        [Required(ErrorMessage ="Debe ingresar la libreta de conducir")]
+        [Display(Name ="Libreta de conducir")]
         public LibretaDeConducir LibretaDeConducir { get; set; }
         [Display(Name ="Foto")]
         [DataType(DataType.ImageUrl)]
+        [Required(ErrorMessage ="Debe ingresar la foto del chofer")]
         public string Foto { get; set; }
         public bool Disponible { get; set; }
-       public string Leyenda { get; set; }
+        public string Leyenda { get; set; }
      
 
         public Chofer() : base()

@@ -6,36 +6,54 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ProyectoTransportesAndes.Models;
 using Microsoft.AspNetCore.Http;
+using ProyectoTransportesAndes.Exceptions;
 
 namespace ProyectoTransportesAndes.Controllers
 {
     public class HomeController : Controller
     {
+        #region Atributos
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        #endregion
 
+        #region Constructores
         public HomeController( IHttpContextAccessor httpContextAccessor)
         {
             _session = httpContextAccessor.HttpContext.Session;
             _httpContext = httpContextAccessor;
         }
+        #endregion
+
+        #region Acciones
         [HttpGet]
         [ActionName("Index")]
         public IActionResult Index()
         {
-            if (_session.GetString("UserTipo") == null)
+            try
             {
-                _session.SetString("UserTipo", "Cliente");
-                _session.SetString("UserName", "");
-                _session.SetString("Session", "no");
+                if (_session.GetString("UserTipo") == null)
+                {
+                    _session.SetString("UserTipo", "Cliente");
+                    _session.SetString("UserName", "");
+                    _session.SetString("Session", "no");
+                    return View();
+                }
+                else
+                {
+                    return View();
+                }
+            }catch(MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
                 return View();
             }
-            else
+            catch (Exception)
             {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado");
                 return View();
             }
-            
-            
+           
         }
 
         public IActionResult About()
@@ -56,6 +74,6 @@ namespace ProyectoTransportesAndes.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        
+        #endregion
     }
 }

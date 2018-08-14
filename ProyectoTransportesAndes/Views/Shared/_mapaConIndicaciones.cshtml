@@ -35,7 +35,8 @@
 </script>
 <script>
     var map, infoWindow;
-    var latitud,longitud;
+    var latitud, longitud;
+    var direccionDestino = "@Model.DireccionDestino";
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: -34.9033926, lng: -56.1637164 },
@@ -54,56 +55,82 @@
                 infoWindow.setContent("poner direccion actual segun ubicacion");
                 infoWindow.open(map);
                 map.setCenter(pos);
-                 var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
-        var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
-        var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+                if (direccionDestino != null) {
+                    var geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({ 'address': direccionDestino }, function (results, status) {
+                        if (status == 'OK') {
+                            var marker = new google.maps.Marker({ map: map, position: results[0].geometry.location });
+                            var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
+                            var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
+                            var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+                            var objConfigDR = {
+                                map: map
+                            };
+                            var objConfigDS = {
+                                origin: latLongVehiculo,
+                                destination: results[0].geometry.location,
+                                waypoints: [{ location: pos }],
+                                optimizeWaypoints: true,
+                                travelMode: google.maps.TravelMode.DRIVING
+                            };
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+                            }
+                        }
+                        else {
+                            alert(status);
+                        }
+                    });
 
-        var objConfigDR = {
-            map: map
-        }
-        var objConfigDS = {
-            origin: latLongVehiculo,
-            destination: pos,
-            travelMode: google.maps.TravelMode.DRIVING
-        }
-         var ds =  new google.maps.DirectionsService();
-         var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                }
+               
 
-        ds.route(objConfigDS, rutear);
+               
 
-        function rutear(resultados, status) {
-            if (status == 'OK') {
-                dr.setDirections(resultados);
-            } else {
-                alert('Error' + status);
 
-            }
+               
+               
+                
 
-        }
+                
+               
+
             }, function () {
                 handleLocationError(true, infoWindow, map.getCenter());
             });
         } else {
             handleLocationError(false, infoWindow, map.getCenter());
         }
-
-        function addMarker(latitud,longitud,matricula,marca,modelo,chofer) {
-            var coordenadas = { lat: latitud, lng: longitud };
-            var marker = new google.maps.Marker({ position: coordenadas, map: map });
-            infoWindowMarker = new google.maps.InfoWindow;
-            var pos = {lat: latitud,lng: longitud};
-            infoWindowMarker.setPosition(pos);
-            var contentString = '<div><p>' + matricula + '</p><p>'+marca+" "+modelo+'</p><p>'+chofer+'</p></div>';
-            infoWindowMarker.setContent(contentString);
-            google.maps.event.addListener(marker, 'click', function () {
-                infoWindowMarker.open(map, marker);
-            });
-        }
         addMarker(@Model.Vehiculo.PosicionSatelital.Latitud,@Model.Vehiculo.PosicionSatelital.Longitud, "@Model.Vehiculo.Matricula", "@Model.Vehiculo.Marca", "@Model.Vehiculo.Modelo", "@Model.Vehiculo.Chofer.Nombre" + " " + "@Model.Vehiculo.Chofer.Apellido");
+        
+        
+        
 
-
+        function addMarker(latitud, longitud, matricula, marca, modelo, chofer, direccion) {
+            if (direccion == null) {
+                var coordenadas = { lat: latitud, lng: longitud };
+                var marker = new google.maps.Marker({ position: coordenadas, map: map });
+                infoWindowMarker = new google.maps.InfoWindow;
+                var pos = { lat: latitud, lng: longitud };
+                infoWindowMarker.setPosition(pos);
+                var contentString = '<div><p>' + matricula + '</p><p>' + marca + " " + modelo + '</p><p>' + chofer + '</p></div>';
+                infoWindowMarker.setContent(contentString);
+                google.maps.event.addListener(marker, 'click', function () {
+                    infoWindowMarker.open(map, marker);
+                });
+            }
+        }
 
     }
+    
     function handleLocationError(browserHasGeolocation, infoWindow, pos) {
         infoWindow.setPosition(pos);
         infoWindow.setContent(browserHasGeolocation ?

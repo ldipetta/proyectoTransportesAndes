@@ -1,20 +1,29 @@
 ﻿
 $(document).ready(function () {
 
+
+
+
+    $('#viajeLibre').on('click', function () {
+        if ($(this).is(':checked')) {
+            $("#destino").removeClass('hidden');
+        } else {
+            $('#destino').addClass('hidden');
+        }
+    });
     $("#Refresh").click(function () {
         initMap();
     });
     var sessionTipo = $("#contenedorCabecera").data('value');
     var sessionValue = $("#menuComun").data('value');
-    if (sessionTipo === "Cliente" && sessionValue==="no") {
+    if (sessionTipo === "Cliente" && sessionValue === "no") {
         //$("#menuComun").append("<li><a asp-area='' asp-controller='Viaje' asp-action='Index'>Solicitar traslado</a></li>");
-        
+
     }
     else if (sessionTipo === "Cliente" && sessionValue === "si") {
         $("#bienvenida").addClass("hidden");
     }
-    else
-    {
+    else {
         //$("#contenedorCabecera").append("<ul class='nav navbar-nav'><li><a asp-area='' asp-controller='Vehiculo' asp-action='Index'>Vehiculos</a></li></ul>");
         $("#vehiculos").removeClass("hidden");
         $("#empleados").removeClass("hidden");
@@ -31,10 +40,9 @@ $(document).ready(function () {
         $("#salir").removeClass("hidden");
         $("#userName").append("<a>Hola " + userName + "</a>");
     }
-    else
-    {
+    else {
 
-       
+
     }
-    
+
 });

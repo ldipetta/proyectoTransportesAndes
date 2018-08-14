@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ProyectoTransportesAndes.Persistencia;
 using System.Collections;
+using ProyectoTransportesAndes.Exceptions;
 
 namespace ProyectoTransportesAndes.Models
 {
@@ -41,107 +42,193 @@ namespace ProyectoTransportesAndes.Models
         #region "Metodos"
         public async Task<Viaje> getViaje(string idViaje)
         {
-            Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "Viajes");
-            return viaje;
-        }
-        public async Task<Viaje> solicitarViaje(string idViaje,string idCliente)
-        {
-            Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "ViajesPendientes");
-            viaje.Fecha = DateTime.Today;
-            viaje.Cliente = await DBRepositoryMongo<Cliente>.GetItemAsync(idCliente,"Clientes");
-            viaje.Estado = EstadoViaje.EnCurso;
-            double unidadesTraslado = 0;
-            double pesoTotal = 0;
-            foreach(Item i in viaje.Items)
+            try
             {
-                unidadesTraslado += ControladoraVehiculos.getInstance(_settings).calcularUnidades(i.Alto, i.Ancho, i.Profundidad);
-                pesoTotal += i.Peso;
+                Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "Viajes");
+                return viaje;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
             }
-            PosicionSatelital posicion = obtenerUbicacionCliente(idCliente);
-            if (posicion != null)
+            
+        }
+        public async Task<Viaje> solicitarViaje(string idViaje,string idCliente, string direccionDestino, bool viajeMarcado)
+        {
+            try
             {
-                string latitudOrigen = posicion.Latitud;
-                string longitudOrigen = posicion.Longitud;
-                Vehiculo vehiculoDisponible = await ControladoraVehiculos.getInstance(_settings).mejorVehiculoPrueba(latitudOrigen, longitudOrigen, unidadesTraslado, pesoTotal);
-                if (vehiculoDisponible != null)
+                Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "ViajesPendientes");
+                viaje.Fecha = DateTime.Today;
+                viaje.Cliente = await DBRepositoryMongo<Cliente>.GetItemAsync(idCliente, "Clientes");
+                viaje.Estado = EstadoViaje.EnCurso;
+                double unidadesTraslado = 0;
+                double pesoTotal = 0;
+                foreach (Item i in viaje.Items)
                 {
-                    viaje.Vehiculo = vehiculoDisponible;
-                    viaje.Vehiculo.CapacidadCargaKg -= pesoTotal;
-                    viaje.Vehiculo.Unidades -= unidadesTraslado;
-                    viaje.HoraInicio = DateTime.UtcNow.TimeOfDay;
-                    viaje.DuracionEstimada = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(latitudOrigen, longitudOrigen, viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud);
-                    await DBRepositoryMongo<Viaje>.Create(viaje, "Viajes");
-                    await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "ViajesPendientes");
-                    return viaje;
+                    unidadesTraslado += ControladoraVehiculos.getInstance(_settings).calcularUnidades(i.Alto, i.Ancho, i.Profundidad);
+                    pesoTotal += i.Peso;
+                }
+
+                PosicionSatelital posicion = obtenerUbicacionCliente(idCliente);
+                if (posicion != null)
+                {
+                    string latitudOrigen = posicion.Latitud;
+                    string longitudOrigen = posicion.Longitud;
+                    Vehiculo vehiculoDisponible = await ControladoraVehiculos.getInstance(_settings).mejorVehiculoPrueba(latitudOrigen, longitudOrigen, unidadesTraslado, pesoTotal);
+                    if (vehiculoDisponible != null)
+                    {
+                        if (viajeMarcado)
+                        {
+                            if (direccionDestino != null)
+                            {
+                                viaje.DireccionDestino = direccionDestino;
+                            }
+                            viaje.Vehiculo = vehiculoDisponible;
+                            viaje.Vehiculo.CapacidadCargaKg -= pesoTotal;
+                            viaje.Vehiculo = agreagrItemsaVehiculo(viaje.Items, viaje.Vehiculo);
+                            viaje.Vehiculo.Unidades -= unidadesTraslado;
+                            viaje.HoraInicio = DateTime.UtcNow.TimeOfDay;
+                            viaje.DuracionEstimadaHastaCliente = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(latitudOrigen, longitudOrigen, viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud);
+                            viaje.DuracionEstimadaTotal = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(latitudOrigen, longitudOrigen, direccionDestino) + viaje.DuracionEstimadaHastaCliente;
+                            await DBRepositoryMongo<Viaje>.Create(viaje, "Viajes");
+                            await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "ViajesPendientes");
+                            return viaje;
+                        }
+                        else
+                        {
+                            viaje.Vehiculo = vehiculoDisponible;
+                            viaje.Vehiculo.CapacidadCargaKg -= pesoTotal;
+                            viaje.Vehiculo.Unidades -= unidadesTraslado;
+                            viaje.HoraInicio = DateTime.UtcNow.TimeOfDay;
+                            viaje.DuracionEstimadaHastaCliente = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(latitudOrigen, longitudOrigen, viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud);
+                            viaje.DuracionEstimadaTotal = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(latitudOrigen, longitudOrigen, direccionDestino) + viaje.DuracionEstimadaHastaCliente;
+                            await DBRepositoryMongo<Viaje>.Create(viaje, "Viajes");
+                            await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "ViajesPendientes");
+                            return viaje;
+                        }
+                    }
+                    else
+                    {
+                        throw new MensajeException("No hay vehiculos disponibles por el momento. Intente de nuevo mas tarde");
+                    }
                 }
                 else
                 {
-                    return null;
+                    throw new MensajeException("No hay vehículos disponibles por el momento. Intente de nuevo mas tarde");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return null;
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
             }
-           
+              
         }
         public async Task<Viaje>viajePendienteCliente(string cliente)
         {
-            var viajes = await DBRepositoryMongo<Viaje>.GetItemsAsync("ViajesPendientes");
-            Viaje viajePendiente = viajes.FirstOrDefault(v => v.Cliente.Id.ToString().Equals(cliente));
-            return viajePendiente;
+            try
+            {
+                var viajes = await DBRepositoryMongo<Viaje>.GetItemsAsync("ViajesPendientes");
+                Viaje viajePendiente = viajes.FirstOrDefault(v => v.Cliente.Id.ToString().Equals(cliente));
+                return viajePendiente;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
         public async Task agregarItem(string idCliente, Item item)
         {
-            Viaje viaje = await viajePendienteCliente(idCliente);
-            var cliente = await DBRepositoryMongo<Cliente>.GetItemAsync(idCliente, "Clientes");
-            if (viaje == null)
+            try
             {
-                Viaje nuevo = new Viaje();
-                nuevo.Estado = EstadoViaje.Pendiente;
-                nuevo.Items = new List<Item>();
-                nuevo.Items.Add(item);
-                nuevo.Cliente = cliente;
-                await DBRepositoryMongo<Viaje>.Create(nuevo, "ViajesPendientes");
+                Viaje viaje = await viajePendienteCliente(idCliente);
+                var cliente = await DBRepositoryMongo<Cliente>.GetItemAsync(idCliente, "Clientes");
+                if (viaje == null)
+                {
+                    Viaje nuevo = new Viaje();
+                    nuevo.Estado = EstadoViaje.Pendiente;
+                    nuevo.Items = new List<Item>();
+                    nuevo.Items.Add(item);
+                    nuevo.Cliente = cliente;
+                    await DBRepositoryMongo<Viaje>.Create(nuevo, "ViajesPendientes");
+                }
+                else
+                {
+                    viaje.Items.Add(item);
+                    await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesPendientes");
+                }
             }
-            else
+            catch(MensajeException msg)
             {
-                viaje.Items.Add(item);
-                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesPendientes");
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
         public async Task<Item> itemParaEditar(string idCliente, string idItem)
         {
-            Viaje viaje = await viajePendienteCliente(idCliente);
-            Item item = null;
-            foreach(Item i in viaje.Items)
+            try
             {
-                if (i.Id.ToString().Equals(idItem))
+                Viaje viaje = await viajePendienteCliente(idCliente);
+                Item item = null;
+                foreach (Item i in viaje.Items)
                 {
-                    item = i;
+                    if (i.Id.ToString().Equals(idItem))
+                    {
+                        item = i;
+                    }
                 }
+                return item;
             }
-            return item;
+            catch(MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
         public async Task editarItem(string idCliente, Item item)
         {
-            Viaje viaje = await viajePendienteCliente(idCliente);
-            foreach(Item i in viaje.Items)
+            try
             {
-                if (i.Id == item.Id)
+                Viaje viaje = await viajePendienteCliente(idCliente);
+                foreach (Item i in viaje.Items)
                 {
-                    i.Alto = item.Alto;
-                    i.Ancho = item.Ancho;
-                    i.Descripcion = item.Descripcion;
-                    i.Imagen = item.Imagen;
-                    i.Peso = item.Peso;
-                    i.Profundidad = item.Profundidad;
-                    i.Tipo = item.Tipo;
+                    if (i.Id == item.Id)
+                    {
+                        i.Alto = item.Alto;
+                        i.Ancho = item.Ancho;
+                        i.Descripcion = item.Descripcion;
+                        i.Imagen = item.Imagen;
+                        i.Peso = item.Peso;
+                        i.Profundidad = item.Profundidad;
+                        i.Tipo = item.Tipo;
+                    }
                 }
+                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesPendienes");
+            }catch(MensajeException msg)
+            {
+                throw msg;
             }
-            await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesPendienes");
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+          
         }
-        public async Task finalizarViaje(Viaje viaje)
+        public async Task<Viaje> finalizarViaje(Viaje viaje)
         {
             if (viaje != null)
             {
@@ -152,7 +239,9 @@ namespace ProyectoTransportesAndes.Models
                 viaje.CostoFinal = costo;
                 viaje.Estado = EstadoViaje.Finalizado;
                 await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id,viaje, "Viajes");
+                return viaje;
             }
+            return null;
         }
         public async Task<List<Viaje>> viajesCliente(string idCliente)
         {
@@ -189,6 +278,14 @@ namespace ProyectoTransportesAndes.Models
                 precio = tarifa;
             }
             return precio;
+        }
+        public Vehiculo agreagrItemsaVehiculo(List<Item>paraLlevar, Vehiculo vehiculo)
+        {
+            foreach(Item i in paraLlevar)
+            {
+                vehiculo.Items.Add(i);
+            }
+            return vehiculo; ;
         }
         #endregion
     }

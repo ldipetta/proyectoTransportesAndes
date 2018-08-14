@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -22,6 +23,9 @@ namespace ProyectoTransportesAndes.Models
         public string Comentarios { get; set; }
         public EstadoViaje Estado { get; set; }
         public double CostoFinal { get; set; }
-        public TimeSpan DuracionEstimada { get; set; }
+        public TimeSpan DuracionEstimadaHastaCliente { get; set; }
+        public TimeSpan DuracionEstimadaTotal { get; set; }
+        [Required(ErrorMessage ="El destino no puede ser vacio")]
+        public string DireccionDestino { get; set; }
     }
 }

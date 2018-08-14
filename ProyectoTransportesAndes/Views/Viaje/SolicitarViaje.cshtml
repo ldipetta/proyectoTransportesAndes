@@ -28,33 +28,6 @@
     }
 </style>
 <script>
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            $.ajax({
-                url: '/api/ClienteAPI/CoordenadasClienteWeb',
-                type: "GET",
-                data: {'latitud': position.coords.latitude, "longitud": position.coords.longitude },
-                dataType: "json",
-                traditional: true,
-                contentType: "aplication/json",
-                //success: function (data) {
-                //    if (data.status == "Success") {
-                //        alert(data.message);
-                //    }
-                //    else
-                //    {
-                //        alert("No success");
-                //    }
-                //},
-                //error: function () {
-                //    alert("error en la funcion");
-
-                //}
-            });
-        });
-    }
-</script>
-<script>
     var map, infoWindow;
     var latitud,longitud;
     function initMap() {
@@ -75,6 +48,30 @@
                 infoWindow.setContent("poner direccion actual segun ubicacion");
                 infoWindow.open(map);
                 map.setCenter(pos);
+                var input = document.getElementById('destino');
+                var searchBox = new google.maps.places.SearchBox(input);
+                //map.controls[google.maps.ControlPosition.TOP_LEFT].push(input); // SI SE QUISIERA AGREGAR AL MAPA
+                $.ajax({
+                    url: '/api/ClienteAPI/CoordenadasClienteWeb',
+                    type: "GET",
+                    data: { 'latitud': position.coords.latitude, "longitud": position.coords.longitude },
+                    dataType: "json",
+                    traditional: true,
+                    contentType: "aplication/json",
+                    //success: function (data) {
+                    //    if (data.status == "Success") {
+                    //        alert(data.message);
+                    //    }
+                    //    else
+                    //    {
+                    //        alert("No success");
+                    //    }
+                    //},
+                    //error: function () {
+                    //    alert("error en la funcion");
+
+                    //}
+                });
             }, function () {
                 handleLocationError(true, infoWindow, map.getCenter());
             });
@@ -108,9 +105,8 @@
         infoWindow.open(map);
     }
 </script>
-<script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap">
-</script>
+
+<script async defer src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap&libraries=places"></script>
 
 <hr />
 <div>
@@ -174,9 +170,9 @@
                                     <td>
                                         @{
                                             var parms = new Dictionary<string, string>
-                                                                                                            {
-                                                                                                                { "itemId", item.Id.ToString() },
-                                                                                                            };
+                                                                                                                                    {
+                                                                                                                                        { "itemId", item.Id.ToString() },
+                                                                                                                                    };
                                         }
                                         <a asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
                                         <a asp-area="" asp-action="EliminarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-remove"></span></a>
@@ -192,10 +188,23 @@
                     </tbody>
                 </table>
             </div>
+
         </form>
         <form asp-action="SolicitarViaje">
-            <input asp-for="IdViaje" class="form-control hidden" />
-            <input type="submit" value="Solicitar" class="btn btn-info btn-block" />
+            <div class="form-group">
+                <label asp-for="ViajeMarcado">Desea marcar su destino?</label>
+                <input asp-for="ViajeMarcado" class="form-control" id="viajeLibre" />
+                <span asp-validation-for="ViajeMarcado" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                 <input asp-for="DireccionDestino" class="form-control hidden" id="destino" placeholder="Ingrese su destino" />
+                    <span asp-validation-for="DireccionDestino" class="text-danger" id="mensajesDestino"></span>
+            </div>
+            <div class="form-group">
+                <input asp-for="IdViaje" class="form-control hidden" />
+                <input type="submit" value="Solicitar" class="btn btn-info btn-block" id="solicitarViaje"/>
+            </div>
+
         </form>
     </div>
     <div class="col-lg-8">

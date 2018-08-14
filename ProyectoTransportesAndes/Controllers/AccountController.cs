@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
+using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
 using ProyectoTransportesAndes.ViewModels;
@@ -22,12 +23,15 @@ namespace ProyectoTransportesAndes.Controllers
     [Route("api/Account")]
     public class AccountController : Controller
     {
-        private string coleccion = "Usuarios";
+        #region Atributos
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        private ControladoraUsuarios _controladoraUsuarios;
+        #endregion
 
+        #region Constructores
         public AccountController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
@@ -36,254 +40,287 @@ namespace ProyectoTransportesAndes.Controllers
             _settings = settings;
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Usuario>.Iniciar(_settings);
+            _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
         }
+        #endregion
+
+        #region Acciones
 
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
-        public async Task<ActionResult> IndexAsync()
+        public async Task<IActionResult> IndexAsync()
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            List<Usuario> items = new List<Usuario>();
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    var items = await DBRepositoryMongo<Usuario>.GetItemsAsync(coleccion);
+                    items = (List<Usuario>)await _controladoraUsuarios.getAdministrativos();
                     return View(items);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty,msg.Message);
+                return View(items);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View(items);
             }
         }
 
         [Route("Create")]
         [HttpGet]
-        public ActionResult Create() {
-            return View();
+        public IActionResult Create()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    return View();
+                }
+                else
+                {
+                    return RedirectToAction("Login");
+                }
+            }
+            catch(MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View();
+            }
         }
 
         //Crea un nuevo usuario administrador o administrativo
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult> Create(ViewModelUsuario view)
+        public async Task<IActionResult> Create(ViewModelUsuario view)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(view.Usuario.User, coleccion);
-                        if (usuario!=null)
+                     Usuario usuario = await _controladoraUsuarios.CrearAdministrativo(view.Usuario, view.Administrador);
+                        if (usuario != null)
                         {
-                            return BadRequest("El usuario ya existe");
+                            return RedirectToAction("Index");
                         }
                         else
-                        { 
-                                if (view.Administrador)
-                                {
-                                    Usuario admin = new Administrador();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrador";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
-                                else
-                                {
-                                    Usuario admin = new Administrativo();
-                                    admin = view.Usuario;
-                                    admin.Tipo = "Administrativo";
-                                    await DBRepositoryMongo<Usuario>.Create(admin, coleccion);
-                                    return RedirectToAction("Index");
-                                }
+                        {
+                            return View(view);
                         }
                     }
                     else
                     {
-                        return BadRequest(ModelState);
+                        return View(view);
                     }
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No tiene permisos necesarios. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
-            }
-            else
+            }catch(MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(view);
             }
-    }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View(view);
+            }
+        }
 
         [HttpGet]
         [Route("Login")]
         public IActionResult Login()
         {
-            return View();
+            try
+            {
+                return View();
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado");
+                return View();
+            }
+           
         }
 
         [HttpPost]
         [Route("Login")]
-        public async Task<ActionResult> Login(Usuario model)
+        public async Task<IActionResult> Login(ViewModelLogin model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                Usuario user =await DBRepositoryMongo<Usuario>.Login(model.User, model.Password,"Usuarios");
-                if (user == null)
+                if (ModelState.IsValid)
                 {
-                    Cliente cliente = await DBRepositoryMongo<Cliente>.Login(model.User, model.Password, "Clientes");
-                    if (cliente != null)
+                    Usuario user = await _controladoraUsuarios.Login(model.Usuario, model.Password);
+                    if (user != null)
                     {
-                        if (cliente.Password == model.Password)
-                        {
-                            _session.SetString("Token", Usuario.BuildToken(cliente/*, _configuration*/));
-                            _session.SetString("UserTipo", cliente.Tipo);
-                            _session.SetString("UserName", cliente.Nombre);
-                            _session.SetString("UserId", cliente.Id.ToString());
-                            _session.SetString("Session", "si");
-                         
-                            return RedirectToAction("Index", "Home");
-                        }
-                        else
-                        {
-                            return BadRequest("Contraseña incorrecta");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Invalid login attempt");
-                        return BadRequest(ModelState);
-                    }
-                }
-                else
-                {
-                    if (user.Password == model.Password)
-                    {
-                        _session.SetString("Token", Usuario.BuildToken(user/*, _configuration*/));
+                        _session.SetString("Token", Usuario.BuildToken(user));
                         _session.SetString("UserTipo", user.Tipo);
                         _session.SetString("UserName", user.Nombre);
                         _session.SetString("UserId", user.Id.ToString());
+                        _session.SetString("Session", "si");
                         return RedirectToAction("Index", "Home");
                     }
-                    else
-                    {
-                        return BadRequest("Contraseña incorrecta");
-                    }
+                    return View();
                 }
+                ModelState.AddModelError(string.Empty, "Error al iniciar sesión");
+                return View();
             }
-            else
+            catch (MensajeException ex)
             {
-                return BadRequest(ModelState);
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
             }
+
         }
 
         [Route("Salir")]
         public IActionResult Salir()
         {
-            var session = _session.GetString("Token");
-            if (session != null)
+            try
             {
-                _session.Clear();
+                var session = _session.GetString("Token");
+                if (session != null)
+                {
+                    _session.Clear();
+                }
+                return RedirectToAction("Index", "Home");
+            }catch(MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
             }
-            return RedirectToAction("Index", "Home");
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado");
+                return RedirectToAction("Index", "Home");
+            }
+           
         }
 
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (id == null)
                     {
-                        return BadRequest();
+                        ModelState.AddModelError(string.Empty,"Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                        return RedirectToAction("Index");
                     }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
-                    if (item == null)
+                    else
                     {
-                        return NotFound();
+                        Usuario usuario = await _controladoraUsuarios.getAdministrativo(id);
+                        if ( usuario != null)
+                        {
+                            return View(usuario);
+                        }
+                        return RedirectToAction("Index");
                     }
-                    return View(item);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch(MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View();
+            }
+            catch(Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View();
             }
         }
 
         [HttpPost]
         [Route("Delete")]
         [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(string id, Usuario usuario)
+        public async Task<IActionResult> Delete(string id, Usuario usuario)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.DeleteAsync(usuario.Id, coleccion);
+                       await _controladoraUsuarios.EliminarAdministrativo(usuario, id);
                         return RedirectToAction("Index");
                     }
                     return View(usuario);
                 }
-                else
-                {
-                    return BadRequest("No posee los permisos");
-                }
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
+      
             }
-            else
+            catch(MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(usuario);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View(usuario);
             }
         }
 
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
-        public async Task<ActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
+                    Usuario usuario = await _controladoraUsuarios.getAdministrativo(id);
+                    if (usuario == null)
                     {
-                        return BadRequest();
-                    }
-                    Usuario item = await DBRepositoryMongo<Usuario>.GetItemAsync(id, coleccion);
-                    if (item == null)
-                    {
-                        return NotFound();
+                        ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                        return RedirectToAction("Index");
                     }
                     ViewModelUsuario editar = new ViewModelUsuario();
-                    editar.Usuario = item;
-                    editar.Id = item.Id.ToString();
-                    if (item.Tipo == "Administrador")
+                    editar.Usuario = usuario;
+                    editar.Id = usuario.Id.ToString();
+                    if (usuario.Tipo == "Administrador")
                     {
                         editar.Administrador = true;
                     }
@@ -295,47 +332,61 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch(MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index");
             }
-
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "He ocurrido un error inesperado, intentelo de nuevo mas tarde");
+                return RedirectToAction("Index");
+            }
         }
 
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(string id, ViewModelUsuario model)
+        public async Task<IActionResult> Edit(string id, ViewModelUsuario model)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Usuario.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        model.Usuario.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Usuario>.UpdateAsync(model.Usuario.Id, model.Usuario, coleccion);
+                        await _controladoraUsuarios.EliminarAdministrativo(model.Usuario, model.Id);
                         return RedirectToAction("Index");
                     }
-                    return View(model.Usuario);
+                    else
+                    {
+                        return View(model);
+                    }
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login");
                 }
             }
-            else
+            catch(MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(model);
             }
-
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                return View(model);
+            }
         }
 
+        #endregion
     }
 }

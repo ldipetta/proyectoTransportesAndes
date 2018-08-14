@@ -82,33 +82,58 @@
                 @Html.DisplayFor(model => model.Viaje.Fecha.Date)
             </dd>
             <dt>
+                @Html.DisplayNameFor(model => model.Viaje.DuracionEstimadaHastaCliente)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.Viaje.DuracionEstimadaHastaCliente)
+            </dd>
+            <dt>
                 @Html.DisplayNameFor(model => model.HoraInicio)
             </dt>
             <dd>
                 @Html.DisplayFor(model => model.HoraInicio)
             </dd>
             <dt>
-                @Html.DisplayNameFor(model => model.HoraEstimadaLlegada)
+                @Html.DisplayNameFor(model => model.HoraEstimadaLlegadaHastaCliente)
             </dt>
             <dd>
-                @Html.DisplayFor(model => model.HoraEstimadaLlegada)
+                @Html.DisplayFor(model => model.HoraEstimadaLlegadaHastaCliente)
             </dd>
+            @if (Model.ViajeMarcado)
+            {
+                <dt>
+                    @Html.DisplayNameFor(model => model.HoraEstimadaFinalizacionViaje)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.HoraEstimadaFinalizacionViaje)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.Viaje.DuracionEstimadaTotal)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.Viaje.DuracionEstimadaTotal)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.PrecioEstimado)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.PrecioEstimado)
+                </dd>
+            }
+
+
             <dt>
                 @Html.DisplayNameFor(model => model.Viaje.Comentarios)
             </dt>
             <dd>
                 @Html.DisplayFor(model => model.Viaje.Comentarios)
             </dd>
-            <dt>
-                @Html.DisplayNameFor(model => model.PrecioEstimado)
-            </dt>
-            <dd>
-                @Html.DisplayFor(model => model.PrecioEstimado)
-            </dd>
+
         </dl>
     </div>
     <div class="col-lg-8">
-        @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml",Model.Viaje);
+        @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
+        <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
     </div>
 
 

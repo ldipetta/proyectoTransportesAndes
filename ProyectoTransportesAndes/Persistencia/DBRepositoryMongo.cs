@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using ProyectoTransportesAndes.Exceptions;
 
 namespace ProyectoTransportesAndes.Persistencia
 {
@@ -15,37 +15,73 @@ namespace ProyectoTransportesAndes.Persistencia
     {
         private static IOptions<AppSettingsMongo> _settings;
         private static IMongoDatabase _database = null;
-        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones","ViajesPendientes"};
+        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes" };
         private static MongoClient _client;
 
-        public static void Iniciar(IOptions<AppSettingsMongo>settings)
+        public static void Iniciar(IOptions<AppSettingsMongo> settings)
         {
-            _settings = settings;
-            var client = new MongoClient(_settings.Value.ConnectionString);
-            if (client != null)
+            try
             {
-                _client = client;
-                _database = client.GetDatabase(_settings.Value.DataBase);
-                if (_database != null)
+                _settings = settings;
+                var client = new MongoClient(_settings.Value.ConnectionString);
+                if (client != null)
                 {
-                    CrearColecciones(_database);
+                    _client = client;
+                    _database = client.GetDatabase(_settings.Value.DataBase);
+                    if (_database != null)
+                    {
+                        CrearColecciones(_database);
+                    }
                 }
             }
+            catch (TimeoutException)
+            {
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Ocurrió un error inesperado, intente nuevamente en unos minutos");
+            }
+
         }
         public static void CrearColecciones(IMongoDatabase dataBase)
         {
-            for (int i = 0; i < 8; i++)
+            try
             {
-                IMongoCollection<T> _coleccion = dataBase.GetCollection<T>(colecciones[i]);
-                if (_coleccion== null)
+                for (int i = 0; i < 8; i++)
                 {
-                    dataBase.CreateCollection(colecciones[i]);
+                    IMongoCollection<T> _coleccion = dataBase.GetCollection<T>(colecciones[i]);
+                    if (_coleccion == null)
+                    {
+                        dataBase.CreateCollection(colecciones[i]);
+                    }
                 }
             }
+            catch (TimeoutException)
+            {
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al inicializar la base");
+            }
+           
         }
         public static async Task Create(T item, string coleccion)
         {
-            await _client.GetDatabase(_settings.Value.DataBase).GetCollection<T>(coleccion).InsertOneAsync(item);
+            try
+            {
+                await _client.GetDatabase(_settings.Value.DataBase).GetCollection<T>(coleccion).InsertOneAsync(item);
+
+            }
+            catch (TimeoutException)
+            {
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al registrar el elemento");
+            }
         }
         public static async Task<IEnumerable<T>> GetItemsAsync(string coleccion)
         {
@@ -53,10 +89,13 @@ namespace ProyectoTransportesAndes.Persistencia
             {
                 return await _database.GetCollection<T>(coleccion).Find(_ => true).ToListAsync();
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al obtener los elementos, vuelva a intentarlo en unos minutos");
             }
         }
         public static async Task<T> GetItemAsync(string id, string coleccion)
@@ -69,13 +108,16 @@ namespace ProyectoTransportesAndes.Persistencia
                                 .Find(filter)
                                 .FirstOrDefaultAsync();
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al obtener el elemento");
             }
         }
-        public static async Task<bool> DeleteAsync(ObjectId id,string coleccion)
+        public static async Task<bool> DeleteAsync(ObjectId id, string coleccion)
         {
             try
             {
@@ -85,42 +127,51 @@ namespace ProyectoTransportesAndes.Persistencia
                 return actionResult.IsAcknowledged
                     && actionResult.DeletedCount > 0;
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al borrar el elemento, vuelva a intentarlo mas tarde");
             }
         }
-        public static async Task<bool> UpdateAsync(ObjectId id, T item,string coleccion)
+        public static async Task<bool> UpdateAsync(ObjectId id, T item, string coleccion)
         {
             try
             {
                 var filter = Builders<T>.Filter.Eq("_id", id);
-                ReplaceOneResult actionResult = await _database.GetCollection<T>(coleccion).ReplaceOneAsync(filter,item,new UpdateOptions {IsUpsert=true });
+                ReplaceOneResult actionResult = await _database.GetCollection<T>(coleccion).ReplaceOneAsync(filter, item, new UpdateOptions { IsUpsert = true });
                 return actionResult.IsAcknowledged
                     && actionResult.ModifiedCount > 0;
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al modificar el elemento, intente de nuevo mas tarde");
             }
         }
-        public static async Task<T> Login(string user,string pass,string coleccion)
+        public static async Task<T> Login(string user, string coleccion)
         {
-            var filterBuilder = Builders<T>.Filter;
-             var filter = Builders<T>.Filter.Eq("User", user);
             try
             {
+                var filterBuilder = Builders<T>.Filter;
+                var filter = Builders<T>.Filter.Eq("User", user);
                 return await _database.GetCollection<T>(coleccion)
                                 .Find(filter)
                                 .FirstOrDefaultAsync();
 
             }
-            catch (Exception ex)
+            catch(TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Ocurrió un error inesperado, vuelva a intentarlo en unos minutos");
             }
         }
         public static async Task<T> GetUsuario(string user, string coleccion)
@@ -133,10 +184,13 @@ namespace ProyectoTransportesAndes.Persistencia
                                 .Find(filter)
                                 .FirstOrDefaultAsync();
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al obtener al usuario, intente de nuevo mas tarde");
             }
         }
         //se deberian unificar los dos metodos para reutilizar codigo
@@ -150,14 +204,17 @@ namespace ProyectoTransportesAndes.Persistencia
                                 .Find(filter)
                                 .FirstOrDefaultAsync();
             }
-            catch (Exception ex)
+            catch (TimeoutException)
             {
-                // log or manage the exception
-                throw ex;
+                throw new MensajeException("Se agotó el tiempo de espera, compruebe la conexión");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Se produjo un error al obtener el peón. Intente de nuevo mas tarde");
             }
         }
-       
-        
+
+
 
     }
 }
