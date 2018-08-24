@@ -22,7 +22,8 @@ namespace ProyectoTransportesAndes.Models
         #region Atributos
         private IOptions<AppSettingsMongo> _settings;
         private static ControladoraVehiculos _instance;
-        Hashtable _ubicacionVehiculos;
+        private ControladoraViajes _controladoraViajes;
+        public Hashtable UbicacionVehiculos { get; set; }
         #endregion
 
         #region Propiedades
@@ -40,7 +41,8 @@ namespace ProyectoTransportesAndes.Models
         private ControladoraVehiculos(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-            _ubicacionVehiculos = new Hashtable();
+            _controladoraViajes = ControladoraViajes.getInstancia(_settings);
+            UbicacionVehiculos = new Hashtable();
             DBRepositoryMongo<Vehiculo>.Iniciar(_settings);
             DBRepositoryMongo<Chofer>.Iniciar(_settings);
             datos();
@@ -48,13 +50,13 @@ namespace ProyectoTransportesAndes.Models
         #endregion
 
         #region Metodos
-        public async Task<IEnumerable<Vehiculo>> getVehiculos() 
+        public async Task<IEnumerable<Vehiculo>> getVehiculos()
         {
             try
             {
                 var items = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
                 return items;
-            }catch(MensajeException msg)
+        }catch(MensajeException msg)
             {
                 throw msg;
             }catch(Exception ex)
@@ -307,6 +309,7 @@ namespace ProyectoTransportesAndes.Models
                                     if (vehiculo.CapacidadCargaKg >= pesoTraslado)
                                     {
                                         masCercanoConCapacidad = vehiculo;
+                                       
                                     }
                                 }
                             }
@@ -320,6 +323,10 @@ namespace ProyectoTransportesAndes.Models
                                     }
                                 }
                             }
+                        }
+                        else
+                        {
+                            throw new MensajeException("El vehiculo no se encuentra disponible");
                         }
 
                     }
@@ -449,13 +456,13 @@ namespace ProyectoTransportesAndes.Models
             try
             {
                 PosicionSatelital posicion = new PosicionSatelital(idVehiculo, latitud, longitud);
-                if (_ubicacionVehiculos.Contains(idVehiculo))
+                if (UbicacionVehiculos.Contains(idVehiculo))
                 {
-                    _ubicacionVehiculos[idVehiculo] = posicion;
+                    UbicacionVehiculos[idVehiculo] = posicion;
                 }
                 else
                 {
-                    _ubicacionVehiculos.Add(idVehiculo, posicion);
+                    UbicacionVehiculos.Add(idVehiculo, posicion);
                 }
                 return posicion;
             }catch(Exception ex)
@@ -470,9 +477,9 @@ namespace ProyectoTransportesAndes.Models
             try
             {
                 List<PosicionSatelital> ubicaciones = new List<PosicionSatelital>();
-                if (_ubicacionVehiculos.Count > 0)
+                if (UbicacionVehiculos.Count > 0)
                 {
-                    foreach (DictionaryEntry d in _ubicacionVehiculos)
+                    foreach (DictionaryEntry d in UbicacionVehiculos)
                     {
                         ubicaciones.Add((PosicionSatelital)d.Value);
                     }
@@ -493,7 +500,7 @@ namespace ProyectoTransportesAndes.Models
         {
             try
             {
-                return (PosicionSatelital)_ubicacionVehiculos[idVehiculo];
+                return (PosicionSatelital)UbicacionVehiculos[idVehiculo];
             }
            catch(Exception ex)
             {
@@ -504,7 +511,7 @@ namespace ProyectoTransportesAndes.Models
         public void datos()
         {
             PosicionSatelital hard = new PosicionSatelital("5b60ad9ab73c94313c6c7552", "-34.895249", "-56.126989");
-            _ubicacionVehiculos["5b60ad9ab73c94313c6c7552"] = hard;
+            UbicacionVehiculos["5b60ad9ab73c94313c6c7552"] = hard;
         }
         #endregion
     }

@@ -22,13 +22,13 @@ namespace ProyectoTransportesAndes.ViewModels
         public ViewModelVehiculo(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-            cargarDatos();
+            cargarDatos().Wait();
         }
         public ViewModelVehiculo()
         {
           
         }
-        public async void cargarDatos()
+        public async Task cargarDatos()
         {
             var choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
             ListaChoferes = new SelectList(choferes, "Id", "Leyenda");

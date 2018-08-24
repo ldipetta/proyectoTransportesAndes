@@ -1,9 +1,9 @@
 ﻿
 $(document).ready(function () {
-
-
-
-
+    $("#vehiculos").on('change', function () {
+        alert("hola");
+    });
+    
     $('#viajeLibre').on('click', function () {
         if ($(this).is(':checked')) {
             $("#destino").removeClass('hidden');
@@ -16,12 +16,15 @@ $(document).ready(function () {
     });
     var sessionTipo = $("#contenedorCabecera").data('value');
     var sessionValue = $("#menuComun").data('value');
+
     if (sessionTipo === "Cliente" && sessionValue === "no") {
         //$("#menuComun").append("<li><a asp-area='' asp-controller='Viaje' asp-action='Index'>Solicitar traslado</a></li>");
 
     }
     else if (sessionTipo === "Cliente" && sessionValue === "si") {
         $("#bienvenida").addClass("hidden");
+        $('#solicitarViaje').removeClass('hidden');
+        $('#misViajes').removeClass('hidden');
     }
     else {
         //$("#contenedorCabecera").append("<ul class='nav navbar-nav'><li><a asp-area='' asp-controller='Vehiculo' asp-action='Index'>Vehiculos</a></li></ul>");
@@ -34,6 +37,7 @@ $(document).ready(function () {
         $("#ingresarViaje").removeClass("hidden");
         $("#clientes").removeClass("hidden");
         $("#bienvenida").addClass("hidden");
+        $("#misViajes").addClass("hidden");
     }
     var userName = $("#userName").data('value');
     if (userName !== "") {

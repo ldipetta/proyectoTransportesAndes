@@ -77,16 +77,7 @@ namespace ProyectoTransportesAndes.Controllers
         {
             try
             {
-                var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
-                {
                     return View();
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
-                }
             }
             catch (MensajeException msg)
             {
@@ -106,9 +97,6 @@ namespace ProyectoTransportesAndes.Controllers
         {
             try
             {
-                var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
-                {
                     if (ModelState.IsValid)
                     {
                         await _controladoraUsuarios.CrearCliente(model.Cliente, model.Tarjeta);
@@ -118,12 +106,6 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         return View(model);
                     }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
-                }
             }
             catch (MensajeException msg)
             {

@@ -26,6 +26,7 @@ namespace ProyectoTransportesAndes.Controllers
         private readonly IHttpContextAccessor _httpContext;
         private ControladoraViajes _controladoraViajes;
         private ControladoraVehiculos _controladoraVehiculos;
+        private ControladoraUsuarios _controladoraUsuarios;
         #endregion
 
         #region Constructores
@@ -37,10 +38,281 @@ namespace ProyectoTransportesAndes.Controllers
             _settings = settings;
             _controladoraViajes = ControladoraViajes.getInstancia(_settings);
             _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
+            _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
         }
         #endregion
 
-        #region
+        #region Acciones
+        [HttpGet]
+        [Route("Index")]
+        public async Task<IActionResult> Index()
+        {
+            ViewModelViajeFiltro model = new ViewModelViajeFiltro(_settings);
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    model.Viajes = await _controladoraViajes.getViajes();
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [Route("Index")]
+        public async Task<IActionResult> Index(ViewModelViajeFiltro model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    var viajes = await _controladoraViajes.getViajes();
+
+                    if (!model.IdCliente.Equals("000000000000000000000000"))
+                    {
+                        Cliente cliente = await _controladoraUsuarios.getCliente(model.IdCliente);
+                        viajes.Where(v => v.Cliente.Equals(cliente));
+                    }
+                    if (!model.IdVehiculo.Equals("0"))
+                    {
+                        Vehiculo vehiculo = await _controladoraVehiculos.getVehiculo(model.IdVehiculo);
+                        viajes.Where(v => v.Vehiculo.Equals(vehiculo));
+                    }
+                    if (!model.EstadoViaje.Equals(EstadoViaje.Estado))
+                    {
+                        viajes.Where(v => v.Estado.Equals(model.EstadoViaje));
+                    }
+                    if (model.Desde != null)
+                    {
+                        viajes.Where(v => v.Fecha >= model.Desde);
+                    }
+                    if (model.Hasta != null)
+                    {
+                        viajes.Where(v => v.Fecha <= model.Hasta);
+                    }
+
+                    model.Viajes = viajes;
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos. Inice sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        [Route("Nuevo")]
+        public IActionResult Nuevo()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    ViewModelViajeDirecto model = new ViewModelViajeDirecto(_settings);
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene permisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [HttpPost]
+        [Route("Nuevo")]
+        public async Task<IActionResult> Nuevo(ViewModelViajeDirecto model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    await _controladoraViajes.nuevoViaje(model.VehiculoId,model.ClienteId,model.Direccion,model.Fecha,model.HoraInicio,model.Comentarios);
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene permisos. Inicie sesión");
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return View(model);
+            }
+        }
+
+        [HttpGet]
+        [Route("Edit")]
+        public async Task<IActionResult> Edit(string id)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    Viaje viaje = await _controladoraViajes.getViaje(id);
+                    return View(viaje);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene persmisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [HttpPost]
+        [Route("Edit")]
+        public async Task<IActionResult> Edit(string id, Viaje viaje)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    if (ModelState.IsValid)
+                    {
+                        await _controladoraViajes.modificarViaje(id, viaje);
+                        return RedirectToAction("Index");
+                    }
+                    return View(viaje);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene persmisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [HttpPost]
+        [Route("Delete")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    Viaje viaje = await _controladoraViajes.getViaje(id);
+                    return View(viaje);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene persmisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [HttpPost]
+        [Route("Delete")]
+        public async Task<IActionResult> Delete(string id, Viaje viaje)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    await _controladoraViajes.eliminarViaje(id, viaje);
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene persmisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index", "Home");
+            }
+        }
         [HttpGet]
         [Route("SolicitarViaje")]
         public async Task<IActionResult> SolicitarViaje()
@@ -144,7 +416,7 @@ namespace ProyectoTransportesAndes.Controllers
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Vuelva a intentarlo mas tarde");
                 return RedirectToAction("SolicitarViaje");
             }
-            
+
         }
 
         [HttpPost]
@@ -167,7 +439,7 @@ namespace ProyectoTransportesAndes.Controllers
                     return RedirectToAction("Login");
                 }
             }
-            catch(MensajeException msg)
+            catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
                 return RedirectToAction("SolicitarViaje");
@@ -200,7 +472,7 @@ namespace ProyectoTransportesAndes.Controllers
                     return RedirectToAction("Login");
                 }
             }
-            catch(MensajeException msg)
+            catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
                 return RedirectToAction("SolicitarViaje");
@@ -210,7 +482,7 @@ namespace ProyectoTransportesAndes.Controllers
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
                 return RedirectToAction("SolicitarViaje");
             }
-           
+
         }
 
         [HttpPost]
@@ -231,7 +503,7 @@ namespace ProyectoTransportesAndes.Controllers
                     return RedirectToAction("Login");
                 }
             }
-            catch(MensajeException msg)
+            catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
                 return RedirectToAction("SolicitarViaje");
@@ -241,7 +513,7 @@ namespace ProyectoTransportesAndes.Controllers
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
                 return RedirectToAction("SolicitarViaje");
             }
-           
+
         }
 
         [HttpGet]
@@ -291,7 +563,7 @@ namespace ProyectoTransportesAndes.Controllers
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
                 return RedirectToAction("SolicitarViaje");
             }
-           
+
         }
 
         [HttpPost]
@@ -329,7 +601,7 @@ namespace ProyectoTransportesAndes.Controllers
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
                 return RedirectToAction("SolicitarViaje");
             }
-            
+
         }
 
         #endregion

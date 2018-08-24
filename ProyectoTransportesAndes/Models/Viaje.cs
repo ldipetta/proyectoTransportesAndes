@@ -23,9 +23,11 @@ namespace ProyectoTransportesAndes.Models
         public string Comentarios { get; set; }
         public EstadoViaje Estado { get; set; }
         public double CostoFinal { get; set; }
+        public double CostoEstimadoFinal { get; set; }
         public TimeSpan DuracionEstimadaHastaCliente { get; set; }
         public TimeSpan DuracionEstimadaTotal { get; set; }
         [Required(ErrorMessage ="El destino no puede ser vacio")]
         public string DireccionDestino { get; set; }
+        public string DireccionOrigen { get; set; }
     }
 }

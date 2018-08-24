@@ -379,11 +379,16 @@ namespace ProyectoTransportesAndes.Models
                 Usuario usuario = await DBRepositoryMongo<Usuario>.GetUsuario(cliente.User, "Usuarios");
                 Cliente cli = await DBRepositoryMongo<Cliente>.GetUsuario(cliente.User, "Clientes");
                 Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(cliente.User, "Choferes");
-                if (usuario == null && cliente == null && chofer == null)
+                if (usuario == null && cli == null && chofer == null)
                 {
                     salida = cliente;
                     salida.Tipo = "Cliente";
                     salida.Tarjeta = tarjeta;
+                    if (salida.RazonSocial != null)
+                    {
+                        salida.Leyenda = cli.RazonSocial;
+                    }
+                    salida.Leyenda = cli.Nombre + " " + cli.Apellido;
                     await DBRepositoryMongo<Cliente>.Create(salida, "Clientes");
                 }
                 else

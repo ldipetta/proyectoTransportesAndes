@@ -10,7 +10,7 @@
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
-        <link href="~/css/Estilos.css" rel="stylesheet" />
+        <link rel="stylesheet" href="~/css/Estilos.css" />
         <link href="~/js/map.js" />
     </environment>
     <environment exclude="Development">
@@ -19,7 +19,6 @@
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
         <link rel="stylesheet" href="~/css/Estilos.css" />
-
     </environment>
 </head>
 <body>
@@ -47,10 +46,17 @@
                             <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
                         </ul>
                     </li>
-                    <li id="ingresarViaje" class="hidden"><a asp-area='' asp-controller='Viaje' asp-action='Index'>Viajes</a></li>
+                    @*<li id="ingresarViaje" class="hidden"><a asp-area='' asp-controller='Viaje' asp-action='Index'>Viajes</a></li>*@
+                    <li class='dropdown hidden' id="ingresarViaje">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Nuevo'>Ingresar</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Index'>Listado</a></li>
+                        </ul>
+                    </li>
                     <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
-                    <li id="solicitarViaje"><a asp-area="" asp-controller="Viaje" asp-action="SolicitarViaje">Solicitar viaje</a></li>
-                    <li class='dropdown' id="misViajes">
+                    <li id="solicitarViaje" class="hidden"><a asp-area="" asp-controller="Viaje" asp-action="SolicitarViaje">Solicitar viaje</a></li>
+                    <li class='dropdown hidden' id="misViajes">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
                             <li><a asp-area='' asp-controller='Viaje' asp-action='MisViajes'>Mis viajes</a></li>
@@ -91,7 +97,7 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
-       <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
     </environment>
 
     @RenderSection("Scripts", required: false)

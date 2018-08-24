@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ProyectoTransportesAndes.Persistencia;
 using System.Collections;
 using ProyectoTransportesAndes.Exceptions;
+using MongoDB.Bson;
 
 namespace ProyectoTransportesAndes.Models
 {
@@ -16,6 +17,8 @@ namespace ProyectoTransportesAndes.Models
         private static ControladoraViajes _instancia;
         private IOptions<AppSettingsMongo> _settings;
         private Hashtable _ubicacionesClientes;
+        private ControladoraVehiculos _controladoraVehiculos;
+        private ControladoraUsuarios _controladoraUsuarios;
         #endregion
 
         #region "Propiedades"
@@ -34,6 +37,8 @@ namespace ProyectoTransportesAndes.Models
         {
             _settings = settings;
             _ubicacionesClientes = new Hashtable();
+            _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
+            _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
             DBRepositoryMongo<Viaje>.Iniciar(_settings);
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
         }
@@ -54,6 +59,20 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
             
+        }
+        public async Task<IEnumerable<Viaje>> getViajes()
+        {
+            try
+            {
+                var viajes = await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
+                return viajes;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
+            }
         }
         public async Task<Viaje> solicitarViaje(string idViaje,string idCliente, string direccionDestino, bool viajeMarcado)
         {
@@ -86,6 +105,8 @@ namespace ProyectoTransportesAndes.Models
                                 viaje.DireccionDestino = direccionDestino;
                             }
                             viaje.Vehiculo = vehiculoDisponible;
+                            viaje.Vehiculo.Disponible = false;
+                            await _controladoraVehiculos.editarVehiculo(viaje.Vehiculo, viaje.Vehiculo.Id.ToString()); //refresco el estado del vehiculo en la base
                             viaje.Vehiculo.CapacidadCargaKg -= pesoTotal;
                             viaje.Vehiculo = agreagrItemsaVehiculo(viaje.Items, viaje.Vehiculo);
                             viaje.Vehiculo.Unidades -= unidadesTraslado;
@@ -228,6 +249,93 @@ namespace ProyectoTransportesAndes.Models
             }
           
         }
+        public async Task nuevoViaje(string idVehiculo, string idCliente, string direccion, DateTime fecha, TimeSpan horaInicio, string comentarios)
+        {
+            try
+            {
+                Vehiculo vehiculo = null;
+                Cliente cliente = null;
+                if (idVehiculo != null && idCliente!=null)
+                {
+                    vehiculo = await _controladoraVehiculos.getVehiculo(idVehiculo);
+                    cliente = await _controladoraUsuarios.getCliente(idCliente);
+                }
+                else
+                {
+                    throw new MensajeException("Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                }
+                Viaje nuevo = new Viaje();
+                nuevo.Vehiculo = vehiculo;
+                nuevo.Cliente = cliente;
+                if (direccion != null)
+                {
+                    nuevo.DireccionDestino = direccion;
+                }
+                else
+                {
+                    nuevo.DireccionDestino = cliente.Direccion;
+                }
+                nuevo.HoraInicio = horaInicio;
+                nuevo.Fecha = fecha;
+                nuevo.Comentarios = comentarios;
+                nuevo.Estado = EstadoViaje.EnCurso;
+                
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task modificarViaje(string id, Viaje viaje)
+        {
+            try
+            {
+                if (id != null && viaje != null)
+                {
+                    viaje.Id = new ObjectId(id);
+                    await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "Viajes");
+                }
+                else
+                {
+                    throw new MensajeException("Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                }
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+           
+        }
+        public async Task eliminarViaje(string id, Viaje viaje)
+        {
+            try
+            {
+                if(id!=null && viaje != null)
+                {
+                    viaje.Id = new ObjectId(id);
+                    await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "Viajes");
+                }
+                else
+                {
+                    throw new MensajeException("Ocurrió un error inesperado. Intente de nuevo mas tarde");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<Viaje> finalizarViaje(Viaje viaje)
         {
             if (viaje != null)
@@ -239,6 +347,8 @@ namespace ProyectoTransportesAndes.Models
                 viaje.CostoFinal = costo;
                 viaje.Estado = EstadoViaje.Finalizado;
                 await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id,viaje, "Viajes");
+                viaje.Vehiculo.Disponible = true;
+                await _controladoraVehiculos.editarVehiculo(viaje.Vehiculo, viaje.Vehiculo.Id.ToString());
                 return viaje;
             }
             return null;
@@ -286,6 +396,22 @@ namespace ProyectoTransportesAndes.Models
                 vehiculo.Items.Add(i);
             }
             return vehiculo; ;
+        }
+        public async Task<Viaje> viajeEnCursoChofer(string idChofer)
+        {
+            try
+            {
+                var items = await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
+                Viaje viaje = items.Where(v => v.Vehiculo.Chofer.Id.Equals(idChofer)).Where(v => v.Estado == EstadoViaje.EnCurso).FirstOrDefault();
+                return viaje;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
+            }
+          
         }
         #endregion
     }

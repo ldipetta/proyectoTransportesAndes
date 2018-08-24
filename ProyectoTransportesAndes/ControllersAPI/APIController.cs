@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson.IO;
 using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
@@ -15,7 +16,7 @@ using ProyectoTransportesAndes.Persistencia;
 namespace ProyectoTransportesAndes.ControllersAPI
 {
     [Produces("application/json")]
-    [Route("api/ClienteAPI")]
+    [Route("api")]
     public class APIController : Controller
     {
         #region Atributos
@@ -109,15 +110,15 @@ namespace ProyectoTransportesAndes.ControllersAPI
             }
         }
         [Route("RegistroCliente")]
-        public async Task<JsonResult> RegistroCliente(string usuario, string pass, string razonSocial, string rut, string nombre, string apellido, string email, string documento, string telefono, string direccion, string fNacimiento, string numeroTarjCredito, string fVencTarjetaCredito)
+        public async Task<JsonResult> RegistroCliente(Cliente nuevo)
         {
-            Cliente cliente = await DBRepositoryMongo<Cliente>.GetUsuario(usuario, "Clientes");
-            Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(usuario, "Choferes");
-            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(usuario, "Usuarios");
+            Cliente cliente = await DBRepositoryMongo<Cliente>.GetUsuario(nuevo.User, "Clientes");
+            Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(nuevo.User, "Choferes");
+            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(nuevo.User, "Usuarios");
 
             if (cliente == null && chofer == null && usu == null)
             {
-                Cliente nuevo = new Cliente(usuario, pass, razonSocial, rut, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numeroTarjCredito, fVencTarjetaCredito);
+                //Cliente cli = new Cliente(usuario, pass, razonSocial, rut, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numeroTarjCredito, fVencTarjetaCredito);
                 await DBRepositoryMongo<Cliente>.Create(nuevo, "Clientes");
                 return Json(nuevo);
             }
@@ -127,15 +128,15 @@ namespace ProyectoTransportesAndes.ControllersAPI
             }
         }
         [Route("RegistroChofer")]
-        public async Task<JsonResult> RegistroChofer(string usuario, string pass, string nombre, string apellido, string email, string documento, string telefono, string direccion, string fNacimiento, string numero, string vtoCarneSalud, string categoriaLibreta, string fVtoLibreta, string foto)
+        public async Task<JsonResult> RegistroChofer(Chofer nuevo)
         {
-            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(usuario, "Usuarios");
-            Usuario cliente = await DBRepositoryMongo<Cliente>.GetUsuario(usuario, "Clientes");
-            Usuario chofer = await DBRepositoryMongo<Chofer>.GetUsuario(usuario, "Choferes");
+            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(nuevo.User, "Usuarios");
+            Usuario cliente = await DBRepositoryMongo<Cliente>.GetUsuario(nuevo.User, "Clientes");
+            Usuario chofer = await DBRepositoryMongo<Chofer>.GetUsuario(nuevo.User, "Choferes");
 
             if (cliente == null && usu == null && chofer == null)
             {
-                Chofer nuevo = new Chofer(usuario, pass, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numero, vtoCarneSalud, categoriaLibreta, fVtoLibreta, foto);
+                //Chofer nuevo = new Chofer(usuario, pass, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numero, vtoCarneSalud, categoriaLibreta, fVtoLibreta, foto);
                 await DBRepositoryMongo<Chofer>.Create(nuevo, "Choferes");
                 return Json(nuevo);
             }
@@ -144,11 +145,11 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 return Json(null);
             }
         }
-        //La idea es que todos los dispositivos devuelvan su ubicacion. Observer?
-        [Route("UbicacionVehiculo")]
-        public JsonResult CoordenadasVehiculos(string idVehiculo, string latitud, string longitud)
+        //es el metodo que la app chofer llama en el hilo para actualizar su posicion
+        [Route("GuardarCoordenadasVehiculo")]
+        public JsonResult GuardarCoordenadasVehiculos(string idVehiculo, string latitud, string longitud)
         {
-            return Json(_controladoraVehiculos.guardarUbicacionVehiculo(idVehiculo, latitud, longitud));
+            return Json(new { Success = true });
         }
         [HttpGet]
         [Route("CoordenadasClienteWeb")]
@@ -163,13 +164,70 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
         }
+        [HttpGet]
         [Route("FinalizarViaje")]
         public async Task<JsonResult> FinalizarViaje(Viaje viaje)
         {
             return Json(await _controladoraViajes.finalizarViaje(viaje));
-            //habria que implementar una respuesta a todos los usuarios con signalr
         }
+        [HttpGet]
+        [Route("ConsultaServicioFinalizado")]
+        public async Task<JsonResult> SolicitudServicio(Item item, string latitudCliente, string longitudCliente)
+        {
+            double unidades = _controladoraVehiculos.calcularUnidades(item.Alto, item.Ancho, item.Profundidad);
+           Vehiculo vehiculo = await _controladoraVehiculos.mejorVehiculoPrueba(latitudCliente, longitudCliente, unidades, item.Peso);
+            return Json(vehiculo);
+        }
+        [HttpGet]
+        [Route("VehiculoPrueba")]
+        public JsonResult VehiculoPrueba()
+        {
+            return Json(_controladoraVehiculos.getVehiculo("5b60ad9ab73c94313c6c7552"));
+        }
+        //devuelve la ubicacion del vehiculo solicitado
+        [HttpGet]
+        [Route("UbicacionVehiculo")]
+        public JsonResult UbicacionVehiculo(string idVehiculo)
+        {
+            return Json((PosicionSatelital)_controladoraVehiculos.UbicacionVehiculos[idVehiculo]);
+        }
+        [HttpGet]
+        [Route("SolicitudServicio")]
+        public async Task<JsonResult> SolicitudServicio(Viaje viaje)
+        {
+            viaje.DuracionEstimadaHastaCliente = await _controladoraVehiculos.tiempoDemora(viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud,viaje.DireccionOrigen);
+            TimeSpan duracionTotal = TimeSpan.Parse("0");
+            TimeSpan tiempoDemora = TimeSpan.Parse("0");
+            viaje.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(duracionTotal, viaje.Vehiculo.Tarifa);
+            viaje.DuracionEstimadaTotal = duracionTotal;
+            return Json(viaje);
+        }
+        [HttpGet]
+        [Route("ConsultaServicioFinalizado")]
+        public async Task<JsonResult>ConsultaServicioFinalizado(string idViaje)
+        {
+            Viaje viaje = await _controladoraViajes.getViaje(idViaje);
+            if (viaje.Estado == EstadoViaje.Finalizado)
+            {
+                return Json(viaje);
+            }
+            else
+            {
+                return Json(new { Success = false });
+            }
+        }
+        //[HttpGet]
+        //[Route("UbicacionClienteChofer")]
+        //public JsonResult UbicacionClienteChofer(string idViaje)
+        //{
 
+        //}
+        [HttpGet]
+        [Route("ViajesChofer")]
+        public async Task<JsonResult>ViajesChofer(string idChofer)
+        {
+            return Json(await _controladoraViajes.viajeEnCursoChofer(idChofer));
+        }
         #endregion
     }
 }

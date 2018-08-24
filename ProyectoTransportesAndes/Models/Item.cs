@@ -20,5 +20,6 @@ namespace ProyectoTransportesAndes.Models
         public string Descripcion { get; set; }
         public string Imagen { get; set; }
         public TipoItem Tipo { get; set; }
+        public PosicionSatelital PosicionSatelital { get; set; }
     }
 }

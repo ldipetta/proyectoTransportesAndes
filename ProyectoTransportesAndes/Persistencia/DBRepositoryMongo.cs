@@ -87,7 +87,8 @@ namespace ProyectoTransportesAndes.Persistencia
         {
             try
             {
-                return await _database.GetCollection<T>(coleccion).Find(_ => true).ToListAsync();
+                var lista = await _database.GetCollection<T>(coleccion).Find(_ => true).ToListAsync();
+                return lista;
             }
             catch (TimeoutException)
             {
