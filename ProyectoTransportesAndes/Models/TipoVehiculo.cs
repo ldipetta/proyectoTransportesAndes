@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 
 namespace ProyectoTransportesAndes.Models
 {
-    public enum EstadoViaje
+    public enum TipoVehiculo
     {
-        Estado,
-        Finalizado, 
-        EnCurso,
+        Camioneta,
+        CamionChico,
+        Camion,
+        CamionMudanza,
+        Otros
     }
 }

@@ -48,7 +48,8 @@ namespace ProyectoTransportesAndes.ControllersAPI
         #region API's
         //Servicio para loguearse desde las Apps móviles, devuelve un json con datos del usuario para
         //ser utilizados por las Apps
-        //Que pasa con el token? se pude levantar la variable session en xamarin?
+        
+            //Que pasa con el token? se pude levantar la variable session en xamarin?
         [HttpGet]
         [Route("LoginAPP")]
         public async Task<JsonResult> LoginAPP(string usuario, string pass)
@@ -78,6 +79,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
             }
            
         }
+
         public async Task<JsonResult> LoginAPPChofer(string usuario, string pass)
         {
             Chofer chofer = null;
@@ -109,16 +111,18 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 throw ex;
             }
         }
+
+        [HttpPost]
         [Route("RegistroCliente")]
-        public async Task<JsonResult> RegistroCliente(Cliente nuevo)
+        public async Task<JsonResult> RegistroCliente([FromBody]Cliente cliente)
         {
-            Cliente cliente = await DBRepositoryMongo<Cliente>.GetUsuario(nuevo.User, "Clientes");
-            Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(nuevo.User, "Choferes");
-            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(nuevo.User, "Usuarios");
+            Cliente cli = await DBRepositoryMongo<Cliente>.GetUsuario(cliente.User, "Clientes");
+            Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(cliente.User, "Choferes");
+            Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(cliente.User, "Usuarios");
 
             if (cliente == null && chofer == null && usu == null)
             {
-                //Cliente cli = new Cliente(usuario, pass, razonSocial, rut, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numeroTarjCredito, fVencTarjetaCredito);
+                Cliente nuevo = cliente;
                 await DBRepositoryMongo<Cliente>.Create(nuevo, "Clientes");
                 return Json(nuevo);
             }
@@ -127,8 +131,10 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 return Json(null);
             }
         }
+
+        [HttpPost]
         [Route("RegistroChofer")]
-        public async Task<JsonResult> RegistroChofer(Chofer nuevo)
+        public async Task<JsonResult> RegistroChofer([FromBody]Chofer nuevo)
         {
             Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(nuevo.User, "Usuarios");
             Usuario cliente = await DBRepositoryMongo<Cliente>.GetUsuario(nuevo.User, "Clientes");
@@ -136,7 +142,6 @@ namespace ProyectoTransportesAndes.ControllersAPI
 
             if (cliente == null && usu == null && chofer == null)
             {
-                //Chofer nuevo = new Chofer(usuario, pass, nombre, apellido, email, documento, telefono, direccion, fNacimiento, numero, vtoCarneSalud, categoriaLibreta, fVtoLibreta, foto);
                 await DBRepositoryMongo<Chofer>.Create(nuevo, "Choferes");
                 return Json(nuevo);
             }
@@ -145,39 +150,50 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 return Json(null);
             }
         }
+        
         //es el metodo que la app chofer llama en el hilo para actualizar su posicion
         [Route("GuardarCoordenadasVehiculo")]
         public JsonResult GuardarCoordenadasVehiculos(string idVehiculo, string latitud, string longitud)
         {
             return Json(new { Success = true });
         }
+
         [HttpGet]
         [Route("CoordenadasClienteWeb")]
         public JsonResult CoordenadasClienteWeb(string latitud, string longitud)
         {
-            string idCliente = _session.GetString("UserId");
-            return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
+           
+                string idCliente = _session.GetString("UserId");
+                if (idCliente != null)
+                {
+                    return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
+                }
+
+            return Json(null);
+          
         }
+
         [HttpGet]
         [Route("CoordenadasCliente")]
         public JsonResult CoordenadasCliente(string idCliente, string latitud, string longitud)
         {
             return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
         }
+
         [HttpGet]
         [Route("FinalizarViaje")]
         public async Task<JsonResult> FinalizarViaje(Viaje viaje)
         {
             return Json(await _controladoraViajes.finalizarViaje(viaje));
         }
-        [HttpGet]
-        [Route("ConsultaServicioFinalizado")]
-        public async Task<JsonResult> SolicitudServicio(Item item, string latitudCliente, string longitudCliente)
-        {
-            double unidades = _controladoraVehiculos.calcularUnidades(item.Alto, item.Ancho, item.Profundidad);
-           Vehiculo vehiculo = await _controladoraVehiculos.mejorVehiculoPrueba(latitudCliente, longitudCliente, unidades, item.Peso);
-            return Json(vehiculo);
-        }
+        //[HttpGet]
+        //[Route("ConsultaServicioFinalizado")]
+        //public async Task<JsonResult> SolicitudServicio(Item item, string latitudCliente, string longitudCliente)
+        //{
+        //    double unidades = _controladoraVehiculos.calcularUnidades(item.Alto, item.Ancho, item.Profundidad);
+        //   Vehiculo vehiculo = await _controladoraVehiculos.mejorVehiculo(latitudCliente, longitudCliente, unidades, item.Peso);
+        //    return Json(vehiculo);
+        //}
         [HttpGet]
         [Route("VehiculoPrueba")]
         public JsonResult VehiculoPrueba()
@@ -191,17 +207,28 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             return Json((PosicionSatelital)_controladoraVehiculos.UbicacionVehiculos[idVehiculo]);
         }
-        [HttpGet]
+        //falta impactar el viaje contra la base
+
+        [HttpPost]
         [Route("SolicitudServicio")]
-        public async Task<JsonResult> SolicitudServicio(Viaje viaje)
+        public async Task<JsonResult> SolicitudServicio([FromBody]Viaje viaje)
         {
-            viaje.DuracionEstimadaHastaCliente = await _controladoraVehiculos.tiempoDemora(viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud,viaje.DireccionOrigen);
-            TimeSpan duracionTotal = TimeSpan.Parse("0");
-            TimeSpan tiempoDemora = TimeSpan.Parse("0");
-            viaje.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(duracionTotal, viaje.Vehiculo.Tarifa);
-            viaje.DuracionEstimadaTotal = duracionTotal;
-            return Json(viaje);
+            Viaje salida = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
+            salida.DuracionEstimadaHastaCliente = await _controladoraVehiculos.tiempoDemora(viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud,viaje.DireccionOrigen);
+            TimeSpan duracionTotal = await _controladoraVehiculos.tiempoDemoraTotal(viaje);
+            salida.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(duracionTotal, viaje.Vehiculo.Tarifa,viaje.Compartido);
+            salida.DuracionEstimadaTotal = duracionTotal;
+            return Json(salida);
         }
+
+        [HttpGet]
+        [Route("SolicitudMudanza")]
+        public async Task<JsonResult> SolicitudMudanza(Viaje viaje)
+        {
+            Viaje salida = await _controladoraViajes.solicitarViaje(viaje,TipoVehiculo.CamionMudanza);
+            return Json(salida);
+        }
+
         [HttpGet]
         [Route("ConsultaServicioFinalizado")]
         public async Task<JsonResult>ConsultaServicioFinalizado(string idViaje)
@@ -222,11 +249,24 @@ namespace ProyectoTransportesAndes.ControllersAPI
         //{
 
         //}
+
         [HttpGet]
         [Route("ViajesChofer")]
         public async Task<JsonResult>ViajesChofer(string idChofer)
         {
             return Json(await _controladoraViajes.viajeEnCursoChofer(idChofer));
+        }
+
+        [HttpGet]
+        [Route("TiposItems")]
+        public JsonResult TiposItems()
+        {
+            List<TipoItem> salida = new List<TipoItem>();
+            foreach(TipoItem value in Enum.GetValues(typeof(TipoItem)))
+            {
+                salida.Add(value);
+            }
+            return Json(salida);
         }
         #endregion
     }

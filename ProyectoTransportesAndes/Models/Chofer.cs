@@ -16,7 +16,6 @@ namespace ProyectoTransportesAndes.Models
         [DataType(DataType.Date)]
         [Required(ErrorMessage ="El vencimiento del carnet de salud no puede ser vacío")]
         public DateTime VencimientoCarneDeSalud { get; set; }
-        [Required(ErrorMessage ="Debe ingresar la libreta de conducir")]
         [Display(Name ="Libreta de conducir")]
         public LibretaDeConducir LibretaDeConducir { get; set; }
         [Display(Name ="Foto")]

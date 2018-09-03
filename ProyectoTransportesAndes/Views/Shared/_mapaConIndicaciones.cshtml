@@ -10,7 +10,7 @@
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
             $.ajax({
-                url: '/api/ClienteAPI/CoordenadasClienteWeb',
+                url: '/api/CoordenadasClienteWeb',
                 type: "GET",
                 data: { 'latitud': position.coords.latitude, "longitud": position.coords.longitude },
                 dataType: "json",
@@ -34,42 +34,93 @@
     }
 </script>
 <script>
-    var map, infoWindow;
-    var latitud, longitud;
-    var direccionDestino = "@Model.DireccionDestino";
-    function initMap() {
+    function initMap()
+    {
+        var map, infoWindow;
+        var latitud, longitud;
+        var direccionDestino = "@Model.DireccionDestino";
+        var direccionOrigen = "@Model.DireccionOrigen";
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: -34.9033926, lng: -56.1637164 },
             zoom: 16
         });
-        infoWindow = new google.maps.InfoWindow;
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
-                var pos = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                latitud = position.coords.latitude;
-                longitud = position.coords.longitude;
-                infoWindow.setPosition(pos);
-                infoWindow.setContent("poner direccion actual segun ubicacion");
-                infoWindow.open(map);
-                map.setCenter(pos);
-                if (direccionDestino != null) {
-                    var geocoder = new google.maps.Geocoder();
-                    geocoder.geocode({ 'address': direccionDestino }, function (results, status) {
-                        if (status == 'OK') {
-                            var marker = new google.maps.Marker({ map: map, position: results[0].geometry.location });
-                            var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
-                            var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
-                            var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+                if (direccionOrigen != "") {
+
+                    var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
+                    var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
+                    var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+                    var latitudOrigen = "@Model.Origen.Latitud";
+                    var longitudOrigen = "@Model.Origen.Longitud";
+                    var latLongOrigen = new google.maps.LatLng(latitudOrigen, longitudOrigen);
+                    var markerOrigen = new google.maps.Marker({ map: map, position: latLongOrigen });
+                    infoWindowOrigen = new google.maps.InfoWindow;
+                    infoWindowOrigen.setPosition(latLongOrigen);
+                    infoWindowOrigen.setContent("<div><p>Salida: "+"@Model.DireccionOrigen"+"</p></div>");
+                    infoWindowOrigen.open(map);
+                    map.setCenter(latLongOrigen);
+                    if (direccionDestino != "") {
+                        var latitudDestino = "@Model.Destino.Latitud";
+                        var longitudDestino = "@Model.Destino.Longitud";
+                        var latLongDestino = new google.maps.LatLng(latitudDestino, longitudDestino);
+                        var markerDestino = new google.maps.Marker({ map: map, position: latLongDestino });
+                        infoWindowDestino = new google.maps.InfoWindow;
+                        infoWindowDestino.setPosition(latLongDestino);
+                        infoWindowDestino.setContent("<div><p>Destino: " + "@Model.DireccionDestino" + "</p></div>");
+                        infoWindowDestino.open(map);
+                        var cantidadItems = @Model.Items.Count;
+                        if (cantidadItems > 0) {
+                            var objConfigDR = { map: map, suppressMarkers: true };
+                            var way=[];
+                            @foreach(Item i in Model.Items)
+                            {
+                                @: var origenItem = new google.maps.LatLng(@i.Origen.Latitud,@i.Origen.Longitud);
+                                @: var destinoItem = new google.maps.LatLng(@i.Destino.Latitud,@i.Destino.Longitud);
+                                @:way.push({ location: origenItem});
+                                @:way.push({ location: destinoItem });
+
+                                @:infoWindowItemOrigen = new google.maps.InfoWindow;
+                                @:infoWindowItemOrigen.setPosition(origenItem);
+                                @:infoWindowItemOrigen.setContent("<div><p>Retiro: " + "@i.Descripcion" + "</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                @:infoWindowItemOrigen.open(map);
+
+                                @:infoWindowItemDestino = new google.maps.InfoWindow;
+                                @:infoWindowItemDestino.setPosition(destinoItem);
+                                @:infoWindowItemDestino.setContent("<div><p>Entrega: " + "@i.Descripcion" + "</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                @:infoWindowItemDestino.open(map);
+                            }
+
+                            var objConfigDS = {
+                                origin: latLongVehiculo,
+                                destination: latLongDestino,
+                                waypoints: way,
+                                optimizeWaypoints: true,
+                                travelMode:google.maps.TravelMode.DRIVING
+                            };
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+
+                            }
+                        }
+                        else {
                             var objConfigDR = {
-                                map: map
+                                map: map,
+                                suppressMarkers: true
                             };
                             var objConfigDS = {
                                 origin: latLongVehiculo,
-                                destination: results[0].geometry.location,
-                                waypoints: [{ location: pos }],
+                                destination: latLongDestino,
+                                waypoints: [{ location: latLongOrigen }],
                                 optimizeWaypoints: true,
                                 travelMode: google.maps.TravelMode.DRIVING
                             };
@@ -85,39 +136,40 @@
                                 }
                             }
                         }
-                        else {
-                            alert(status);
+                    }
+                    else
+                    {
+                       var objConfigDR = {
+                           map: map,
+                           suppressMarkers:true
+                       };
+                       var objConfigDS = {
+                           origin: latLongVehiculo,
+                           destination: latLongOrigen,
+                           //waypoints: [{ location: origen }],
+                            optimizeWaypoints: true,
+                            travelMode: google.maps.TravelMode.DRIVING
+                       };
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+                            }
                         }
-                    });
-
                 }
-               
-
-               
-
-
-               
-               
-                
-
-                
-               
-
-            }, function () {
-                handleLocationError(true, infoWindow, map.getCenter());
             });
-        } else {
-            handleLocationError(false, infoWindow, map.getCenter());
         }
         addMarker(@Model.Vehiculo.PosicionSatelital.Latitud,@Model.Vehiculo.PosicionSatelital.Longitud, "@Model.Vehiculo.Matricula", "@Model.Vehiculo.Marca", "@Model.Vehiculo.Modelo", "@Model.Vehiculo.Chofer.Nombre" + " " + "@Model.Vehiculo.Chofer.Apellido");
-        
-        
-        
-
         function addMarker(latitud, longitud, matricula, marca, modelo, chofer, direccion) {
             if (direccion == null) {
                 var coordenadas = { lat: latitud, lng: longitud };
-                var marker = new google.maps.Marker({ position: coordenadas, map: map });
+                var marker = new google.maps.Marker({ position: coordenadas, icon: {path:google.maps.SymbolPath.FORWARD_CLOSED_ARROW,scale:3}, map: map });
                 infoWindowMarker = new google.maps.InfoWindow;
                 var pos = { lat: latitud, lng: longitud };
                 infoWindowMarker.setPosition(pos);
@@ -128,9 +180,8 @@
                 });
             }
         }
-
     }
-    
+
     function handleLocationError(browserHasGeolocation, infoWindow, pos) {
         infoWindow.setPosition(pos);
         infoWindow.setContent(browserHasGeolocation ?
@@ -144,3 +195,4 @@
 </script>
 
 <div id="map"></div>
+

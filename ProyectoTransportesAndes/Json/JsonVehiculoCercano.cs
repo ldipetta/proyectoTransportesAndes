@@ -29,7 +29,7 @@ namespace ProyectoTransportesAndes.Json
         public List<Element> elements { get; set; }
     }
 
-    public class RootObject
+    public class VehiculoCercano
     {
         public List<string> destination_addresses { get; set; }
         public List<string> origin_addresses { get; set; }

@@ -46,7 +46,7 @@
                             <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
                         </ul>
                     </li>
-                    @*<li id="ingresarViaje" class="hidden"><a asp-area='' asp-controller='Viaje' asp-action='Index'>Viajes</a></li>*@
+                    <li class="hidden" id="tarifas"><a asp-area="" asp-controller="Viaje" asp-action="Tarifas">Tarifas</a></li>
                     <li class='dropdown hidden' id="ingresarViaje">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
@@ -55,7 +55,7 @@
                         </ul>
                     </li>
                     <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
-                    <li id="solicitarViaje" class="hidden"><a asp-area="" asp-controller="Viaje" asp-action="SolicitarViaje">Solicitar viaje</a></li>
+                    <li id="solicitarViaje" class="hidden"><a asp-area="" asp-controller="Viaje" asp-action="Servicio">Solicitar viaje</a></li>
                     <li class='dropdown hidden' id="misViajes">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
                         <ul class='dropdown-menu'>

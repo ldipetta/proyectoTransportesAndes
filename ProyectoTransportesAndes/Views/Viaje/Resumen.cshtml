@@ -1,0 +1,71 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViaje;
+
+@{
+    ViewData["Title"] = "ResumenViaje";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="margin-top:50px;">
+    <div class="panel panel-info col-lg-4">
+        <div class="panel-heading">Resumen</div>
+        <div class="panel-body">
+            <table class=" table table-responsive">
+                <tbody>
+                    <tr>
+                        <th scope="row">Fecha</th>
+                        <td>@Html.DisplayFor(model => model.FechaParaMostrar)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tiempo de llegada</th>
+                        <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaHastaCliente.Minutes) minutos</td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.Viaje.DireccionDestino))
+                    {
+                        <tr>
+                            <th scope="row">Duración</th>
+                            <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaTotal.Minutes) minutos</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Hora finalizacion</th>
+                            <td>@Html.DisplayFor(model => model.HoraEstimadaFinalizacionViaje)</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Precio estimado</th>
+                            <td>@Html.DisplayFor(model => model.PrecioEstimado)</td>
+                        </tr>
+                    }
+                    @if (string.IsNullOrEmpty(Model.Viaje.DireccionDestino))
+                    {
+                        <tr>
+                            <th scope="row">Precio</th>
+                            <td>$ @Html.DisplayFor(model => model.Viaje.Vehiculo.Tarifa) /Hora</td>
+                        </tr>
+                    }
+                    <tr>
+                        <th scope="row">Comentarios</th>
+                        <td>@Html.DisplayFor(model => model.Viaje.Comentarios)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        @if (!Model.DetallesViaje)
+        {
+            <form asp-action="Confirmacion" asp-controller="Viaje">
+                <input asp-for="IdViaje" class="form-control hidden" />
+                <div class="form-group">
+                    <input type="submit" value="Confirmar" name="confirmar" class="btn btn-success btn-block" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Cancelar" name="cancelar" class="btn btn-danger btn-block" />
+                </div>
+            </form>
+
+        }
+
+    </div>
+    <div class="col-lg-8">
+        @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
+        <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
+    </div>
+</div>
+

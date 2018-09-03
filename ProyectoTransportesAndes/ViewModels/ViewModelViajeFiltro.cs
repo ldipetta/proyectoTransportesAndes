@@ -29,6 +29,10 @@ namespace ProyectoTransportesAndes.ViewModels
         public DateTime Hasta { get; set; } = DateTime.Today;
         public IEnumerable<Viaje> Viajes { get; set; }
         private IOptions<AppSettingsMongo> _settings;
+        //public string FechaParaMostrar { get; set; }
+        //public string HoraInicio { get; set; }
+        //public string HoraFin { get; set; }
+        //public string IdViaje { get; set; }
 
         public ViewModelViajeFiltro(IOptions<AppSettingsMongo> settings)
         {

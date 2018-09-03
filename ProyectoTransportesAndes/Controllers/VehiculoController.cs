@@ -112,6 +112,7 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
+                        model.Vehiculo.Tipo = model.TipoVehiculo;
                         await _controladoraVehiculos.nuevoVehiculo(model.Vehiculo, model.ChoferSeleccionado);
                         return RedirectToAction("Index");
                     }
@@ -141,15 +142,18 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
-        public async Task<IActionResult> EditAsync(string id)
+        public IActionResult EditAsync(string id)
         {
             try
             {
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    Vehiculo vehiculo = await _controladoraVehiculos.getVehiculo(id);
-                    return View(vehiculo);
+                    Vehiculo vehiculo = _controladoraVehiculos.getVehiculo(id);
+                    ViewModelVehiculo model = new ViewModelVehiculo(_settings);
+                    model.Vehiculo = vehiculo;
+                    model.Id = vehiculo.Id.ToString();
+                    return View(model);
                 }
                 else
                 {
@@ -173,7 +177,7 @@ namespace ProyectoTransportesAndes.Controllers
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(string id, Vehiculo vehiculo)
+        public async Task<IActionResult> EditAsync(string id, ViewModelVehiculo model)
         {
             try
             {
@@ -182,10 +186,10 @@ namespace ProyectoTransportesAndes.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        await _controladoraVehiculos.editarVehiculo(vehiculo, id);
-                        return RedirectToAction("Index","Account");
+                        await _controladoraVehiculos.editarVehiculo(model.Vehiculo, id,model.ChoferSeleccionado,model.TipoVehiculo);
+                        return RedirectToAction("Index");
                     }
-                    return View(vehiculo);
+                    return View(model);
                 }
                 else
                 {
@@ -208,14 +212,14 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
-        public async Task<IActionResult> DeleteAsync(string id)
+        public IActionResult DeleteAsync(string id)
         {
             try
             {
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    var vehiculo = await _controladoraVehiculos.getVehiculo(id);
+                    var vehiculo = _controladoraVehiculos.getVehiculo(id);
                     return View(vehiculo);
                 }
                 else

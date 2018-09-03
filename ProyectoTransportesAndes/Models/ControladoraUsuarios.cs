@@ -388,7 +388,7 @@ namespace ProyectoTransportesAndes.Models
                     {
                         salida.Leyenda = cli.RazonSocial;
                     }
-                    salida.Leyenda = cli.Nombre + " " + cli.Apellido;
+                    salida.Leyenda = cliente.Nombre + " " + cliente.Apellido;
                     await DBRepositoryMongo<Cliente>.Create(salida, "Clientes");
                 }
                 else
@@ -457,6 +457,8 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        
         #endregion
 
 

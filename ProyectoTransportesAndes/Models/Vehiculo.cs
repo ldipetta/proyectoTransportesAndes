@@ -60,12 +60,14 @@ namespace ProyectoTransportesAndes.Models
         public PosicionSatelital PosicionSatelital { get; set; }
         public double Unidades { get; set; }
         public bool Disponible { get; set; }
-
-        public Vehiculo() { }
+        public TipoVehiculo Tipo { get; set; }
+        #region Constructores
+        public Vehiculo() { Items = new List<Item>(); }
         public Vehiculo(string matricula)
         {
             Matricula = matricula;
+            Items = new List<Item>();
         }
-       
+        #endregion
     }
 }

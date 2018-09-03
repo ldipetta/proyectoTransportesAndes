@@ -29,5 +29,12 @@ namespace ProyectoTransportesAndes.Models
         [Required(ErrorMessage ="El destino no puede ser vacio")]
         public string DireccionDestino { get; set; }
         public string DireccionOrigen { get; set; }
+        public bool Compartido { get; set; }
+        public PosicionSatelital Origen { get; set; }
+        public PosicionSatelital Destino { get; set; }
+
+        #region Constructores
+        public Viaje() { Items = new List<Item>(); }
+        #endregion
     }
 }

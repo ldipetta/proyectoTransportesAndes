@@ -11,9 +11,8 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelViaje
     {
-       
+
         public List<Vehiculo> Vehiculos { get; set; }
-        //public List<Item> Items { get; set; }
         public Item Item { get; set; }
         public TipoItem TipoItem { get; set; }
         public SelectList ListaTipoItem { get; set; }
@@ -25,8 +24,14 @@ namespace ProyectoTransportesAndes.ViewModels
         public string HoraInicio { get; set; }
         public string HoraEstimadaLlegadaHastaCliente { get; set; }
         public string HoraEstimadaFinalizacionViaje { get; set; }
-        public bool ViajeMarcado { get; set; }
-        public string DireccionDestino { get; set; }
+        public bool Presupuesto { get; set; }
+        public string TelefonoContacto { get; set; }
+        public string Observaciones {get;set;}
+        public string EmailContacto { get; set; }
+        public bool MarcarDestino { get; set; }
+        public string FechaParaMostrar { get; set; }
+        public bool ViajeCompartido { get; set; }
+        public bool DetallesViaje { get; set; }
 
         public ViewModelViaje()
         {

@@ -17,5 +17,6 @@ namespace ProyectoTransportesAndes.Models
             Latitud = latitud;
             Longitud = longitud;
         }
+        public PosicionSatelital() { }
     }
 }

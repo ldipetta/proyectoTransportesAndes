@@ -25,7 +25,7 @@ namespace ProyectoTransportesAndes.Models
         [Required(ErrorMessage ="El usuario no puede ser vacío")]
         public string User { get; set; }
         [DataType(DataType.Password)]
-        [Required(ErrorMessage = "El usuario no puede ser vacío")]
+        [Required(ErrorMessage = "La contraseña no puede ser vacía")]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres"), MaxLength(12, ErrorMessage = "La contrasena debe tener como maximo 12 caracteres")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{6,12}$", ErrorMessage = "Entre 6 y 12 caracteres, que incluya al menos un digito, una letra mayúscula, una letra minuscula y un signo de puntuación(.!?;:)")]
         public string Password { get; set; }

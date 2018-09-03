@@ -1,14 +1,31 @@
 ﻿
 $(document).ready(function () {
-    $("#vehiculos").on('change', function () {
-        alert("hola");
+    $("#btnFlete").click(function () {
+        $("#contenedorFlete").removeClass("hidden");
+        $("#contenedorMudanza").addClass("hidden");
+        $("#mapa").removeClass("hidden");
+
+        $("#btnFlete").removeClass("btnPersonalizadoCuentaNueva");
+        $("#btnFlete").addClass("btnPersonalizadoIniciarSesion");
+        $("#btnMudanza").removeClass("btnPersonalizadoIniciarSesion");
+        $("#btnMudanza").addClass("btnPersonalizadoCuentaNueva");
+    });
+
+    $("#btnMudanza").click(function () {
+        $("#contenedorFlete").addClass("hidden");
+        $("#contenedorMudanza").removeClass("hidden");
+        $("#mapa").removeClass("hidden");
+        $("#btnMudanza").removeClass("btnPersonalizadoCuentaNueva");
+        $("#btnMudanza").addClass("btnPersonalizadoIniciarSesion");
+        $("#btnFlete").removeClass("btnPersonalizadoIniciarSesion");
+        $("#btnFlete").addClass("btnPersonalizadoCuentaNueva");
     });
     
-    $('#viajeLibre').on('click', function () {
+    $('#sinDestino').on('click', function () {
         if ($(this).is(':checked')) {
-            $("#destino").removeClass('hidden');
+            $("#contenedorDestino").removeClass('hidden');
         } else {
-            $('#destino').addClass('hidden');
+            $('#contenedorDestino').addClass('hidden');
         }
     });
     $("#Refresh").click(function () {
