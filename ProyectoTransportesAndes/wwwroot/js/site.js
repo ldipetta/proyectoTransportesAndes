@@ -55,15 +55,13 @@ $(document).ready(function () {
         $("#clientes").removeClass("hidden");
         $("#bienvenida").addClass("hidden");
         $("#misViajes").addClass("hidden");
+        $('#tarifas').removeClass("hidden");
     }
     var userName = $("#userName").data('value');
     if (userName !== "") {
         $("#salir").removeClass("hidden");
         $("#userName").append("<a>Hola " + userName + "</a>");
     }
-    else {
-
-
-    }
+   
 
 });

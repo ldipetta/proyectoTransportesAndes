@@ -120,7 +120,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
             Chofer chofer = await DBRepositoryMongo<Chofer>.GetUsuario(cliente.User, "Choferes");
             Usuario usu = await DBRepositoryMongo<Usuario>.GetUsuario(cliente.User, "Usuarios");
 
-            if (cliente == null && chofer == null && usu == null)
+            if (cli == null && chofer == null && usu == null)
             {
                 Cliente nuevo = cliente;
                 await DBRepositoryMongo<Cliente>.Create(nuevo, "Clientes");
@@ -261,10 +261,14 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("TiposItems")]
         public JsonResult TiposItems()
         {
-            List<TipoItem> salida = new List<TipoItem>();
-            foreach(TipoItem value in Enum.GetValues(typeof(TipoItem)))
+            List<string> salida = new List<string>();
+        
+
+            var enumValues = Enum.GetNames(typeof(TipoItem));
+
+            foreach (var enumValue in enumValues)
             {
-                salida.Add(value);
+                salida.Add(enumValue);
             }
             return Json(salida);
         }
