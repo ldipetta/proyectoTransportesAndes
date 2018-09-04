@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,11 @@ namespace ProyectoTransportesAndes.Models
             Latitud = latitud;
             Longitud = longitud;
         }
-        public PosicionSatelital() { }
+        public PosicionSatelital()
+        {
+            Id = "";
+            Latitud = "";
+            Longitud = "";
+        }
     }
 }

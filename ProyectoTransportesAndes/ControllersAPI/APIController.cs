@@ -214,10 +214,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public async Task<JsonResult> SolicitudServicio([FromBody]Viaje viaje)
         {
             Viaje salida = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
-            salida.DuracionEstimadaHastaCliente = await _controladoraVehiculos.tiempoDemora(viaje.Vehiculo.PosicionSatelital.Latitud, viaje.Vehiculo.PosicionSatelital.Longitud,viaje.DireccionOrigen);
-            TimeSpan duracionTotal = await _controladoraVehiculos.tiempoDemoraTotal(viaje);
-            salida.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(duracionTotal, viaje.Vehiculo.Tarifa,viaje.Compartido);
-            salida.DuracionEstimadaTotal = duracionTotal;
+            salida.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(salida.DuracionEstimadaTotal, viaje.Vehiculo.Tarifa,viaje.Compartido);
             return Json(salida);
         }
 
@@ -270,6 +267,35 @@ namespace ProyectoTransportesAndes.ControllersAPI
             {
                 salida.Add(enumValue);
             }
+            return Json(salida);
+        }
+
+
+        //devuelve el costo de la cancelacion.
+        //0 si la cancelacion se realiza antes de la confirmacion
+        //100 si se realiza luego de la confirmacion
+        //-1 si se realiza luego que el chofer llego al origen. no se puede cancelar alli
+        [HttpPost]
+        [Route("CancelarViaje")]
+        public async Task<JsonResult> CancelarViaje([FromBody]Viaje viaje)
+        {
+            double salida = await _controladoraViajes.cancelarViaje(viaje.Id.ToString());
+            return Json(salida);
+        }
+
+        [HttpPost]
+        [Route("ConfirmarViaje")]
+        public async Task<JsonResult> ConfirmarViaje([FromBody]Viaje viaje)
+        {
+            Viaje salida = await _controladoraViajes.confirmarViaje(viaje.Id.ToString());
+            return Json(salida);
+        }
+
+        [HttpPost]
+        [Route("Levantar")]
+        public async Task<JsonResult>Levantar([FromBody]Viaje viaje)
+        {
+            Viaje salida = await _controladoraViajes.levanteViaje(viaje);
             return Json(salida);
         }
         #endregion

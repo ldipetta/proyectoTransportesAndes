@@ -28,6 +28,23 @@ namespace ProyectoTransportesAndes.Models
 
         public Chofer() : base()
         {
+            User = "";
+            Password = "";
+            Nombre = "";
+            Apellido = "";
+            Email = "";
+            Documento = "";
+            Telefono = "";
+            Direccion = "";
+            FNacimiento = "";
+            Numero = "";
+            LibretaDeConducir libreta = new LibretaDeConducir();
+            libreta.Categoria = "";
+            libreta.FVencimiento = "";
+            LibretaDeConducir = libreta;
+            Foto = "";
+            Tipo = "Chofer";
+            Leyenda = "";
         }
         public Chofer(string usuario, string pass, string nombre, string apellido, string email, string documento, string telefono, string direccion, string fNacimiento, string numero, string vtoCarneSalud, string categoriaLibreta, string fVtoLibreta, string foto) : base()
         {
@@ -47,6 +64,7 @@ namespace ProyectoTransportesAndes.Models
             LibretaDeConducir = libreta;
             Foto = foto;
             Tipo = "Chofer";
+            Leyenda = "";
         }
        
     }

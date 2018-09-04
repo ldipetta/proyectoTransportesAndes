@@ -62,7 +62,32 @@ namespace ProyectoTransportesAndes.Models
         public bool Disponible { get; set; }
         public TipoVehiculo Tipo { get; set; }
         #region Constructores
-        public Vehiculo() { Items = new List<Item>(); }
+
+        public Vehiculo()
+        {
+            Items = new List<Item>();
+            Calificacion = 0;
+            Id = new ObjectId();
+            Matricula = "";
+            Marca = "";
+            Modelo = "";
+            Unidades = 0;
+            Tipo = TipoVehiculo.Otros;
+            Disponible = false;
+            PosicionSatelital = new PosicionSatelital();
+            Chofer = new Chofer();
+            CantidadPasajeros = 0;
+            EmpresaAseguradora = "";
+            VencimientoSeguro = DateTime.Now;
+            Tarifa = 0;
+            VencimientoPermisoPortuario = DateTime.Now;
+            Alto = 0;
+            Largo = 0;
+            Ancho = 0;
+            CantidadPasajeros = 0;
+            EmpresaAseguradora = "";
+            CapacidadCargaKg = 0;
+        }
         public Vehiculo(string matricula)
         {
             Matricula = matricula;

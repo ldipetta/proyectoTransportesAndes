@@ -14,5 +14,10 @@ namespace ProyectoTransportesAndes.Models
         [Display(Name ="Fecha de vencimiento")]
         [DataType(DataType.Date)]
         public string FVencimiento { get; set; }
+
+        public LibretaDeConducir() {
+            Categoria = "";
+            FVencimiento = "";
+        }
     }
 }

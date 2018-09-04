@@ -328,10 +328,11 @@ namespace ProyectoTransportesAndes.Models
                                 }
                             }
                         }
-                        else
-                        {
-                            throw new MensajeException("El vehiculo no se encuentra disponible");
-                        }
+                        //else
+                        //{
+                        //    //return null;
+                        //    //throw new MensajeException("El vehiculo no se encuentra disponible");
+                        //}
                     }
                 }
                 return masCercanoConCapacidad;
@@ -689,6 +690,36 @@ namespace ProyectoTransportesAndes.Models
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task actualizarTarifasVehiculos(Tarifa tarifa)
+        {
+            var vehiculos = await getVehiculos();
+            List<Vehiculo> aux = vehiculos.ToList();
+            foreach(Vehiculo v in aux)
+            {
+                if (v.Tipo == TipoVehiculo.Camioneta)
+                {
+                    v.Tarifa = tarifa.Camioneta;
+                }
+                if (v.Tipo == TipoVehiculo.CamionChico)
+                {
+                    v.Tarifa = tarifa.CamionChico;
+                }
+                if (v.Tipo == TipoVehiculo.Camion)
+                {
+                    v.Tarifa = tarifa.Camion;
+                }
+                if (v.Tipo == TipoVehiculo.CamionGrande)
+                {
+                    v.Tarifa = tarifa.CamionGrande;
+                }
+                if (v.Tipo == TipoVehiculo.CamionMudanza)
+                {
+                    v.Tarifa = tarifa.CamionMudanza;
+                }
+                await actualizarVehiculo(v);
             }
         }
         #endregion

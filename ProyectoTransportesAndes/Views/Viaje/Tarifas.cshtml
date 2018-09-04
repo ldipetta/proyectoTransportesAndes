@@ -1,0 +1,40 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelTarifa
+@{
+    ViewData["Title"] = "Tarifas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class=" col-lg-2">
+        <form asp-action="Tarifas" asp-controller="Viaje">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <fieldset>
+                <legend>Valores por hora</legend>
+                <div class="form-group">
+                    <label asp-for="Camioneta">Camioneta</label>
+                    <input asp-for="Camioneta" value="@Model.Camioneta" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="CamionChico">Camión chico</label>
+                    <input asp-for="CamionChico" value="@Model.CamionChico" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Camion">Camión</label>
+                    <input asp-for="Camion" value="@Model.Camion" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="CamionGrande">Camión grande</label>
+                    <input asp-for="CamionGrande" value="@Model.CamionGrande" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="CamionMudanza">Camión mudanza</label>
+                    <input asp-for="CamionMudanza" value="@Model.CamionMudanza" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="form-control btn btn-block btn-info" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>

@@ -164,6 +164,26 @@ namespace ProyectoTransportesAndes.Models
             }
            
         }
+        public static bool validarUsuarioAdministrador(string token)
+        {
+            try
+            {
+                bool salida = false;
+                if (token != null)
+                {
+                    var rol = validarToken(token);
+                    if (rol == "Administrador")
+                    {
+                        salida = true;
+                    }
+                }
+                return salida;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         #endregion
 
     }

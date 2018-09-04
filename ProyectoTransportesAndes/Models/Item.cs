@@ -25,5 +25,7 @@ namespace ProyectoTransportesAndes.Models
         public string DireccionDestino { get; set; }
         public PosicionSatelital Origen { get; set; }
         public PosicionSatelital Destino { get; set; }
+        public bool Retirado { get; set; }
+        public bool Entregado { get; set; }
     }
 }

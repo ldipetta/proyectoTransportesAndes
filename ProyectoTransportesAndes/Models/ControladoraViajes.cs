@@ -42,6 +42,7 @@ namespace ProyectoTransportesAndes.Models
             // _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
             DBRepositoryMongo<Viaje>.Iniciar(_settings);
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
+            DBRepositoryMongo<Tarifa>.Iniciar(_settings);
             //ServiciosPendientes = new List<Viaje>();
         }
         #endregion
@@ -102,7 +103,7 @@ namespace ProyectoTransportesAndes.Models
             try
             {
                 viaje.Fecha = DateTime.Today.Date;
-                viaje.Estado = EstadoViaje.EnCurso;
+                viaje.Estado = EstadoViaje.Pendiente;
                 double unidadesTraslado = 0;
                 double pesoTotal = 0;
                 foreach (Item i in viaje.Items)
@@ -163,7 +164,8 @@ namespace ProyectoTransportesAndes.Models
                     }
                     else
                     {
-                        throw new MensajeException("No hay vehiculos disponibles por el momento. Intente de nuevo mas tarde");
+                        viaje.Vehiculo = new Vehiculo();
+                        return viaje;
                     }
                 }
                 else
@@ -211,12 +213,34 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task cancelarViaje(string idViaje)
+        public async Task<double> cancelarViaje(string idViaje)
         {
             try
             {
+                double costo = 0;
                 Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "ViajesPendientes");
-                await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "ViajesPendientes");
+                if (viaje != null)
+                {
+                    costo = 0;
+                    await DBRepositoryMongo<Viaje>.DeleteAsync(viaje.Id, "ViajesPendientes");
+                    return costo;
+                }
+                else
+                {
+                    Viaje confirmado = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "Viajes");
+                    if (confirmado != null)
+                    {
+                        if (confirmado.Estado == EstadoViaje.Pendiente)
+                        {
+                            costo = 100;
+                        }
+                        if (confirmado.Estado == EstadoViaje.EnCurso)
+                        {
+                            costo = -1;
+                        }
+                    }
+                }
+                return costo;
             }
             catch (MensajeException msg)
             {
@@ -226,6 +250,38 @@ namespace ProyectoTransportesAndes.Models
             {
                 throw ex;
             }
+        }
+        //el chofer llega a destino y cambia el estado del viaje a en curso
+        public async Task<Viaje> levanteViaje(Viaje viaje)
+        {
+            try
+            {
+                Viaje actualizar = await getViaje(viaje.Id.ToString());
+                actualizar.Estado = EstadoViaje.EnCurso;
+                await actualizarViaje(actualizar);
+                return actualizar;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
+            }
+           
+        }
+        public async Task actualizarViaje(Viaje viaje)
+        {
+            try
+            {
+                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "Viajes");
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
+            }
+            
         }
         public async Task <Viaje> viajePendienteCliente(string cliente)
         {
@@ -546,7 +602,41 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-
+        public async Task<Tarifa> obtenerUltimaTarifa()
+        {
+            try
+            {
+                var tarifas = await DBRepositoryMongo<Tarifa>.GetItemsAsync("Tarifas");
+                Tarifa ultima = tarifas.OrderByDescending(t => t.FechaModificacion).FirstOrDefault();
+                return ultima;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<Tarifa> guardarTarifa(Tarifa nueva, string idUsuario)
+        {
+            try
+            {
+                Usuario admin = await ControladoraUsuarios.getInstance(_settings).getAdministrativo(idUsuario);
+                TimeZoneInfo timeZone = TimeZoneInfo.Local;
+                nueva.FechaModificacion = TimeZoneInfo.ConvertTime(DateTime.UtcNow, timeZone);
+                nueva.UsuarioModificacion = admin.User;
+                await DBRepositoryMongo<Tarifa>.Create(nueva, "Tarifas"); 
+                return nueva;
+            }catch(MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         #endregion
     }
 }

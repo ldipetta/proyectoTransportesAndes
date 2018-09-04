@@ -10,6 +10,7 @@ namespace ProyectoTransportesAndes.Models
         Camioneta,
         CamionChico,
         Camion,
+        CamionGrande,
         CamionMudanza,
         Otros
     }

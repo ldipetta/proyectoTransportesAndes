@@ -78,8 +78,16 @@
                             {
                                 @: var origenItem = new google.maps.LatLng(@i.Origen.Latitud,@i.Origen.Longitud);
                                 @: var destinoItem = new google.maps.LatLng(@i.Destino.Latitud,@i.Destino.Longitud);
-                                @:way.push({ location: origenItem});
-                                @:way.push({ location: destinoItem });
+
+                                @if (!i.Retirado)
+                                {
+                                     @:way.push({ location: origenItem});
+                                }
+
+                                @if (!i.Entregado)
+                                {
+                                     @:way.push({ location: destinoItem });
+                                }
 
                                 @:infoWindowItemOrigen = new google.maps.InfoWindow;
                                 @:infoWindowItemOrigen.setPosition(origenItem);
@@ -93,7 +101,7 @@
                             }
 
                             var objConfigDS = {
-                                origin: latLongVehiculo,
+                                origin: latLongOrigen,
                                 destination: latLongDestino,
                                 waypoints: way,
                                 optimizeWaypoints: true,

@@ -457,38 +457,6 @@ namespace ProyectoTransportesAndes.Controllers
 
         }
 
-        //[HttpPost]
-        //[Route("AgregarItem")]
-        //public async Task<IActionResult> AgregarItem(ViewModelViaje model)
-        //{
-        //    try
-        //    {
-        //        var token = _session.GetString("Token");
-        //        if (Usuario.validarUsuarioCliente(token))
-        //        {
-        //            string idCliente = _session.GetString("UserId");
-        //            model.Item.Tipo = model.TipoItem;
-        //            await _controladoraViajes.agregarItem(idCliente, model.Item);
-        //            return RedirectToAction("SolicitarViaje");
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-        //            return RedirectToAction("Login");
-        //        }
-        //    }
-        //    catch (MensajeException msg)
-        //    {
-        //        ModelState.AddModelError(string.Empty, msg.Message);
-        //        return RedirectToAction("SolicitarViaje");
-        //    }
-        //    catch (Exception)
-        //    {
-        //        ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
-        //        return RedirectToAction("SolicitarViaje");
-        //    }
-        //}
-
         [HttpGet]
         [Route("EditarItem")]
         public async Task<IActionResult> EditarItem(string itemId)
@@ -770,7 +738,7 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     if (!string.IsNullOrEmpty(cancelar))
                     {
-                        await _controladoraViajes.cancelarViaje(viaje.IdViaje);
+                        Viaje salida = await _controladoraViajes.cancelarViaje(viaje.IdViaje);
                     }
                     return RedirectToAction("MisViajes");
                 }
@@ -791,6 +759,7 @@ namespace ProyectoTransportesAndes.Controllers
                 return RedirectToAction("Resumen");
             }
         }
+
         [Route("Presupuesto")]
         public IActionResult Presupuesto()
         {
@@ -819,6 +788,128 @@ namespace ProyectoTransportesAndes.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("Tarifas")]
+        public async Task<IActionResult> Tarifas()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrador(token))
+                {
+                    Tarifa ultima = await _controladoraViajes.obtenerUltimaTarifa();
+                    ViewModelTarifa model = new ViewModelTarifa();
+                    if (ultima != null)
+                    {
+                        model.Camion = ultima.Camion.ToString();
+                        model.CamionChico = ultima.CamionChico.ToString();
+                        model.Camioneta = ultima.Camioneta.ToString();
+                        model.CamionGrande = ultima.CamionGrande.ToString();
+                        model.CamionMudanza = ultima.CamionMudanza.ToString();
+                    }
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index","Home");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Index","Home");
+            }
+        }
+
+        [HttpPost]
+        [Route("Tarifas")]
+        public async Task<IActionResult> Tarifas(ViewModelTarifa model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrador(token))
+                {
+                    var userId = _session.GetString("UserId");
+                    int camion, camioneta, camionChico, camionGrande, camionMudanza;
+                    Tarifa nueva = new Tarifa();
+                    int.TryParse(model.Camion,out camion);
+                    int.TryParse(model.Camioneta,out camioneta);
+                    int.TryParse(model.CamionChico, out camionChico);
+                    int.TryParse(model.CamionGrande, out camionGrande);
+                    int.TryParse(model.CamionMudanza, out camionMudanza);
+                    nueva.Camion = camion;
+                    nueva.CamionChico = camionChico;
+                    nueva.Camioneta = camioneta;
+                    nueva.CamionMudanza = camionMudanza;
+                    nueva.CamionGrande = camionGrande;
+                    await _controladoraViajes.guardarTarifa(nueva, userId);
+                    if (nueva.Id == null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Ocurrió un problema inesperado. Intente de nuevo mas tarde");
+                        return View();
+                    }
+                    await _controladoraVehiculos.actualizarTarifasVehiculos(nueva);
+                    ModelState.AddModelError(string.Empty, "La tarifa se actualizó con exito");
+                    return RedirectToAction("Index","Home");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (FormatException)
+            {
+                ModelState.AddModelError(string.Empty,"Debe ingresar solo numeros como valores de la tarifa");
+                return RedirectToAction("Tarifa");
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Tarifa");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Tarifa");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult LiquidacionViajesChofer()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    ViewModelViajeFiltro model = new ViewModelViajeFiltro();
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
     }
         #endregion
 }

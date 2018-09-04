@@ -8,7 +8,8 @@ namespace ProyectoTransportesAndes.Models
     public enum EstadoViaje
     {
         Estado,
-        Finalizado, 
+        Finalizado,
+        Pendiente,
         EnCurso,
     }
 }

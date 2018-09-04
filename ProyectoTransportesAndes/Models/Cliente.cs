@@ -35,6 +35,7 @@ namespace ProyectoTransportesAndes.Models
             Tipo = "Cliente";
             RazonSocial = razonSocial;
             Rut = rut;
+            Leyenda = "";
         }
         public Cliente() { }
         #endregion
