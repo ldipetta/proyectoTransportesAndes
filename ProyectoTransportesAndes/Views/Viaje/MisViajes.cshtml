@@ -10,6 +10,10 @@
 <div style="margin-top:50px">
     <form asp-action="MisViajes" asp-controller="Viaje">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group hidden">
+            <label asp-for="IdCliente"></label>
+            <input asp-for="IdCliente" class="form-control" />
+        </div>
         <div class="form-inline">
             <div class="form-group">
                 @Html.DropDownListFor(m => Model.EstadoViaje, Model.ListaEstadoViaje, new { @class = "form-control" })
@@ -81,7 +85,12 @@
                 @Html.DisplayFor(modelItem => item.CostoFinal)
             </td>
             <td>
-                @Html.ActionLink("Detalles", "Resumen", new { idViaje = item.Id.ToString() })
+                @Html.ActionLink("Detalles", "Resumen", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-success" })
+                @if (item.Estado != EstadoViaje.Finalizado)
+                {
+                    @Html.ActionLink("Cancelar", "CancelarViaje", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-danger" })
+                }
+
             </td>
         </tr>
         }

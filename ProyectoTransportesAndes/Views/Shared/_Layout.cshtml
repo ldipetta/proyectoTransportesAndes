@@ -47,13 +47,29 @@
                         </ul>
                     </li>
                     <li class="hidden" id="tarifas"><a asp-area="" asp-controller="Viaje" asp-action="Tarifas">Tarifas</a></li>
+
                     <li class='dropdown hidden' id="ingresarViaje">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
-                            <li><a asp-area='' asp-controller='Viaje' asp-action='Nuevo'>Ingresar</a></li>
-                            <li><a asp-area='' asp-controller='Viaje' asp-action='Index'>Listado</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='ViajesDirectos'>Viajes directos</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='ViajesOnline'>Viajes online</a></li>
                         </ul>
                     </li>
+                    <li class='dropdown hidden' id="liquidarViajes">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Liquidar viajes <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='LiquidacionViajesChofer'>Liquidar</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Liquidaciones'>Historico liquidaciones</a></li>
+                        </ul>
+                    </li>
+                    <li class='dropdown hidden' id="estadisticas">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Estadísticas<span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='EstadisticasVehiculo'>Vehiculos</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='EstadisticasChofer'>Choferes</a></li>
+                        </ul>
+                    </li>
+                    <li class="hidden" id="presupuestos"><a asp-area="" asp-controller="Viaje" asp-action="Presupuestos">Presupuestos</a></li>
                     <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
                     <li id="solicitarViaje" class="hidden"><a asp-area="" asp-controller="Viaje" asp-action="Servicio">Solicitar viaje</a></li>
                     <li class='dropdown hidden' id="misViajes">

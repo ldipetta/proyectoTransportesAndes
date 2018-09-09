@@ -354,6 +354,16 @@ namespace ProyectoTransportesAndes.Models
                 {
                     chofer.Id = new ObjectId(id);
                     await DBRepositoryMongo<Usuario>.DeleteAsync(chofer.Id, "Choferes");
+                    var vehiculos = await ControladoraVehiculos.getInstance(_settings).getVehiculos();
+                    List<Vehiculo> aux = vehiculos.ToList();
+                    foreach (Vehiculo v in aux)
+                    {
+                        if (v.Chofer.Id.ToString().Equals(id))
+                        {
+                            v.Chofer = new Chofer();
+                            ControladoraVehiculos.getInstance(_settings).actualizarVehiculo(v);
+                        }
+                    }
                 }
                 else
                 {
@@ -412,8 +422,10 @@ namespace ProyectoTransportesAndes.Models
             {
                 if (cliente != null && id != null)
                 {
+                    
                     cliente.Id = new ObjectId(id);
                     await DBRepositoryMongo<Usuario>.DeleteAsync(cliente.Id, "Clientes");
+                    
                 }
                 else
                 {

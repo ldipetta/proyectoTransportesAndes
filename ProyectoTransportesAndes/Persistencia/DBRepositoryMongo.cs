@@ -15,7 +15,7 @@ namespace ProyectoTransportesAndes.Persistencia
     {
         private static IOptions<AppSettingsMongo> _settings;
         private static IMongoDatabase _database = null;
-        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","RespaldoVehiculos","Presupuestos","Tarifas"};
+        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","RespaldoVehiculos","Presupuestos","Tarifas","Liquidaciones","ViajesDirectos"};
         private static MongoClient _client;
 
         public static void Iniciar(IOptions<AppSettingsMongo> settings)
@@ -214,6 +214,7 @@ namespace ProyectoTransportesAndes.Persistencia
                 throw new MensajeException("Se produjo un error al obtener el peón. Intente de nuevo mas tarde");
             }
         }
+
 
 
 

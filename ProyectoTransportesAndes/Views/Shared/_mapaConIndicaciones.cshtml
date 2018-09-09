@@ -58,7 +58,7 @@
                     var markerOrigen = new google.maps.Marker({ map: map, position: latLongOrigen });
                     infoWindowOrigen = new google.maps.InfoWindow;
                     infoWindowOrigen.setPosition(latLongOrigen);
-                    infoWindowOrigen.setContent("<div><p>Salida: "+"@Model.DireccionOrigen"+"</p></div>");
+                    infoWindowOrigen.setContent("<div><p><small><b>Salida</b></small></p>"+"<p>@Model.DireccionOrigen</p></div>");
                     infoWindowOrigen.open(map);
                     map.setCenter(latLongOrigen);
                     if (direccionDestino != "") {
@@ -68,7 +68,7 @@
                         var markerDestino = new google.maps.Marker({ map: map, position: latLongDestino });
                         infoWindowDestino = new google.maps.InfoWindow;
                         infoWindowDestino.setPosition(latLongDestino);
-                        infoWindowDestino.setContent("<div><p>Destino: " + "@Model.DireccionDestino" + "</p></div>");
+                        infoWindowDestino.setContent("<div><p><small><b>Destino</b></small></p>" + "<p>@Model.DireccionDestino</p></div>");
                         infoWindowDestino.open(map);
                         var cantidadItems = @Model.Items.Count;
                         if (cantidadItems > 0) {
@@ -91,12 +91,12 @@
 
                                 @:infoWindowItemOrigen = new google.maps.InfoWindow;
                                 @:infoWindowItemOrigen.setPosition(origenItem);
-                                @:infoWindowItemOrigen.setContent("<div><p>Retiro: " + "@i.Descripcion" + "</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
                                 @:infoWindowItemOrigen.open(map);
 
                                 @:infoWindowItemDestino = new google.maps.InfoWindow;
                                 @:infoWindowItemDestino.setPosition(destinoItem);
-                                @:infoWindowItemDestino.setContent("<div><p>Entrega: " + "@i.Descripcion" + "</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b><small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
                                 @:infoWindowItemDestino.open(map);
                             }
 

@@ -255,13 +255,10 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-
+                    
                         await _controladoraUsuarios.EliminarChofer(chofer, id);
                         return RedirectToAction("Index");
-                    }
-                    return View(chofer);
+
                 }
                 else
                 {

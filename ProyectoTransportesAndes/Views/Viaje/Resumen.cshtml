@@ -6,7 +6,7 @@
 }
 
 <div style="margin-top:50px;">
-    <div class="panel panel-info col-lg-4">
+    <div class="panel panel-info col-lg-5">
         <div class="panel-heading">Resumen</div>
         <div class="panel-body">
             <table class=" table table-responsive">
@@ -47,6 +47,50 @@
                     </tr>
                 </tbody>
             </table>
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.Imagen)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.Descripcion)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model=>model.Item.DireccionOrigen)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model=>model.Item.DireccionDestino)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Viaje.Items.Count != 0)
+                    {
+                        @foreach (var item in Model.Viaje.Items)
+                        {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Imagen)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Descripcion)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DireccionDestino)
+                        </td>
+                    </tr>
+
+                        }
+                    }
+                    else
+                    {
+                        <tr><td>@ViewData["Mensaje"]</td></tr>}
+                </tbody>
+            </table>
         </div>
         @if (!Model.DetallesViaje)
         {
@@ -59,11 +103,10 @@
                     <input type="submit" value="Cancelar" name="cancelar" class="btn btn-danger btn-block" />
                 </div>
             </form>
-
         }
 
     </div>
-    <div class="col-lg-8">
+    <div class="col-lg-7">
         @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
         <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
     </div>

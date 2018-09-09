@@ -1,0 +1,83 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelEstadisticas
+@{
+    ViewData["Title"] = "EstadisticasVehiculo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row" style="margin-top:100px;">
+    <form asp-action="EstadisticasVehiculo" asp-controller="Viaje">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-inline">
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.IdVehiculo, Model.Vehiculos, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.MesSeleccionado, Model.Meses, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.AñoSeleccionado, Model.Años, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Filtrar" class="form-control btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.Label("Año")
+                </th>
+                <th>
+                    @Html.Label("Mes")
+                </th>
+                <th>
+                    @Html.Label("Viajes directos")
+                </th>
+                <th>
+                    @Html.Label("Viajes online")
+                </th>
+                <th>
+                    @Html.Label("Total recaudado")
+                </th>
+                <th>
+                    @Html.Label("Km recorridos")
+                </th>
+                <th>
+                    @Html.Label("Combustible")
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+          
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.Año)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.Mes)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.CantViajesDirectos)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.CantViajesOnline)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.TotalRecaudado)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.KmRecorridos)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model.Estadistica.CantidadCombustible)
+                    </td>
+                </tr>
+            
+        </tbody>
+    </table>
+</div>
+

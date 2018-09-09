@@ -16,8 +16,8 @@
                 @Html.DropDownListFor(d => Model.ChoferSeleccionado, Model.ListaChoferes, new { @class = "form-control" })
             </div>
             <div class="form-group">
-            @Html.DropDownListFor(d => Model.TipoVehiculo, Model.ListaTipoVehiculo, new { @class = "form-control" })
-        </div>
+                @Html.DropDownListFor(d => Model.TipoVehiculo, Model.ListaTipoVehiculo, new { @class = "form-control" })
+            </div>
             <div class="form-group">
                 <label asp-for="Vehiculo.Matricula" class="control-label"></label>
                 <input asp-for="Vehiculo.Matricula" class="form-control" />
@@ -33,17 +33,16 @@
                 <input asp-for="Vehiculo.Modelo" class="form-control" />
                 <span asp-validation-for="Vehiculo.Modelo" class="text-danger"></span>
             </div>
-
+            <div class="form-group">
+                <label asp-for="Vehiculo.ConsumoKml" class="control-label"></label>
+                <input asp-for="Vehiculo.ConsumoKml" class="form-control" />
+                <span asp-validation-for="Vehiculo.ConsumoKml" class="text-danger"></span>
+            </div>
             <div class="form-group">
                 <label asp-for="Vehiculo.VencimientoPermisoPortuario" class="control-label"></label>
                 <input asp-for="Vehiculo.VencimientoPermisoPortuario" class="form-control" />
                 <span asp-validation-for="Vehiculo.VencimientoPermisoPortuario" class="text-danger"></span>
             </div>
-            @*<div class="form-group">
-            <label asp-for="Vehiculo.Tarifa" class="control-label"></label>
-            <input asp-for="Vehiculo.Tarifa" class="form-control" />
-            <span asp-validation-for="Vehiculo.Tarifa" class="text-danger"></span>
-        </div>*@
             <div class="form-group">
                 <label asp-for="Vehiculo.VencimientoSeguro" class="control-label"></label>
                 <input asp-for="Vehiculo.VencimientoSeguro" class="form-control" />

@@ -53,6 +53,7 @@ namespace ProyectoTransportesAndes.Models
         [Required(ErrorMessage = "La fecha de nacimiento no puede ser vacía")]
         public string FNacimiento { get; set; }
         public string Tipo { get; set; }
+        public PosicionSatelital Ubicacion { get; set; }
         #endregion
 
         #region Metodos

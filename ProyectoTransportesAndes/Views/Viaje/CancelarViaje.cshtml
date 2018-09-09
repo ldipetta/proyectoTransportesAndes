@@ -1,0 +1,40 @@
+﻿@model ProyectoTransportesAndes.Models.Viaje
+@{
+    ViewData["Title"] = "CancelarViaje";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class ="row">
+    <div class="panel panel-danger col-lg-6 col-lg-offset-3"  style="margin-top:50px;">
+        <div class="panel-heading">Cancelación de servicio</div>
+        <div class="panel-body">
+            @if (Model.CostoFinal != -1)
+            {
+                <div class="panel-body">
+                    <p>El costo por cancelar el servicio es $ @Model.CostoFinal</p>
+                </div>
+                <div>
+                    <form asp-action="CancelarViaje" asp-controller="Viaje">
+                        <input asp-for="Id" class="form-control hidden" />
+                        <input asp-for="CostoFinal" class="form-control hidden" />
+                        <div class="form-group">
+                            <input type="submit" value="Confirmar" name="confirmar" class="btn btn-success btn-block" />
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Cancelar" name="cancelar" class="btn btn-danger btn-block" />
+                        </div>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="panel-body">
+                    <p>El chofer ya ha iniciado el servicio. Para cancelarlo por favor comuníquese con la empresa.</p>
+                </div>
+
+            }
+        </div>
+        
+    </div>
+</div>
+

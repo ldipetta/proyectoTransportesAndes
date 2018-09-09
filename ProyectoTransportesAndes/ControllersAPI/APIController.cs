@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
+using Newtonsoft.Json;
 
 namespace ProyectoTransportesAndes.ControllersAPI
 {
@@ -80,6 +82,8 @@ namespace ProyectoTransportesAndes.ControllersAPI
            
         }
 
+        [HttpGet]
+        [Route("LoginAPPChofer")]
         public async Task<JsonResult> LoginAPPChofer(string usuario, string pass)
         {
             Chofer chofer = null;
@@ -152,10 +156,22 @@ namespace ProyectoTransportesAndes.ControllersAPI
         }
         
         //es el metodo que la app chofer llama en el hilo para actualizar su posicion
+        [HttpGet]
         [Route("GuardarCoordenadasVehiculo")]
-        public JsonResult GuardarCoordenadasVehiculos(string idVehiculo, string latitud, string longitud)
+        public async Task<JsonResult> GuardarCoordenadasVehiculo(string idChofer, string latitud, string longitud)
         {
-            return Json(new { Success = true });
+            
+            ObjectId choferId = deserealizarJsonToObjectId(idChofer);
+            Vehiculo vehiculo = null;
+            if (!string.IsNullOrEmpty(choferId.ToString()))
+            {
+                vehiculo = await _controladoraVehiculos.getVehiculoChofer(choferId.ToString());
+            }
+            if (vehiculo != null && !string.IsNullOrEmpty(latitud) && !string.IsNullOrEmpty(longitud))
+            {
+                return Json(_controladoraVehiculos.guardarUbicacionVehiculo(vehiculo.Id.ToString(), latitud, longitud));
+            }
+            return Json(null);
         }
 
         [HttpGet]
@@ -177,7 +193,11 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("CoordenadasCliente")]
         public JsonResult CoordenadasCliente(string idCliente, string latitud, string longitud)
         {
-            return Json(_controladoraViajes.guardarUbicacionCliente(idCliente, latitud, longitud));
+                  ObjectId clienteId = deserealizarJsonToObjectId(idCliente);
+            if (!string.IsNullOrEmpty(latitud) && !string.IsNullOrEmpty(longitud)){
+                return Json(_controladoraViajes.guardarUbicacionCliente(clienteId.ToString(), latitud, longitud));
+            }
+            return Json(null);
         }
 
         [HttpGet]
@@ -205,6 +225,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("UbicacionVehiculo")]
         public JsonResult UbicacionVehiculo(string idVehiculo)
         {
+            
             return Json((PosicionSatelital)_controladoraVehiculos.UbicacionVehiculos[idVehiculo]);
         }
         //falta impactar el viaje contra la base
@@ -213,6 +234,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("SolicitudServicio")]
         public async Task<JsonResult> SolicitudServicio([FromBody]Viaje viaje)
         {
+            
             Viaje salida = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
             salida.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(salida.DuracionEstimadaTotal, viaje.Vehiculo.Tarifa,viaje.Compartido);
             return Json(salida);
@@ -224,6 +246,14 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             Viaje salida = await _controladoraViajes.solicitarViaje(viaje,TipoVehiculo.CamionMudanza);
             return Json(salida);
+        }
+
+        [HttpGet]
+        [Route("Presupuesto")]
+        public async Task<JsonResult>Presupuesto(Presupuesto presupuesto)
+        {
+            await _controladoraViajes.presupuestoNuevo(presupuesto);
+            return Json(presupuesto);
         }
 
         [HttpGet]
@@ -247,12 +277,12 @@ namespace ProyectoTransportesAndes.ControllersAPI
 
         //}
 
-        [HttpGet]
-        [Route("ViajesChofer")]
-        public async Task<JsonResult>ViajesChofer(string idChofer)
-        {
-            return Json(await _controladoraViajes.viajeEnCursoChofer(idChofer));
-        }
+        //[HttpGet]
+        //[Route("ViajesChofer")]
+        //public async Task<JsonResult>ViajesChofer(string idChofer)
+        //{
+        //    return Json(await _controladoraViajes.viajeEnCursoChofer(idChofer));
+        //}
 
         [HttpGet]
         [Route("TiposItems")]
@@ -275,19 +305,30 @@ namespace ProyectoTransportesAndes.ControllersAPI
         //0 si la cancelacion se realiza antes de la confirmacion
         //100 si se realiza luego de la confirmacion
         //-1 si se realiza luego que el chofer llego al origen. no se puede cancelar alli
-        [HttpPost]
+        [HttpGet]
         [Route("CancelarViaje")]
-        public async Task<JsonResult> CancelarViaje([FromBody]Viaje viaje)
+        public async Task<JsonResult> CancelarViaje(string idViaje)
         {
-            double salida = await _controladoraViajes.cancelarViaje(viaje.Id.ToString());
+            ObjectId viajeId = deserealizarJsonToObjectId(idViaje);
+            double salida = await _controladoraViajes.cancelarViaje(viajeId.ToString());
             return Json(salida);
         }
-
-        [HttpPost]
-        [Route("ConfirmarViaje")]
-        public async Task<JsonResult> ConfirmarViaje([FromBody]Viaje viaje)
+        [HttpGet]
+        [Route("ConfirmarCancelacion")]
+        public async Task ConfirmarCancelacion(string idViaje,string costo)
         {
-            Viaje salida = await _controladoraViajes.confirmarViaje(viaje.Id.ToString());
+            double valor = 0;
+            double.TryParse(costo, out valor);
+            ObjectId viajeId = deserealizarJsonToObjectId(idViaje);
+            await _controladoraViajes.confirmarCancelacion(viajeId.ToString(), valor);
+        }
+
+        [HttpGet]
+        [Route("ConfirmarViaje")]
+        public async Task<JsonResult> ConfirmarViaje(string idViaje)
+        {
+            ObjectId viajeId = deserealizarJsonToObjectId(idViaje);
+            Viaje salida = await _controladoraViajes.confirmarViaje(viajeId.ToString());
             return Json(salida);
         }
 
@@ -297,6 +338,56 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             Viaje salida = await _controladoraViajes.levanteViaje(viaje);
             return Json(salida);
+        }
+
+        [HttpGet]
+        [Route("ViajesCliente")]
+        public JsonResult ViajesCliente(string idCliente)
+        {
+            ObjectId clienteId = deserealizarJsonToObjectId(idCliente);
+            return Json(_controladoraViajes.viajesCliente(clienteId.ToString()));
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idChofer"></param>
+        /// <returns>HISTORICO VIAJES CHOFER</returns>
+        [HttpGet]
+        [Route("ViajesChofer")]
+        public JsonResult ViajesChofer(string idChofer)
+        {
+            ObjectId choferId = deserealizarJsonToObjectId(idChofer);
+            return Json(_controladoraViajes.viajesChofer(choferId.ToString()));
+        }
+        /// <summary>
+        /// VIAJES QUE NO ESTEN FINALIZADOS
+        /// </summary>
+        /// <param name="idChofer"></param>
+        /// <returns>VIAJES ACTIVOS CHOFER</returns>
+        [HttpGet]
+        [Route("ViajesActivosChofer")]
+        public JsonResult ViajesActivosChofer(string idChofer)
+        {
+            ObjectId choferId = deserealizarJsonToObjectId(idChofer);
+            return Json(_controladoraViajes.viajesActivosChofer(choferId.ToString()));
+        }
+        /// <summary>
+        /// DESEREALIZA UN JSON CON EL OBJECTID 
+        /// </summary>
+        /// <param name="idJson"></param>
+        /// <returns>UN OBJETO OBJECTID</returns>
+        public ObjectId deserealizarJsonToObjectId(string idJson)
+        {
+            var aux = BsonDocument.Parse(idJson);
+            var timestamp = aux.GetValue("timestamp").ToDouble();
+            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            DateTime time = unixEpoch.AddSeconds(timestamp).ToLocalTime();
+            var machine = aux.GetValue("machine").ToInt32();
+            var pid = Convert.ToInt16(aux.GetValue("pid").ToInt32());
+            var increment = aux.GetValue("increment").ToInt32();
+            var creationTime = aux.GetValue("creationTime");
+            ObjectId id = new ObjectId(time, machine, pid, increment);
+            return id;
         }
         #endregion
     }

@@ -17,6 +17,9 @@
                 @Html.DisplayNameFor(model => model.Matricula)
             </th>
             <th>
+                @Html.Label("Chofer")
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Calificacion)
             </th>
             <th>
@@ -30,6 +33,9 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CapacidadCargaKg)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ConsumoKml)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.VencimientoPermisoPortuario)
@@ -57,6 +63,9 @@
                 @Html.DisplayFor(modelItem => item.Matricula)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Calificacion)
             </td>
             <td>
@@ -70,6 +79,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CapacidadCargaKg)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ConsumoKml)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.VencimientoPermisoPortuario)
@@ -87,8 +99,8 @@
                 @Html.DisplayFor(modelItem => item.CantidadPasajeros)
             </td>
             <td>
-                @Html.ActionLink("Modificar","Edit", new { id = item.Id }) |
-                @Html.ActionLink("Eliminar","Delete", new { id = item.Id })
+                @Html.ActionLink("Modificar", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Eliminar", "Delete", new { id = item.Id })
             </td>
         </tr>
         }

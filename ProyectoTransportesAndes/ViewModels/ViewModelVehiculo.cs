@@ -33,7 +33,8 @@ namespace ProyectoTransportesAndes.ViewModels
         }
         public async Task cargarDatos()
         {
-            var choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
+            //var choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
+            List<Chofer> choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
             ListaChoferes = new SelectList(choferes, "Id", "Leyenda");
         }
         private void cargarLista()

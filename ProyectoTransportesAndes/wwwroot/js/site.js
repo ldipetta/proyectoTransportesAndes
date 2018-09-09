@@ -28,6 +28,20 @@ $(document).ready(function () {
             $('#contenedorDestino').addClass('hidden');
         }
     });
+    $('#utilizarDireccionCliente').on('click', function () {
+        if ($(this).is(':checked')) {
+            $("#contenedorDestino").addClass('hidden');
+        } else {
+            $('#contenedorDestino').removeClass('hidden');
+        }
+    });
+    $('#viajeCompartido').on('click', function () {
+        if ($(this).is(':checked')) {
+            $("#direcciones").addClass('hidden');
+        } else {
+            $('#direcciones').removeClass('hidden');
+        }
+    });
     $("#Refresh").click(function () {
         initMap();
     });
@@ -56,6 +70,10 @@ $(document).ready(function () {
         $("#bienvenida").addClass("hidden");
         $("#misViajes").addClass("hidden");
         $('#tarifas').removeClass("hidden");
+        $('#presupuestos').removeClass("hidden");
+        $('#liquidarViajes').removeClass("hidden");
+        $('#estadisticas').removeClass("hidden");
+
     }
     var userName = $("#userName").data('value');
     if (userName !== "") {

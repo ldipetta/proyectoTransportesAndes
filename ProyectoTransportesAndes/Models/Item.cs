@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Newtonsoft.Json;
+
 
 namespace ProyectoTransportesAndes.Models
 {
@@ -27,5 +27,7 @@ namespace ProyectoTransportesAndes.Models
         public PosicionSatelital Destino { get; set; }
         public bool Retirado { get; set; }
         public bool Entregado { get; set; }
+        public DateTime FechaEntregado { get; set; }
+        public DateTime FechaRetirado { get; set; }
     }
 }

@@ -12,6 +12,11 @@ using ProyectoTransportesAndes.Persistencia;
 using ProyectoTransportesAndes.ViewModels;
 using ProyectoTransportesAndes.ControllersAPI;
 using ProyectoTransportesAndes.Exceptions;
+using System.IO;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using iTextSharp.tool.xml;
+using iTextSharp.text.html.simpleparser;
 
 namespace ProyectoTransportesAndes.Controllers
 {
@@ -44,8 +49,8 @@ namespace ProyectoTransportesAndes.Controllers
 
         #region Acciones
         [HttpGet]
-        [Route("Index")]
-        public async Task<IActionResult> Index()
+        [Route("ViajesOnline")]
+        public async Task<IActionResult> ViajesOnline()
         {
             ViewModelViajeFiltro model = new ViewModelViajeFiltro(_settings);
             try
@@ -53,7 +58,7 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    model.Viajes = await _controladoraViajes.getViajes();
+                    model.Viajes = await _controladoraViajes.getViajesOnline();
                     return View(model);
                 }
                 else
@@ -75,15 +80,15 @@ namespace ProyectoTransportesAndes.Controllers
         }
 
         [HttpPost]
-        [Route("Index")]
-        public async Task<IActionResult> Index(ViewModelViajeFiltro model)
+        [Route("ViajesOnline")]
+        public async Task<IActionResult> ViajesOnline(ViewModelViajeFiltro model)
         {
             try
             {
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    var viajes = await _controladoraViajes.getViajes();
+                    var viajes = await _controladoraViajes.getViajesOnline();
 
                     if (!model.IdCliente.Equals("000000000000000000000000"))
                     {
@@ -92,7 +97,94 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     if (!model.IdVehiculo.Equals("0"))
                     {
-                        Vehiculo vehiculo =  _controladoraVehiculos.getVehiculo(model.IdVehiculo);
+                        Vehiculo vehiculo = _controladoraVehiculos.getVehiculo(model.IdVehiculo);
+                        viajes.Where(v => v.Vehiculo.Equals(vehiculo));
+                    }
+                    if (!model.EstadoViaje.Equals(EstadoViaje.Estado))
+                    {
+                        viajes.Where(v => v.Estado.Equals(model.EstadoViaje));
+                    }
+                    if (model.Desde != null)
+                    {
+                        viajes.Where(v => v.Fecha >= model.Desde);
+                    }
+                    if (model.Hasta != null)
+                    {
+                        viajes.Where(v => v.Fecha <= model.Hasta);
+                    }
+
+                    model.Viajes = viajes;
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos. Inice sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        [Route("ViajesDirectos")]
+        public async Task<IActionResult> ViajesDirectos()
+        {
+            ViewModelViajeFiltro model = new ViewModelViajeFiltro(_settings);
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    model.Viajes = await _controladoraViajes.getViajesDirectos();
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado, intente de nuevo mas tarde");
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [Route("ViajesDirectos")]
+        public async Task<IActionResult> ViajesDirectos(ViewModelViajeFiltro model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    var viajes = await _controladoraViajes.getViajesDirectos();
+
+                    if (!model.IdCliente.Equals("000000000000000000000000"))
+                    {
+                        Cliente cliente = await _controladoraUsuarios.getCliente(model.IdCliente);
+                        viajes.Where(v => v.Cliente.Equals(cliente));
+                    }
+                    if (!model.IdVehiculo.Equals("0"))
+                    {
+                        Vehiculo vehiculo = _controladoraVehiculos.getVehiculo(model.IdVehiculo);
                         viajes.Where(v => v.Vehiculo.Equals(vehiculo));
                     }
                     if (!model.EstadoViaje.Equals(EstadoViaje.Estado))
@@ -140,6 +232,8 @@ namespace ProyectoTransportesAndes.Controllers
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
                     ViewModelViajeDirecto model = new ViewModelViajeDirecto(_settings);
+                    model.Fecha = DateTime.Now.Date;
+                    model.FechaParaMostrar = model.Fecha.ToShortDateString();
                     return View(model);
                 }
                 else
@@ -345,6 +439,8 @@ namespace ProyectoTransportesAndes.Controllers
                             model.Viaje.DireccionDestino = "";
                             ViewData["Mensaje"] = "No tiene items ingresados";
                             model.Viaje.Items = new List<Item>();
+                            model.Viaje.DireccionDestino = "";
+                            model.Viaje.Destino = new PosicionSatelital();
                         }
                         PosicionSatelital ubicacionCliente = _controladoraViajes.obtenerUbicacionCliente(cliente);
                         model.Viaje.DireccionOrigen = await _controladoraVehiculos.convertirCoordenadasEnDireccion(ubicacionCliente.Latitud, ubicacionCliente.Longitud);
@@ -379,7 +475,7 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioCliente(token))
                 {
-                   
+
                     string idCliente = _session.GetString("UserId");
                     var item = Request.Form["item"];
                     var solicitar = Request.Form["solicitar"];
@@ -416,7 +512,17 @@ namespace ProyectoTransportesAndes.Controllers
                                 viaje = await _controladoraViajes.corroborarDireccionesItems(viaje);
                             }
                             viaje = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
-                            return RedirectToAction("Resumen", new { idViaje = viaje.Id.ToString() });
+                            if(string.IsNullOrEmpty(viaje.Vehiculo.Matricula) && string.IsNullOrEmpty(viaje.Vehiculo.Marca) && string.IsNullOrEmpty(viaje.Vehiculo.Modelo))
+                            {
+                                ModelState.AddModelError(string.Empty, "No hay vehículos disponibles por el momento. Intente nuevamente mas tarde.");
+                                return RedirectToAction("Servicio");
+                            }
+                            else
+                            {
+                                return RedirectToAction("Resumen", new { idViaje = viaje.Id.ToString() });
+
+                            }
+
                         }
                         else
                         {
@@ -542,14 +648,13 @@ namespace ProyectoTransportesAndes.Controllers
                             enCurso = await _controladoraViajes.getViaje(idViaje);
                             resumen.DetallesViaje = true;
                         }
-                        
+
                         if (enCurso != null)
                         {
                             PosicionSatelital posicionActualVehiculo = ControladoraVehiculos.getInstance(_settings).obtenerUltimaUbicacionVehiculo(enCurso.Vehiculo.Id.ToString());
-                            enCurso.DuracionEstimadaHastaCliente = await ControladoraVehiculos.getInstance(_settings).tiempoDemora(enCurso.Origen.Latitud, enCurso.Origen.Longitud, posicionActualVehiculo.Latitud, posicionActualVehiculo.Longitud);
                             if (!string.IsNullOrEmpty(enCurso.DireccionDestino))
                             {
-                                resumen.PrecioEstimado = _controladoraViajes.calcularPrecio(enCurso.DuracionEstimadaTotal, enCurso.Vehiculo.Tarifa,enCurso.Compartido);
+                                resumen.PrecioEstimado = _controladoraViajes.calcularPrecio(enCurso.DuracionEstimadaTotal, enCurso.Vehiculo.Tarifa, enCurso.Compartido);
                                 resumen.HoraEstimadaFinalizacionViaje = string.Format("{0:hh\\:mm}", enCurso.HoraInicio + enCurso.DuracionEstimadaTotal);
                             }
                             resumen.Viaje = enCurso;
@@ -572,7 +677,7 @@ namespace ProyectoTransportesAndes.Controllers
                         ViewModelViaje resumen = new ViewModelViaje();
                         return View(resumen);
                     }
-                    
+
                 }
                 else
                 {
@@ -601,6 +706,7 @@ namespace ProyectoTransportesAndes.Controllers
             //habria que actualizar las vistas de resumen viaje con un observer por ej. o signalr
         }
 
+        [Route("MisViajes")]
         [HttpGet]
         public async Task<IActionResult> MisViajes()
         {
@@ -613,6 +719,7 @@ namespace ProyectoTransportesAndes.Controllers
                     var viajesCliente = await _controladoraViajes.viajesCliente(idCliente);
                     ViewModelViajeFiltro model = new ViewModelViajeFiltro();
                     model.Viajes = viajesCliente.ToList();
+                    model.IdCliente = idCliente;
                     return View(model);
                 }
                 else
@@ -633,15 +740,16 @@ namespace ProyectoTransportesAndes.Controllers
             }
 
         }
+        [Route("MisViajes")]
         [HttpPost]
-        public async Task<IActionResult>MisViajes(ViewModelViajeFiltro model)
+        public async Task<IActionResult> MisViajes(ViewModelViajeFiltro model)
         {
             try
             {
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioCliente(token))
                 {
-                    var viajes = await _controladoraViajes.getViajes();
+                    var viajes = await _controladoraViajes.viajesCliente(model.IdCliente);
                     if (!model.EstadoViaje.Equals(EstadoViaje.Estado))
                     {
                         viajes.Where(v => v.Estado.Equals(model.EstadoViaje));
@@ -692,13 +800,17 @@ namespace ProyectoTransportesAndes.Controllers
                     {
                         Viaje nuevo = model.Viaje;
                         nuevo.Cliente = cliente;
-                        Viaje salida = await _controladoraViajes.solicitarViaje(nuevo,TipoVehiculo.CamionMudanza);
-                        return RedirectToAction("Resumen", new { idViaje = salida.Id.ToString()});
+                        Viaje salida = await _controladoraViajes.solicitarViaje(nuevo, TipoVehiculo.CamionMudanza);
+                        return RedirectToAction("Resumen", new { idViaje = salida.Id.ToString() });
                     }
                     if (!string.IsNullOrEmpty(presupuesto))
                     {
-                        Viaje presupuestoNuevo = model.Viaje;
+                        Presupuesto presupuestoNuevo = new Presupuesto();
                         presupuestoNuevo.Cliente = cliente;
+                        presupuestoNuevo.DireccionDestino = model.Viaje.DireccionDestino;
+                        presupuestoNuevo.DireccionOrigen = model.Viaje.DireccionOrigen;
+                        presupuestoNuevo.Observaciones = model.Observaciones;
+                        presupuestoNuevo.Realizado = false;
                         await _controladoraViajes.presupuestoNuevo(presupuestoNuevo);
                         return RedirectToAction("Presupuesto");
                     }
@@ -738,7 +850,7 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     if (!string.IsNullOrEmpty(cancelar))
                     {
-                        Viaje salida = await _controladoraViajes.cancelarViaje(viaje.IdViaje);
+                        double salida = await _controladoraViajes.cancelarViaje(viaje.IdViaje);
                     }
                     return RedirectToAction("MisViajes");
                 }
@@ -759,6 +871,78 @@ namespace ProyectoTransportesAndes.Controllers
                 return RedirectToAction("Resumen");
             }
         }
+        [HttpGet]
+        [Route("CancelarViaje")]
+        public async Task<IActionResult> CancelarViaje(string idViaje)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioCliente(token))
+                {
+                    double salida = await _controladoraViajes.cancelarViaje(idViaje);
+                    Viaje viaje = new Viaje();
+                    viaje.CostoFinal = salida;
+                    viaje.Id = new MongoDB.Bson.ObjectId(idViaje);
+                    return View(viaje);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+        [HttpPost]
+        [Route("CancelarViaje")]
+        public async Task<IActionResult> CancelarViaje(string id,Viaje viaje)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioCliente(token))
+                {
+                    var confirmar = Request.Form["confirmar"];
+                    var cancelar = Request.Form["cancelar"];
+                    if (!string.IsNullOrEmpty(confirmar))
+                    {
+                        await _controladoraViajes.confirmarCancelacion(id,viaje.CostoFinal);
+                        return RedirectToAction("MisViajes");
+                    }
+                    if (!string.IsNullOrEmpty(cancelar))
+                    {
+                        return RedirectToAction("MisViajes");
+                    }
+                    return RedirectToAction("MisViajes");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
 
         [Route("Presupuesto")]
         public IActionResult Presupuesto()
@@ -818,12 +1002,12 @@ namespace ProyectoTransportesAndes.Controllers
             catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
         }
 
@@ -839,8 +1023,8 @@ namespace ProyectoTransportesAndes.Controllers
                     var userId = _session.GetString("UserId");
                     int camion, camioneta, camionChico, camionGrande, camionMudanza;
                     Tarifa nueva = new Tarifa();
-                    int.TryParse(model.Camion,out camion);
-                    int.TryParse(model.Camioneta,out camioneta);
+                    int.TryParse(model.Camion, out camion);
+                    int.TryParse(model.Camioneta, out camioneta);
                     int.TryParse(model.CamionChico, out camionChico);
                     int.TryParse(model.CamionGrande, out camionGrande);
                     int.TryParse(model.CamionMudanza, out camionMudanza);
@@ -857,7 +1041,7 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     await _controladoraVehiculos.actualizarTarifasVehiculos(nueva);
                     ModelState.AddModelError(string.Empty, "La tarifa se actualizó con exito");
-                    return RedirectToAction("Index","Home");
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
@@ -867,7 +1051,7 @@ namespace ProyectoTransportesAndes.Controllers
             }
             catch (FormatException)
             {
-                ModelState.AddModelError(string.Empty,"Debe ingresar solo numeros como valores de la tarifa");
+                ModelState.AddModelError(string.Empty, "Debe ingresar solo numeros como valores de la tarifa");
                 return RedirectToAction("Tarifa");
             }
             catch (MensajeException msg)
@@ -890,8 +1074,228 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    ViewModelViajeFiltro model = new ViewModelViajeFiltro();
+                    ViewModelLiquidacion model = new ViewModelLiquidacion();
+                    LiquidacionChofer liquidacion = new LiquidacionChofer();
+                    model.Liquidacion = liquidacion;
                     return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LiquidacionViajesChofer(ViewModelLiquidacion model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    var confirmar = Request.Form["confirmar"];
+                    var cancelar = Request.Form["cancelar"];
+                    var liquidar = Request.Form["liquidar"];
+                    var userId = _session.GetString("UserId");
+                    if (!string.IsNullOrEmpty(confirmar))
+                    {
+                        await _controladoraViajes.confirmarLiquidacion(model.Liquidacion);
+                        using (MemoryStream stream = new System.IO.MemoryStream())
+                        {
+                            StringReader sr = new StringReader(model.Documento);
+                            Document pdf = new Document(PageSize.A4, 10f, 10f, 100f, 0f);
+                            PdfWriter writer = PdfWriter.GetInstance(pdf, stream);
+                            pdf.Open();
+                            XMLWorkerHelper.GetInstance().ParseXHtml(writer, pdf, sr);
+                            pdf.Close();
+                            return File(stream.ToArray(), "application/pdf", "Grid.pdf");
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(cancelar))
+                    {
+                        await _controladoraViajes.cancelarLiquidacion(model.IdLiquidacionChofer);
+                        return RedirectToAction("LiquidacionViajesChofer");
+                    }
+                    else if (!string.IsNullOrEmpty(liquidar))
+                    {
+                        model.Liquidacion = _controladoraViajes.liquidar(model.Liquidacion);
+                        return View(model);
+                    }
+                    else
+                    {
+                        model.Liquidacion = await _controladoraViajes.viajesParaLiquidarChofer(model.IdChofer, userId);
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+
+        }
+    
+        [HttpGet]
+        public async Task<IActionResult> Liquidaciones()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    List<LiquidacionChofer> liquidaciones = await _controladoraViajes.liquidacionesRealizadas(); ;
+                    return View(liquidaciones);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
+        //lista con los presupuestos pendientes que estan para realizar
+        [HttpGet]
+        public async Task<IActionResult> Presupuestos()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    List<Presupuesto> presupuestos = await _controladoraViajes.presupuestosPendientes();
+                    return View(presupuestos);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RealizarPresupuesto(string idPresupuesto)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    await _controladoraViajes.confirmarPresupuesto(idPresupuesto);
+                    return RedirectToAction("Presupuestos");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
+
+        [HttpGet]
+        [Route("EstadisticasVehiculo")]
+        public IActionResult EstadisticasVehiculo()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    ViewModelEstadisticas model = new ViewModelEstadisticas();
+                    return View(model);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "No tiene los permisos, inicie sesión");
+                    return RedirectToAction("Login");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return RedirectToAction("Resumen");
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ha ocurrido un error inesperado. Intente de nuevo mas tarde");
+                return RedirectToAction("Resumen");
+            }
+        }
+
+        [HttpPost]
+        [Route("EstadisticasVehiculo")]
+        public async Task<IActionResult> EstadisticasVehiculo(ViewModelEstadisticas model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Usuario.validarUsuarioAdministrativo(token))
+                {
+                    if (!string.IsNullOrEmpty(model.AñoSeleccionado))
+                    {
+                        model.Estadistica = await _controladoraViajes.estadisticaVehiculo(model.AñoSeleccionado, model.MesSeleccionado, model.IdVehiculo);
+                        return View(model);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Debe ingresar un año");
+                        return RedirectToAction("EstadisticasVehiculo");
+                    }
                 }
                 else
                 {

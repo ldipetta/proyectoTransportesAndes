@@ -71,6 +71,25 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+        public List<Vehiculo> getVehiculosDisponibles()
+        {
+            try
+            {
+                //var aux = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
+                //List<Vehiculo> vehiculosDisponibles = aux.Where(v => v.Disponible == true).Where(v => v.Items.Count == 0).ToList();
+                List<Vehiculo> vehiculosDisponibles = Vehiculos.Where(v => v.Disponible == true).Where(v => v.Items.Count == 0).ToList();
+                return vehiculosDisponibles;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
         public Vehiculo getVehiculo(string idVehiculo)
         {
             try
@@ -127,6 +146,23 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+        public async Task<Vehiculo> getVehiculoChofer(string idChofer)
+        {
+            try
+            {
+                var aux = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
+                Vehiculo vehiculo = aux.Where(v => v.Chofer.Id.ToString().Equals(idChofer)).FirstOrDefault();
+                return vehiculo;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task nuevoVehiculo(Vehiculo vehiculo, string idChofer)
         {
             try
@@ -141,6 +177,7 @@ namespace ProyectoTransportesAndes.Models
                     nuevo.Unidades = calcularUnidades(nuevo.Largo, nuevo.Ancho, nuevo.Alto);
                     await DBRepositoryMongo<Vehiculo>.Create(nuevo, "Vehiculos");
                     Vehiculos.Add(nuevo);
+                    await DBRepositoryMongo<Chofer>.UpdateAsync(chofer.Id, chofer, "Choferes");
                 }
                 else
                 {
@@ -157,7 +194,7 @@ namespace ProyectoTransportesAndes.Models
                 throw (e);
             }
         }
-        public async Task editarVehiculo(Vehiculo vehiculo, string idVehiculo, string choferSeleccionado,TipoVehiculo tipoVehiculo)
+        public async Task editarVehiculo(Vehiculo vehiculo, string idVehiculo, string choferSeleccionado, TipoVehiculo tipoVehiculo)
         {
             try
             {
@@ -178,7 +215,7 @@ namespace ProyectoTransportesAndes.Models
                         if (v.Id.ToString().Equals(idVehiculo))
                         {
                             eliminar = v;
-                           
+
                         }
                     }
                     Vehiculos.Remove(eliminar);
@@ -206,9 +243,11 @@ namespace ProyectoTransportesAndes.Models
             {
                 if (vehiculo != null && id != null)
                 {
-                    vehiculo.Id = new ObjectId(id);
-                    await DBRepositoryMongo<Vehiculo>.DeleteAsync(vehiculo.Id, "Vehiculos");
-                    Vehiculos.Remove(vehiculo);
+                    Vehiculo eliminar = await DBRepositoryMongo<Vehiculo>.GetItemAsync(id, "Vehiculos");
+                    await DBRepositoryMongo<Vehiculo>.DeleteAsync(eliminar.Id, "Vehiculos");
+                    Vehiculos.Remove(eliminar);
+                    eliminar.Chofer.Disponible = true;
+                    await DBRepositoryMongo<Chofer>.UpdateAsync(eliminar.Chofer.Id, eliminar.Chofer, "Choferes");
                 }
                 else
                 {
@@ -299,6 +338,8 @@ namespace ProyectoTransportesAndes.Models
                     int tiempo = int.MaxValue;
                     minutos = await tiempoDemora(latitudCliente, longitudCliente, pos.Latitud, pos.Longitud);
                     tiempo = minutos.Minutes;
+                    //vehiculo = getVehiculo(pos.Id);
+                    //vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
                     if (tiempo < menorTiempo)
                     {
                         menorTiempo = tiempo;
@@ -328,11 +369,6 @@ namespace ProyectoTransportesAndes.Models
                                 }
                             }
                         }
-                        //else
-                        //{
-                        //    //return null;
-                        //    //throw new MensajeException("El vehiculo no se encuentra disponible");
-                        //}
                     }
                 }
                 return masCercanoConCapacidad;
@@ -350,6 +386,81 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        public async Task<Vehiculo> mejorVehiculoFletePrueba(string latitudCliente, string longitudCliente, double unidadadesTraslado, double pesoTraslado)
+        {
+            try
+            {
+                List<PosicionSatelital> ubicaciones = obtenerUbicacionesVehiculosFletes();
+                int menorTiempo = int.MaxValue;
+                Vehiculo vehiculo = null;
+                Vehiculo masCercanoConCapacidad = null;
+                TimeSpan minutos;
+                foreach (PosicionSatelital pos in ubicaciones)
+                {
+                    int tiempo = int.MaxValue;
+                    minutos = await tiempoDemora(latitudCliente, longitudCliente, pos.Latitud, pos.Longitud);
+                    tiempo = minutos.Minutes;
+                    vehiculo = getVehiculo(pos.Id);
+                    vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
+
+                    if (vehiculo.Disponible)
+                    {
+                        if (masCercanoConCapacidad == null)
+                        {
+                            if (vehiculo.Unidades >= unidadadesTraslado)
+                            {
+                                if (vehiculo.CapacidadCargaKg >= pesoTraslado)
+                                {
+                                    menorTiempo = tiempo;
+                                    masCercanoConCapacidad = vehiculo;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (tiempo < menorTiempo)
+                            {
+                                if (vehiculo.Unidades < masCercanoConCapacidad.Unidades && vehiculo.Unidades >= unidadadesTraslado)
+                                {
+                                    if (vehiculo.CapacidadCargaKg < masCercanoConCapacidad.CapacidadCargaKg && vehiculo.CapacidadCargaKg >= pesoTraslado)
+                                    {
+                                        masCercanoConCapacidad = vehiculo;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (vehiculo.Unidades < masCercanoConCapacidad.Unidades && vehiculo.Unidades >= unidadadesTraslado)
+                                {
+                                    if (vehiculo.CapacidadCargaKg < masCercanoConCapacidad.CapacidadCargaKg && vehiculo.CapacidadCargaKg >= pesoTraslado)
+                                    {
+                                        masCercanoConCapacidad = vehiculo;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                }
+                return masCercanoConCapacidad;
+            }
+            catch (TimeoutException)
+            {
+                throw new MensajeException("Se agoto el tiempo de espera. Compruebe la conexion");
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
         // esta sobrecarga de tiempo de demora se utiliza para calcular el tiempo de demora del vehiculo hasta la posicion del cliente
         public async Task<TimeSpan> tiempoDemora(string latitudCliente, string longitudCliente, string latitudVehiculo, string longitudVehiculo)
         {
@@ -416,7 +527,7 @@ namespace ProyectoTransportesAndes.Models
                 string path = null;
                 if (!string.IsNullOrEmpty(viaje.DireccionDestino))
                 {
-                    path = "https://maps.googleapis.com/maps/api/directions/json?origin=-34.891064, -56.137232&destination=-34.902633, -56.158664";
+                    path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Destino.Latitud + "," + viaje.Destino.Longitud;
                 }
                 if (viaje.Items.Count > 10)
                 {
@@ -432,10 +543,10 @@ namespace ProyectoTransportesAndes.Models
                             path += "|via:" + i.Origen.Latitud + ", " + i.Origen.Longitud + "|via:" + i.Destino.Latitud + ", " + i.Destino.Longitud;
                         }
                     }
-                 
+
                     path += "&key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec";
                 }
-                
+
                 HttpResponseMessage response = await cliente.GetAsync(path);
                 if (response.IsSuccessStatusCode)
                 {
@@ -526,13 +637,22 @@ namespace ProyectoTransportesAndes.Models
 
         }
         // devuelve la lista de choferes que estan sin un vehiculo asociado
-        public async Task<IEnumerable<Chofer>> choferesDisponibles()
+        public async Task<List<Chofer>> choferesDisponibles()
         {
             try
             {
+                List<Chofer> salida = new List<Chofer>();
                 var lista = await DBRepositoryMongo<Chofer>.GetItemsAsync("Choferes");
-                IEnumerable<Chofer> choferes = lista.Where(c => c.Disponible == true);
-                return choferes;
+                List<Chofer> aux = lista.ToList();
+                //IEnumerable<Chofer> choferes = lista.Where(c => c.Disponible == true);
+                foreach (Chofer c in aux)
+                {
+                    if (c.Disponible)
+                    {
+                        salida.Add(c);
+                    }
+                }
+                return salida;
             }
             catch (MensajeException msg)
             {
@@ -612,7 +732,7 @@ namespace ProyectoTransportesAndes.Models
                             if (v.Tipo == TipoVehiculo.CamionMudanza)
                             {
                                 string id = v.Id.ToString();
-                                PosicionSatelital posicion =(PosicionSatelital) UbicacionVehiculos[id];
+                                PosicionSatelital posicion = (PosicionSatelital)UbicacionVehiculos[id];
                                 ubicaciones.Add(posicion);
                             }
                         }
@@ -645,25 +765,25 @@ namespace ProyectoTransportesAndes.Models
         //hardcord de datos
         public async void cargarVehicuos()
         {
-            var veh = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos"); // CAMBIAR A RESPALDO VEHICULOS LUEGO DE TERMINAR PRUEBAS
+            var veh = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
             Vehiculos = veh.ToList();
-            
+
         }
         public void datos()
         {
             //se harcodea hasta que se obtenga la posicion dinamicamente
-            PosicionSatelital hard = new PosicionSatelital("5b724346011595287431869c", "-34.895249", "-56.126989");
-            UbicacionVehiculos["5b724346011595287431869c"] = hard;
-            PosicionSatelital hard2 = new PosicionSatelital("5b860426c55e96529884531e", "-34.909789", "-56.197760");
-            UbicacionVehiculos["5b860426c55e96529884531e"] = hard2;
+            PosicionSatelital hard = new PosicionSatelital("5b8f4d0c1f0757450462e51f", "-34.895249", "-56.126989");
+            UbicacionVehiculos["5b8f4d0c1f0757450462e51f"] = hard;
+            PosicionSatelital hard2 = new PosicionSatelital("5b8f4d3b1f0757450462e520", "-34.909789", "-56.197760");
+            UbicacionVehiculos["5b8f4d3b1f0757450462e520"] = hard2;
         }
         //se actualizan los datos del vehiculo en memoria cuando sufre algun cambio y se respaldan en una tabla accesoria de la base de datos ante cualquier inconveniente
-        public async Task actualizarVehiculo(Vehiculo vehiculo)
+        public void actualizarVehiculo(Vehiculo vehiculo)
         {
             try
             {
                 Vehiculo eliminar = null;
-                foreach(Vehiculo v in Vehiculos)
+                foreach (Vehiculo v in Vehiculos)
                 {
                     if (v.Id.ToString().Equals(vehiculo.Id.ToString()))
                     {
@@ -672,16 +792,6 @@ namespace ProyectoTransportesAndes.Models
                 }
                 Vehiculos.Remove(eliminar);
                 Vehiculos.Add(vehiculo);
-                var veh = await DBRepositoryMongo<Vehiculo>.GetItemAsync(vehiculo.Id.ToString(), "RespaldoVehiculos");
-                if (veh != null)
-                {
-                    await DBRepositoryMongo<Vehiculo>.UpdateAsync(vehiculo.Id, vehiculo, "RespaldoVehiculos");
-                }
-                else
-                {
-                    await DBRepositoryMongo<Vehiculo>.Create(vehiculo, "RespaldoVehiculos");
-
-                }
             }
             catch (MensajeException msg)
             {
@@ -697,7 +807,7 @@ namespace ProyectoTransportesAndes.Models
         {
             var vehiculos = await getVehiculos();
             List<Vehiculo> aux = vehiculos.ToList();
-            foreach(Vehiculo v in aux)
+            foreach (Vehiculo v in aux)
             {
                 if (v.Tipo == TipoVehiculo.Camioneta)
                 {
@@ -719,7 +829,14 @@ namespace ProyectoTransportesAndes.Models
                 {
                     v.Tarifa = tarifa.CamionMudanza;
                 }
-                await actualizarVehiculo(v);
+                await DBRepositoryMongo<Vehiculo>.UpdateAsync(v.Id, v, "Vehiculos");
+                foreach (Vehiculo veh in Vehiculos)
+                {
+                    if (veh.Id.ToString().Equals(v.ToString()))
+                    {
+                        veh.Tarifa = v.Tarifa;
+                    }
+                }
             }
         }
         #endregion

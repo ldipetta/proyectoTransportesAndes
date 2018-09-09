@@ -26,6 +26,7 @@ namespace ProyectoTransportesAndes.ViewModels
         public string Comentarios { get; set; }
         public double CostoFinal { get; set; }
         public bool UtilizarDireccionCliente { get; set; }
+        public string FechaParaMostrar { get; set; }
 
         public ViewModelViajeDirecto(IOptions<AppSettingsMongo>settings)
         {
@@ -33,7 +34,7 @@ namespace ProyectoTransportesAndes.ViewModels
             _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
             _controladoraVehiculos = ControladoraVehiculos.getInstance(_settings);
             cargarClientes().Wait();
-            cargarVehiculos().Wait();
+            cargarVehiculos();
         }
         public ViewModelViajeDirecto() { }
 
@@ -45,13 +46,12 @@ namespace ProyectoTransportesAndes.ViewModels
             lista.Insert(0, c);
             Clientes = new SelectList(lista, "Id", "Leyenda");
         }
-        public async Task cargarVehiculos()
+        public void cargarVehiculos()
         {
-            var vehiculos = await ControladoraVehiculos.getInstance(_settings).getVehiculos();
-            List<Vehiculo> lista = vehiculos.ToList();
+            List<Vehiculo> vehiculos = ControladoraVehiculos.getInstance(_settings).getVehiculosDisponibles();
             Vehiculo v = new Vehiculo() { Id = new ObjectId(), Matricula = "Seleccione un vehiculo" };
-            lista.Insert(0, v);
-            Vehiculos = new SelectList(lista, "Id", "Matricula");
+            vehiculos.Insert(0, v);
+            Vehiculos = new SelectList(vehiculos, "Id", "Matricula");
         }
     }
 }

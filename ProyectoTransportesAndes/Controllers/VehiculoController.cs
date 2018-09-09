@@ -110,16 +110,11 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Usuario.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
+
                         model.Vehiculo.Tipo = model.TipoVehiculo;
                         await _controladoraVehiculos.nuevoVehiculo(model.Vehiculo, model.ChoferSeleccionado);
                         return RedirectToAction("Index");
-                    }
-                    else
-                    {
-                        return View(model.Vehiculo);
-                    }
+
                 }
                 else
                 {

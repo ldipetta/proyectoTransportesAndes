@@ -61,6 +61,8 @@ namespace ProyectoTransportesAndes.Models
         public double Unidades { get; set; }
         public bool Disponible { get; set; }
         public TipoVehiculo Tipo { get; set; }
+        public double ConsumoKml { get; set; }
+
         #region Constructores
 
         public Vehiculo()
@@ -87,6 +89,7 @@ namespace ProyectoTransportesAndes.Models
             CantidadPasajeros = 0;
             EmpresaAseguradora = "";
             CapacidadCargaKg = 0;
+            ConsumoKml = 0;
         }
         public Vehiculo(string matricula)
         {

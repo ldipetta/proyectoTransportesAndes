@@ -26,6 +26,12 @@
     #Refresh a {
         color:white;
     }
+    #btnFlete{
+        border-radius:10px;
+    }
+    #btnMudanza{
+        border-radius:10px;
+    }
 </style>
 <script>
     var map, infoWindow;
@@ -45,21 +51,59 @@
                 latitud = position.coords.latitude;
                 longitud = position.coords.longitude;
                 infoWindow.setPosition(pos);
-                infoWindow.setContent("@Model.Viaje.DireccionOrigen");
+                infoWindow.setContent("<div><p><small><b>Salida</b></small></p>" + "<p><small>@Model.Viaje.DireccionOrigen</small></p></div>");
                 infoWindow.open(map);
                 map.setCenter(pos);
+                var direccionDestino = "@Model.Viaje.DireccionDestino";
+                if (direccionDestino !="") {
+                    var latitudDestino = "@Model.Viaje.Destino.Latitud";
+                    var longitudDestino = "@Model.Viaje.Destino.Longitud";
+                    var latLongDestino = new google.maps.LatLng(latitudDestino, longitudDestino);
+                    var markerDestino = new google.maps.Marker({ map: map, position: latLongDestino });
+                    infoWindowDestino = new google.maps.InfoWindow;
+                    infoWindowDestino.setPosition(latLongDestino);
+                    infoWindowDestino.setContent("<div><p><small><b>Destino</b></small></p>" + "<p><small>@Model.Viaje.DireccionDestino</small></p></div>");
+                    infoWindowDestino.open(map);                    
+                    var cantidadItems = @Model.Viaje.Items.Count;
+                    if (cantidadItems>0) {
+                        @foreach(Item i in Model.Viaje.Items)
+                            {
+                                @: var origenItem = new google.maps.LatLng(@i.Origen.Latitud,@i.Origen.Longitud);
+                                @: var destinoItem = new google.maps.LatLng(@i.Destino.Latitud,@i.Destino.Longitud);
+
+                                @:infoWindowItemOrigen = new google.maps.InfoWindow;
+                                @:infoWindowItemOrigen.setPosition(origenItem);
+                                @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p><small>@i.Descripcion</small></p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                @:infoWindowItemOrigen.open(map);
+
+                                @:infoWindowItemDestino = new google.maps.InfoWindow;
+                                @:infoWindowItemDestino.setPosition(destinoItem);
+                                @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b></small></p>" + "<p><small>@i.Descripcion</small></p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                @:infoWindowItemDestino.open(map);
+                            }
+
+                    }
+                }
                 var input = document.getElementById('direccionOrigen');
-                var searchBox = new google.maps.places.SearchBox(input);
+                var searchBox = new google.maps.places.Autocomplete(input);
+                searchBox.setComponentRestrictions({ 'country': ['uy'] });
+
                 var input2 = document.getElementById('direccionDestino');
-                var searchBox2 = new google.maps.places.SearchBox(input2);
+                var searchBox2 = new google.maps.places.Autocomplete(input2);
+                searchBox2.setComponentRestrictions({ 'country': ['uy'] });
                 var input3 = document.getElementById('direccionOrigenMudanza');
-                var searchBox3 = new google.maps.places.SearchBox(input3);
+                var searchBox3 = new google.maps.places.Autocomplete(input3);
+                searchBox3.setComponentRestrictions({ 'country': ['uy'] });
                 var input4 = document.getElementById('direccionDestinoMudanza');
-                var searchBox4 = new google.maps.places.SearchBox(input4);
+                var searchBox4 = new google.maps.places.Autocomplete(input4);
+                searchBox4.setComponentRestrictions({ 'country': ['uy'] });
                 var input5 = document.getElementById('direccionOrigenItem');
-                var searchBox5 = new google.maps.places.SearchBox(input5);
+                var searchBox5 = new google.maps.places.Autocomplete(input5);
+                searchBox5.setComponentRestrictions({ 'country': ['uy'] });
                 var input6 = document.getElementById('direccionDestinoItem');
-                var searchBox6 = new google.maps.places.SearchBox(input6);
+                var searchBox6 = new google.maps.places.Autocomplete(input6);
+                searchBox6.setComponentRestrictions({ 'country': ['uy'] });
+
                 //map.controls[google.maps.ControlPosition.TOP_LEFT].push(input); // SI SE QUISIERA AGREGAR AL MAPA
                 $.ajax({
                     url: '/api/CoordenadasClienteWeb',
@@ -91,7 +135,7 @@
 
         function addMarker(latitud,longitud,matricula,marca,modelo,chofer) {
             var coordenadas = { lat: latitud, lng: longitud };
-            var marker = new google.maps.Marker({ position: coordenadas, map: map });
+            var marker = new google.maps.Marker({ position: coordenadas, icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3 }, map: map });
             infoWindowMarker = new google.maps.InfoWindow;
             var pos = {lat: latitud,lng: longitud};
             infoWindowMarker.setPosition(pos);
@@ -130,119 +174,146 @@
 </div>
 <hr />
 <div class="row">
-    <div class="col-lg-4" id="contenedorFlete">
-        <form asp-action="Servicio" asp-controller="Viaje">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            @*<div class="form-group">
-            @Html.DropDownListFor(d => Model.TipoItem, Model.ListaTipoItem, new { @class = "form-control" })
-        </div>*@
-            <fieldset>
-                <legend>Datos</legend>
+    <div id="contenedorFlete">
+        <div class="col-lg-7">
+            <form asp-action="Servicio" asp-controller="Viaje">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group hidden">
                     <input asp-for="IdViaje" class="form-control" />
                     <span asp-validation-for="IdViaje" class="text-danger"></span>
                 </div>
-                <div class="form-group">
-                    <input asp-for="Viaje.DireccionOrigen" class="form-control" placeholder="Dirección origen" id="direccionOrigen" />
-                    <span asp-validation-for="Viaje.DireccionOrigen" class="text-danger"></span>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <label asp-for="ViajeCompartido">Desea compartir el viaje?</label>
+                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido" />
+                        <span asp-validation-for="ViajeCompartido" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestino" value="@Model.Viaje.DireccionDestino" />
-                    <span asp-validation-for="Viaje.DireccionDestino" class="text-danger"></span>
+                <div class="row" id="direcciones">
+                    <fieldset>
+                        <legend>Direcciones</legend>
+                        <div class="form-group input-sm col-lg-6">
+                            <input type="text" asp-for="Viaje.DireccionOrigen" class="form-control" placeholder="Dirección origen" id="direccionOrigen" value="@Model.Viaje.DireccionOrigen" />
+                            <span asp-validation-for="Viaje.DireccionOrigen" class="text-danger"></span>
+                        </div>
+                        <div class="form-group input-sm col-lg-6">
+                            <input type="text" asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestino" value="@Model.Viaje.DireccionDestino" />
+                            <span asp-validation-for="Viaje.DireccionDestino" class="text-danger"></span>
+                        </div>
+                    </fieldset>
                 </div>
-                <div class="form-group">
-                    <label asp-for="ViajeCompartido">Desea compartir el viaje?</label>
-                    <input asp-for="ViajeCompartido" class="form-control" />
-                    <span asp-validation-for="ViajeCompartido" class="text-danger"></span>
-                </div>
-            </fieldset>
-            <fieldset>
-                <legend>Items a trasladar</legend>
-                <div class="form-group">
-                    <input asp-for="Item.Descripcion" class="form-control" placeholder="Descripcion" />
-                    <span asp-validation-for="Item.Descripcion" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.Imagen" class="form-control" placeholder="Imagen" />
-                    <span asp-validation-for="Item.Imagen" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.Alto" class="form-control" placeholder="Alto(cm)" />
-                    <span asp-validation-for="Item.Alto" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.Ancho" class="form-control" placeholder="Ancho(cm)" />
-                    <span asp-validation-for="Item.Ancho" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.Profundidad" class="form-control" placeholder="Profundidad(cm)" />
-                    <span asp-validation-for="Item.Profundidad" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.Peso" class="form-control" placeholder="Peso(kg)" />
-                    <span asp-validation-for="Item.Peso" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.DireccionOrigen" class="form-control" placeholder="Direccion origen item" id="direccionOrigenItem"/>
-                    <span asp-validation-for="Item.DireccionOrigen" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input asp-for="Item.DireccionDestino" class="form-control" placeholder="Direccion destino item" id="direccionDestinoItem" />
-                    <span asp-validation-for="Item.DireccionDestino" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <input type="submit" value="Agregar item" class="btn btn-success btn-block" name="item"/>
-                </div>
-                <div class="form-group">
-                    <input type="submit" value="Solicitar viaje" class="btn btn-info btn-block" name="solicitar"/>
-                </div>
-                <div class="form-group">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>
-                                    @Html.DisplayNameFor(model => model.Item.Imagen)
-                                </th>
-                                <th>
-                                    @Html.DisplayNameFor(model => model.Item.Descripcion)
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Viaje.Items.Count != 0)
-                            {
-                                @foreach (var item in Model.Viaje.Items)
-                                {
-                                    <tr>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Imagen)
-                                        </td>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Descripcion)
-                                        </td>
-                                        <td>
-                                            @{
-                                                var parms = new Dictionary<string, string>
-                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                    { "itemId", item.Id.ToString() },
-                                                                                                                                                                                                                                                                                                };
-                                            }
-                                            <a asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
-                                            <a asp-area="" asp-action="EliminarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-remove"></span></a>
-                                        </td>
-                                    </tr>
+                <fieldset>
+                    <legend>Datos del item</legend>
+                    <div class="row">
+                        <div class="form-group col-lg-6">
+                            <input type="text" asp-for="Item.Descripcion" class="form-control" placeholder="Descripcion" />
+                            <span asp-validation-for="Item.Descripcion" class="text-danger"></span>
+                        </div>
+                        <div class="col-lg-6">
+                            <input type="file" asp-for="Item.Imagen" placeholder="Imagen" aria-describedby="fileHelp" />
+                            <span asp-validation-for="Item.Imagen" class="text-danger"></span>
+                            <small id="fileHelp" class="form-text text-muted">Ingrese la imagen del item</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-3">
+                            <input type="number" min="0" asp-for="Item.Alto" class="form-control" placeholder="Alto(cm)" />
+                            <span asp-validation-for="Item.Alto" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-lg-3">
+                            <input type="number" min="0" asp-for="Item.Ancho" class="form-control" placeholder="Ancho(cm)" />
+                            <span asp-validation-for="Item.Ancho" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-lg-3">
+                            <input type="number" min="0" asp-for="Item.Profundidad" class="form-control" placeholder="Profundidad(cm)" />
+                            <span asp-validation-for="Item.Profundidad" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-lg-3">
+                            <input type="number" min="0" asp-for="Item.Peso" class="form-control" placeholder="Peso(kg)" />
+                            <span asp-validation-for="Item.Peso" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-6">
+                            <input type="text" asp-for="Item.DireccionOrigen" class="form-control" placeholder="Direccion origen item" id="direccionOrigenItem" />
+                            <span asp-validation-for="Item.DireccionOrigen" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-lg-6">
+                            <input type="text" asp-for="Item.DireccionDestino" class="form-control" placeholder="Direccion destino item" id="direccionDestinoItem" />
+                            <span asp-validation-for="Item.DireccionDestino" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-6">
+                            <input type="submit" value="Agregar item" class="btn btn-success btn-block" name="item" />
+                        </div>
 
-                                }
+                        <div class="form-group col-lg-6">
+                            <input type="submit" value="Solicitar viaje" class="btn btn-info btn-block" name="solicitar" />
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+        <div class="col-lg-5">
+            <div class="form-group">
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th>
+                                @Html.Label("Foto")
+                            </th>
+                            <th>
+                                @Html.Label("Descripción")
+                            </th>
+                            <th>
+                                @Html.Label("Origen")
+                            </th>
+                            <th>
+                                @Html.Label("Destino")
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Viaje.Items.Count != 0)
+                        {
+
+                            @foreach (var item in Model.Viaje.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Imagen)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Descripcion)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DireccionDestino)
+                                    </td>
+                                    <td>
+                                        @{
+                                            var parms = new Dictionary<string, string> { { "itemId", item.Id.ToString() } };
+                                        }
+                                        <a asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
+                                        <a asp-area="" asp-action="EliminarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-remove"></span></a>
+                                    </td>
+                                </tr>
 
                             }
-                            else
-                            {
-                                <tr><td>@ViewData["Mensaje"]</td></tr>}
-                        </tbody>
+
+                        }
+                        else
+                        {
+                            <tr><td></td><td></td><td>@ViewData["Mensaje"]</td></tr>
+                        }
+                    </tbody>
                     </table>
-                </div>
-            </fieldset>
-        </form>
+            </div>
+        </div>
     </div>
     <div class="col-lg-4 hidden" id="contenedorMudanza">
         <form asp-action="Mudanza" asp-controller="Viaje">
@@ -276,12 +347,12 @@
             </div>
         </form>
     </div>
-    <div class="col-lg-8" id="mapa">
+</div>
+<div class="row">
+    <div id="mapa">
         <div id="map"></div>
         <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
     </div>
-
-
 </div>
 
 
