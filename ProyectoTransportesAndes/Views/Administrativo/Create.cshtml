@@ -1,0 +1,91 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelUsuario
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row col-lg-8 col-lg-offset-2">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row col-lg-12">
+            <fieldset>
+                <legend>Usuario</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Usuario.User" class="form-control" placeholder="Usuario" />
+                        <span asp-validation-for="Usuario.User" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="password" asp-for="Usuario.Password" class="form-control" placeholder="Contraseña" />
+                        <span asp-validation-for="Usuario.Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="password" asp-for="ConfirmarPassword" class="form-control" placeholder="Confirmar contraseña" />
+                        <span asp-validation-for="ConfirmarPassword" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group">
+                        <label asp-for="Administrador" class="control-label">Administrador</label>
+                        <input type="checkbox" asp-for="Administrador" />
+                        <span asp-validation-for="Administrador" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row col-lg-12">
+            <fieldset>
+                <legend>Datos personales</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Usuario.Nombre" class="form-control" placeholder="Nombre" />
+                        <span asp-validation-for="Usuario.Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Usuario.Apellido" class="form-control" placeholder="Apellido" />
+                        <span asp-validation-for="Usuario.Apellido" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="number" min="0" asp-for="Usuario.Documento" class="form-control" placeholder="Documento" />
+                        <span asp-validation-for="Usuario.Documento" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="email" asp-for="Usuario.Email" class="form-control" placeholder="e-mail" />
+                        <span asp-validation-for="Usuario.Email" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="tel" asp-for="Usuario.Telefono" class="form-control" placeholder="Teléfono" />
+                        <span asp-validation-for="Usuario.Telefono" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input asp-for="Usuario.Direccion" class="form-control" placeholder="Dirección" />
+                        <span asp-validation-for="Usuario.Direccion" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <label asp-for="Usuario.FNacimiento" class="control-label"></label>
+                        <input type="date" asp-for="Usuario.FNacimiento" class="form-control" />
+                        <span asp-validation-for="Usuario.FNacimiento" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row col-lg-12">
+            <div class="col-lg-8 col-lg-offset-4">
+                <input type="submit" value="Ingresar usuario" class="btn btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

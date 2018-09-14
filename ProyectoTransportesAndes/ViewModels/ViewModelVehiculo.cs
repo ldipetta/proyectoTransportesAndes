@@ -8,6 +8,7 @@ using ProyectoTransportesAndes.Persistencia;
 using ProyectoTransportesAndes.Configuracion;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
+using MongoDB.Bson;
 
 namespace ProyectoTransportesAndes.ViewModels
 {
@@ -24,17 +25,18 @@ namespace ProyectoTransportesAndes.ViewModels
         public ViewModelVehiculo(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-            cargarDatos().Wait();
+            CargarChoferes().Wait();
             cargarLista();
         }
         public ViewModelVehiculo()
         {
           
         }
-        public async Task cargarDatos()
+        public async Task CargarChoferes()
         {
-            //var choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
             List<Chofer> choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
+            Chofer aux = new Chofer() { Id = new ObjectId(), Leyenda = "Seleccione un chofer" };
+            choferes.Insert(0, aux);
             ListaChoferes = new SelectList(choferes, "Id", "Leyenda");
         }
         private void cargarLista()
@@ -42,7 +44,6 @@ namespace ProyectoTransportesAndes.ViewModels
             var selectList = new List<SelectListItem>();
 
             var enumValues = Enum.GetValues(typeof(TipoVehiculo)) as TipoVehiculo[];
-
             foreach (var enumValue in enumValues)
             {
                 selectList.Add(new SelectListItem
@@ -51,6 +52,7 @@ namespace ProyectoTransportesAndes.ViewModels
                     Text = GetItemName(enumValue)
                 });
             }
+           
             ListaTipoVehiculo = new SelectList(selectList, "Value", "Value");
         }
         private string GetItemName(TipoVehiculo value)

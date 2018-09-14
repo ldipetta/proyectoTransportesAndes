@@ -38,8 +38,10 @@ $(document).ready(function () {
     $('#viajeCompartido').on('click', function () {
         if ($(this).is(':checked')) {
             $("#direcciones").addClass('hidden');
+            initMap(true);
         } else {
             $('#direcciones').removeClass('hidden');
+            initMap(false);
         }
     });
     $("#Refresh").click(function () {
@@ -81,5 +83,7 @@ $(document).ready(function () {
         $("#userName").append("<a>Hola " + userName + "</a>");
     }
    
+
+    
 
 });

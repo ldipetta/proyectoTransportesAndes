@@ -1,0 +1,73 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelFiltroLiquidaciones
+
+@{
+    ViewData["Title"] = "Liquidaciones";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row" style="margin-top:50px;">
+    <form asp-action="LiquidacionViajesChofer" asp-controller="Viaje">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-inline">
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.IdChofer, Model.ListaChoferes, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Buscar" name="buscar" class="form-control btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row" style="margin-top:50px">
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>
+                    @Html.Label("Fecha")
+                </th>
+                <th>
+                    @Html.Label("Chofer")
+                </th>
+                <th>
+                    @Html.Label("Total viajes")
+                </th>
+                <th>
+                    @Html.Label("Total comision")
+                </th>
+                <th>
+                    @Html.Label("Liquidacion")
+                </th>
+                <th>
+                    @Html.Label("Usuario")
+                </th>
+
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Liquidaciones)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FechaLiquidacion)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
+                    </td>
+                    <td>
+                        $@Html.DisplayFor(modelItem => item.TotalViajes)
+                    </td>
+                    <td>
+                        $@Html.DisplayFor(modelItem => item.TotalComision)
+                    </td>
+                    <td>
+                        $@Html.DisplayFor(modelItem => item.Liquidacion)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Administrativo)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

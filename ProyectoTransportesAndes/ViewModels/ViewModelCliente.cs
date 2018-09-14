@@ -11,5 +11,8 @@ namespace ProyectoTransportesAndes.ViewModels
         public Cliente Cliente { get; set; }
         public TarjetaDeCredito Tarjeta { get; set; }
         public string Id { get; set; }
+        public string ConfirmarPassword { get; set; }
+
+        public ViewModelCliente() { }
     }
 }

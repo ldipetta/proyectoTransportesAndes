@@ -16,6 +16,7 @@ using MongoDB.Bson;
 using ProyectoTransportesAndes.Exceptions;
 using static ProyectoTransportesAndes.Json.DireccionToCoordenadas;
 using static ProyectoTransportesAndes.Json.TiempoDemoraWaypoints;
+using System.Globalization;
 
 namespace ProyectoTransportesAndes.Models
 {
@@ -54,12 +55,23 @@ namespace ProyectoTransportesAndes.Models
         #endregion
 
         #region Metodos
+
         public async Task<IEnumerable<Vehiculo>> getVehiculos()
         {
             try
             {
                 var items = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
-                return items;
+                List<Vehiculo> salida = new List<Vehiculo>();
+                foreach (Vehiculo v in items)
+                {
+                    if (v.Chofer != null)
+                    {
+                        Chofer c = v.Chofer;
+                        v.Chofer = c.Desencriptar(c);
+                        salida.Add(v);
+                    }
+                }
+                return salida;
             }
             catch (MensajeException msg)
             {
@@ -75,8 +87,6 @@ namespace ProyectoTransportesAndes.Models
         {
             try
             {
-                //var aux = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
-                //List<Vehiculo> vehiculosDisponibles = aux.Where(v => v.Disponible == true).Where(v => v.Items.Count == 0).ToList();
                 List<Vehiculo> vehiculosDisponibles = Vehiculos.Where(v => v.Disponible == true).Where(v => v.Items.Count == 0).ToList();
                 return vehiculosDisponibles;
             }
@@ -90,14 +100,13 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        public Vehiculo getVehiculo(string idVehiculo)
+        public Vehiculo getVehiculoMemoria(string idVehiculo)
         {
             try
             {
                 if (idVehiculo != null)
                 {
                     Vehiculo vehiculo = null;
-                    //Vehiculo vehiculo = await DBRepositoryMongo<Vehiculo>.GetItemAsync(idVehiculo, "Vehiculos");
                     foreach (Vehiculo v in Vehiculos)
                     {
                         if (v.Id.ToString().Equals(idVehiculo))
@@ -122,6 +131,22 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+        public async Task<Vehiculo> getVehiculoBaseDatos(string idVehiculo)
+        {
+            try
+            {
+                Vehiculo vehiculo = await DBRepositoryMongo<Vehiculo>.GetItemAsync(idVehiculo, "Vehiculos");
+                return vehiculo;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<Chofer> getChofer(string idChofer)
         {
             try
@@ -129,6 +154,7 @@ namespace ProyectoTransportesAndes.Models
                 if (idChofer != null)
                 {
                     Chofer chofer = await DBRepositoryMongo<Chofer>.GetItemAsync(idChofer, "Choferes");
+                    chofer = chofer.Desencriptar(chofer);
                     return chofer;
                 }
                 else
@@ -163,21 +189,81 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        #region Abm
+
+        /// <summary>
+        /// guarda un nuevo vehiculo con o sin chofer. si no tiene chofer no queda disponible
+        /// </summary>
+        /// <param name="vehiculo"></param>
+        /// <param name="idChofer"></param>
+        /// <returns></returns>
         public async Task nuevoVehiculo(Vehiculo vehiculo, string idChofer)
         {
             try
             {
-                if (vehiculo != null && idChofer != null)
+                if (vehiculo != null && !idChofer.Equals("000000000000000000000000"))
                 {
-                    Vehiculo nuevo = vehiculo;
                     Chofer chofer = await getChofer(idChofer);
                     chofer.Disponible = false;
-                    nuevo.Chofer = chofer;
-                    nuevo.Disponible = true;
-                    nuevo.Unidades = calcularUnidades(nuevo.Largo, nuevo.Ancho, nuevo.Alto);
-                    await DBRepositoryMongo<Vehiculo>.Create(nuevo, "Vehiculos");
-                    Vehiculos.Add(nuevo);
+                    chofer = chofer.Encriptar(chofer);
+                    vehiculo.Chofer = chofer;
+                    vehiculo.Disponible = true;
+                    vehiculo.Unidades = calcularUnidades(vehiculo.Largo, vehiculo.Ancho, vehiculo.Alto);
+                    Tarifa t = await ControladoraViajes.getInstancia(_settings).obtenerUltimaTarifa();
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.Camioneta))
+                    {
+                        vehiculo.Tarifa = t.Camioneta;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionChico))
+                    {
+                        vehiculo.Tarifa = t.CamionChico;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.Camion))
+                    {
+                        vehiculo.Tarifa = t.Camion;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionGrande))
+                    {
+                        vehiculo.Tarifa = t.CamionGrande;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionMudanza))
+                    {
+                        vehiculo.Tarifa = t.CamionMudanza;
+                    }
+                    await DBRepositoryMongo<Vehiculo>.Create(vehiculo, "Vehiculos");
+                    Vehiculos.Add(vehiculo);
                     await DBRepositoryMongo<Chofer>.UpdateAsync(chofer.Id, chofer, "Choferes");
+                }
+                else if (vehiculo != null && idChofer.Equals("000000000000000000000000"))
+                {
+                    Tarifa t = await ControladoraViajes.getInstancia(_settings).obtenerUltimaTarifa();
+
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.Camioneta))
+                    {
+                        vehiculo.Tarifa = t.Camioneta;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionChico))
+                    {
+                        vehiculo.Tarifa = t.CamionChico;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.Camion))
+                    {
+                        vehiculo.Tarifa = t.Camion;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionGrande))
+                    {
+                        vehiculo.Tarifa = t.CamionGrande;
+                    }
+                    if (vehiculo.Tipo.Equals(TipoVehiculo.CamionMudanza))
+                    {
+                        vehiculo.Tarifa = t.CamionMudanza;
+                    }
+                    vehiculo.Chofer = new Chofer();
+                    vehiculo.Disponible = false;
+                    vehiculo.Unidades = calcularUnidades(vehiculo.Largo, vehiculo.Ancho, vehiculo.Alto);
+                    await DBRepositoryMongo<Vehiculo>.Create(vehiculo, "Vehiculos");
+                    Vehiculos.Add(vehiculo);
                 }
                 else
                 {
@@ -194,20 +280,54 @@ namespace ProyectoTransportesAndes.Models
                 throw (e);
             }
         }
+        /// <summary>
+        /// Se edita el vehiculo pasado. El id del vehiculo se utiliza para reconstruir el objeto ObjectId.
+        /// </summary>
+        /// <param name="vehiculo"></param>
+        /// <param name="idVehiculo"></param>
+        /// <param name="choferSeleccionado"></param>
+        /// <param name="tipoVehiculo"></param>
+        /// <returns></returns>
         public async Task editarVehiculo(Vehiculo vehiculo, string idVehiculo, string choferSeleccionado, TipoVehiculo tipoVehiculo)
         {
             try
             {
-                if (vehiculo != null && idVehiculo != null)
+                if (vehiculo != null && !choferSeleccionado.Equals("000000000000000000000000"))
                 {
                     vehiculo.Id = new ObjectId(idVehiculo);
                     vehiculo.Unidades = calcularUnidades(vehiculo.Alto, vehiculo.Ancho, vehiculo.Largo);
                     vehiculo.Tipo = tipoVehiculo;
-                    Chofer chofer = await DBRepositoryMongo<Chofer>.GetItemAsync(choferSeleccionado, "Choferes");
+                    //Chofer chofer = await DBRepositoryMongo<Chofer>.GetItemAsync(choferSeleccionado, "Choferes");
+                    Chofer chofer = await ControladoraUsuarios.getInstance(_settings).getChofer(choferSeleccionado);
                     if (chofer != null)
                     {
                         vehiculo.Chofer = chofer;
                     }
+                    chofer = chofer.Encriptar(chofer);
+                    await DBRepositoryMongo<Vehiculo>.UpdateAsync(vehiculo.Id, vehiculo, "Vehiculos");
+                    Vehiculo eliminar = null;
+                    foreach (Vehiculo v in Vehiculos)
+                    {
+                        if (v.Id.ToString().Equals(idVehiculo))
+                        {
+                            if (v.Disponible && v.Items.Count > 0)// me fijo que no este en un viaje
+                            {
+                                eliminar = v;
+                            }
+                        }
+                    }
+                    if (eliminar != null)
+                    {
+                        Vehiculos.Remove(eliminar);
+                        Vehiculos.Add(vehiculo);
+                    }
+                }
+                else if (vehiculo != null && choferSeleccionado.Equals("000000000000000000000000"))
+                {
+                    vehiculo.Id = new ObjectId(idVehiculo);
+                    vehiculo.Unidades = calcularUnidades(vehiculo.Alto, vehiculo.Ancho, vehiculo.Largo);
+                    vehiculo.Tipo = tipoVehiculo;
+                    vehiculo.Chofer = new Chofer();
                     await DBRepositoryMongo<Vehiculo>.UpdateAsync(vehiculo.Id, vehiculo, "Vehiculos");
                     Vehiculo eliminar = null;
                     foreach (Vehiculo v in Vehiculos)
@@ -215,7 +335,6 @@ namespace ProyectoTransportesAndes.Models
                         if (v.Id.ToString().Equals(idVehiculo))
                         {
                             eliminar = v;
-
                         }
                     }
                     Vehiculos.Remove(eliminar);
@@ -237,14 +356,20 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        public async Task eliminarVehiculo(string id, Vehiculo vehiculo)
+        /// <summary>
+        /// se elimina el vehiculo y se actualiza el estado del chofer.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="vehiculo"></param>
+        /// <returns></returns>
+        public async Task eliminarVehiculo(string id)
         {
             try
             {
-                if (vehiculo != null && id != null)
+                if (id != null)
                 {
                     Vehiculo eliminar = await DBRepositoryMongo<Vehiculo>.GetItemAsync(id, "Vehiculos");
-                    await DBRepositoryMongo<Vehiculo>.DeleteAsync(eliminar.Id, "Vehiculos");
+                    await DBRepositoryMongo<Vehiculo>.DeleteAsync(id, "Vehiculos");
                     Vehiculos.Remove(eliminar);
                     eliminar.Chofer.Disponible = true;
                     await DBRepositoryMongo<Chofer>.UpdateAsync(eliminar.Chofer.Id, eliminar.Chofer, "Choferes");
@@ -265,8 +390,87 @@ namespace ProyectoTransportesAndes.Models
 
 
         }
-        //como primera aproximacion se toman las unidades como m3 de capacidad de carga, el peso de la carga se ira descontando de la capacidad de carga. En una segunda instancia se podra tener en cuenta las dimensiones en particular
-        // para determinados objetos que deban ir en alguna posicion en particular
+        /// <summary>
+        /// actualiza las tarifas
+        /// </summary>
+        /// <param name="tarifa"></param>
+        /// <returns></returns>
+        public async Task actualizarTarifasVehiculos(Tarifa tarifa)
+        {
+            var vehiculos = await getVehiculos();
+            List<Vehiculo> aux = vehiculos.ToList();
+            foreach (Vehiculo v in aux)
+            {
+                if (v.Tipo == TipoVehiculo.Camioneta)
+                {
+                    v.Tarifa = tarifa.Camioneta;
+                }
+                if (v.Tipo == TipoVehiculo.CamionChico)
+                {
+                    v.Tarifa = tarifa.CamionChico;
+                }
+                if (v.Tipo == TipoVehiculo.Camion)
+                {
+                    v.Tarifa = tarifa.Camion;
+                }
+                if (v.Tipo == TipoVehiculo.CamionGrande)
+                {
+                    v.Tarifa = tarifa.CamionGrande;
+                }
+                if (v.Tipo == TipoVehiculo.CamionMudanza)
+                {
+                    v.Tarifa = tarifa.CamionMudanza;
+                }
+                v.Chofer = v.Chofer.Encriptar(v.Chofer);
+                await DBRepositoryMongo<Vehiculo>.UpdateAsync(v.Id, v, "Vehiculos");
+                foreach (Vehiculo veh in Vehiculos)
+                {
+                    if (veh.Id.ToString().Equals(v.ToString()))
+                    {
+                        veh.Tarifa = v.Tarifa;
+                    }
+                }
+            }
+        }
+
+        public void actualizarVehiculo(Vehiculo vehiculo)
+        {
+            try
+            {
+                Vehiculo eliminar = null;
+                foreach (Vehiculo v in Vehiculos)
+                {
+                    if (v.Id.ToString().Equals(vehiculo.Id.ToString()))
+                    {
+                        eliminar = v;
+                    }
+                }
+                Vehiculos.Remove(eliminar);
+                Vehiculos.Add(vehiculo);
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        #endregion
+
+        #region Utilidades
+
+        /// <summary>
+        /// Es una aproximacion para determinar la capacidad de carga de un vehículo.
+        /// Se toman las unidades como m3 de capacidad de carga.
+        /// El peso de la carga se ira descontando de la capacidad del vehiculo.
+        /// </summary>
+        /// <param name="alto"></param>
+        /// <param name="ancho"></param>
+        /// <param name="profundidad"></param>
+        /// <returns></returns>
         public double calcularUnidades(double alto, double ancho, double profundidad)
         {
             try
@@ -283,6 +487,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+        /// <summary>
+        /// De acuerdo a la latitud y longitud del cliente se busca el vehiculo para mudanza mas cercano
+        /// </summary>
+        /// <param name="latitudCliente"></param>
+        /// <param name="longitudCliente"></param>
+        /// <returns>Retorna el vehiculo mas cercano para mudanza</returns>
         public async Task<Vehiculo> mejorVehiculoMudanza(string latitudCliente, string longitudCliente)
         {
             try
@@ -300,7 +510,7 @@ namespace ProyectoTransportesAndes.Models
                     if (tiempo < menorTiempo)
                     {
                         menorTiempo = tiempo;
-                        vehiculo = getVehiculo(pos.Id);
+                        vehiculo = getVehiculoMemoria(pos.Id);
                         vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
                         if (vehiculo.Disponible)
                         {
@@ -323,7 +533,14 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        // devuelve el vehiculo mas cercano al cliente con capacidad de carga para trasladar lo necesario
+        /// <summary>
+        /// Retorna el vehiculo mas cercano al cliente con capacidad para trasladar lo necesario
+        /// </summary>
+        /// <param name="latitudCliente"></param>
+        /// <param name="longitudCliente"></param>
+        /// <param name="unidadadesTraslado"></param>
+        /// <param name="pesoTraslado"></param>
+        /// <returns></returns>
         public async Task<Vehiculo> mejorVehiculoFlete(string latitudCliente, string longitudCliente, double unidadadesTraslado, double pesoTraslado)
         {
             try
@@ -343,7 +560,7 @@ namespace ProyectoTransportesAndes.Models
                     if (tiempo < menorTiempo)
                     {
                         menorTiempo = tiempo;
-                        vehiculo = getVehiculo(pos.Id);
+                        vehiculo = getVehiculoMemoria(pos.Id);
                         vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
 
                         if (vehiculo.Disponible)
@@ -401,7 +618,7 @@ namespace ProyectoTransportesAndes.Models
                     int tiempo = int.MaxValue;
                     minutos = await tiempoDemora(latitudCliente, longitudCliente, pos.Latitud, pos.Longitud);
                     tiempo = minutos.Minutes;
-                    vehiculo = getVehiculo(pos.Id);
+                    vehiculo = getVehiculoMemoria(pos.Id);
                     vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
 
                     if (vehiculo.Disponible)
@@ -460,8 +677,14 @@ namespace ProyectoTransportesAndes.Models
             }
         }
 
-
-        // esta sobrecarga de tiempo de demora se utiliza para calcular el tiempo de demora del vehiculo hasta la posicion del cliente
+        /// <summary>
+        /// determina el tiempo de demora entre dos juegos de coordenadas
+        /// </summary>
+        /// <param name="latitudCliente"></param>
+        /// <param name="longitudCliente"></param>
+        /// <param name="latitudVehiculo"></param>
+        /// <param name="longitudVehiculo"></param>
+        /// <returns>tiempo en minutos</returns>
         public async Task<TimeSpan> tiempoDemora(string latitudCliente, string longitudCliente, string latitudVehiculo, string longitudVehiculo)
         {
             try
@@ -497,27 +720,11 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        // esta sobrecarga de tiempo de demora se utiliza para calcular la distancia del cliente a una direccion establecida por este
-        public async Task<TimeSpan> tiempoDemora(string latitudX, string longitudX, string direccion)
-        {
-            HttpClient cliente = new HttpClient();
-            int tiempo = int.MaxValue;
-            string path = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + latitudX + "," + longitudX + "&destinations=" + direccion + "&key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec";
-            HttpResponseMessage response = await cliente.GetAsync(path);
-            if (response.IsSuccessStatusCode)
-            {
-                VehiculoCercano obj = JsonConvert.DeserializeObject<VehiculoCercano>(await response.Content.ReadAsStringAsync());
-                foreach (Row r in obj.rows)
-                {
-                    foreach (Element e in r.elements)
-                    {
-                        tiempo = int.Parse(e.duration.text.Split(" ")[0]);
-                    }
-                }
-            }
-            TimeSpan minutes = TimeSpan.FromMinutes(tiempo);
-            return minutes;
-        }
+        /// <summary>
+        /// calcula el tiempo de demora de un determinado viaje
+        /// </summary>
+        /// <param name="viaje"></param>
+        /// <returns>tiempo en minutos</returns>
         public async Task<TimeSpan> tiempoDemoraTotal(Viaje viaje)
         {
             try
@@ -571,24 +778,97 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        public async Task<double> cantidadKmAproximado(Viaje viaje)
+        {
+            try
+            {
+                HttpClient cliente = new HttpClient();
+                double salida = 0;
+                string path = null;
+                if (!string.IsNullOrEmpty(viaje.DireccionDestino))
+                {
+                    path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Destino.Latitud + "," + viaje.Destino.Longitud;
+                }
+                if (viaje.Items.Count > 10)
+                {
+                    throw new MensajeException("Debe ingresar como máximo 10 items");
+                }
+                else
+                {
+                    if (viaje.Items.Count != 0)
+                    {
+                        path += "&waypoints = optimize:true";
+                        foreach (Item i in viaje.Items)
+                        {
+                            path += "|via:" + i.Origen.Latitud + ", " + i.Origen.Longitud + "|via:" + i.Destino.Latitud + ", " + i.Destino.Longitud;
+                        }
+                    }
+
+                    path += "&key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec";
+                }
+
+                HttpResponseMessage response = await cliente.GetAsync(path);
+                if (response.IsSuccessStatusCode)
+                {
+                    DemoraWaypoints obj = JsonConvert.DeserializeObject<DemoraWaypoints>(await response.Content.ReadAsStringAsync());
+                    Route route = obj.routes[0];
+                    Leg leg = route.legs[0];
+                    if (leg.distance.text.Split(" ")[1].Equals("km"))
+                    {
+                        double km =leg.distance.value;
+                        salida = km / 1000;
+                        
+                    }
+                }
+
+                return salida;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+            
+        /// <summary>
+        /// convierte una direccion de puerta en un juego de coordenadas geográficas
+        /// </summary>
+        /// <param name="direccion"></param>
+        /// <returns></returns>
         public async Task<PosicionSatelital> convertirDireccionEnCoordenadas(string direccion)
         {
-            PosicionSatelital posicion = new PosicionSatelital();
-            HttpClient cliente = new HttpClient();
-            string path = "https://maps.googleapis.com/maps/api/geocode/json?address=" + direccion + "&key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec";
-
-            HttpResponseMessage response = await cliente.GetAsync(path);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                RootObject root = JsonConvert.DeserializeObject<RootObject>(await response.Content.ReadAsStringAsync());
-                foreach (Result r in root.results)
+                PosicionSatelital posicion = new PosicionSatelital();
+                HttpClient cliente = new HttpClient();
+                string path = "https://maps.googleapis.com/maps/api/geocode/json?address=" + direccion + "&key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec";
+
+                HttpResponseMessage response = await cliente.GetAsync(path);
+                if (response.IsSuccessStatusCode)
                 {
-                    posicion.Latitud = Convert.ToString(r.geometry.location.lat, System.Globalization.CultureInfo.InvariantCulture);
-                    posicion.Longitud = Convert.ToString(r.geometry.location.lng, System.Globalization.CultureInfo.InvariantCulture);
+                    RootObject root = JsonConvert.DeserializeObject<RootObject>(await response.Content.ReadAsStringAsync());
+                    foreach (Result r in root.results)
+                    {
+                        posicion.Latitud = Convert.ToString(r.geometry.location.lat, System.Globalization.CultureInfo.InvariantCulture);
+                        posicion.Longitud = Convert.ToString(r.geometry.location.lng, System.Globalization.CultureInfo.InvariantCulture);
+                    }
                 }
+                return posicion;
+            }catch(Exception ex)
+            {
+                throw ex;
             }
-            return posicion;
+           
         }
+
+
+        #endregion
+
+
+
         public async Task<string> convertirCoordenadasEnDireccion(string latitud, string longitud)
         {
             HttpClient cliente = new HttpClient();
@@ -612,17 +892,22 @@ namespace ProyectoTransportesAndes.Models
         {
             try
             {
-                List<PosicionSatelital> posiciones = obtenerUbicacionesVehiculosFletes();
+                List<PosicionSatelital> posicionesFletes = obtenerUbicacionesVehiculosFletes();
+                List<PosicionSatelital> posicionesMudanza = obtenerUbicacionesVehiculosMudanza();
+                posicionesFletes.Concat(posicionesMudanza);
                 List<Vehiculo> salida = new List<Vehiculo>();
-                foreach (PosicionSatelital pos in posiciones)
+                if (posicionesFletes != null && posicionesFletes.Count > 0)
                 {
-                    Vehiculo v = await DBRepositoryMongo<Vehiculo>.GetItemAsync(pos.Id, "Vehiculos");
-                    if (v != null)
+                    foreach (PosicionSatelital pos in posicionesFletes)
                     {
-                        v.PosicionSatelital = pos;
-                        salida.Add(v);
-                    }
+                        Vehiculo v = await DBRepositoryMongo<Vehiculo>.GetItemAsync(pos.Id, "Vehiculos");
+                        if (v != null)
+                        {
+                            v.PosicionSatelital = pos;
+                            salida.Add(v);
+                        }
 
+                    }
                 }
                 return salida;
             }
@@ -643,8 +928,14 @@ namespace ProyectoTransportesAndes.Models
             {
                 List<Chofer> salida = new List<Chofer>();
                 var lista = await DBRepositoryMongo<Chofer>.GetItemsAsync("Choferes");
-                List<Chofer> aux = lista.ToList();
-                //IEnumerable<Chofer> choferes = lista.Where(c => c.Disponible == true);
+                List<Chofer> aux = new List<Chofer>();
+
+                foreach(Chofer c in lista)
+                {
+                    Chofer chofer = c.Desencriptar(c);
+                    aux.Add(chofer);
+                }
+
                 foreach (Chofer c in aux)
                 {
                     if (c.Disponible)
@@ -767,78 +1058,19 @@ namespace ProyectoTransportesAndes.Models
         {
             var veh = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
             Vehiculos = veh.ToList();
-
         }
         public void datos()
         {
             //se harcodea hasta que se obtenga la posicion dinamicamente
-            PosicionSatelital hard = new PosicionSatelital("5b8f4d0c1f0757450462e51f", "-34.895249", "-56.126989");
-            UbicacionVehiculos["5b8f4d0c1f0757450462e51f"] = hard;
-            PosicionSatelital hard2 = new PosicionSatelital("5b8f4d3b1f0757450462e520", "-34.909789", "-56.197760");
-            UbicacionVehiculos["5b8f4d3b1f0757450462e520"] = hard2;
+            PosicionSatelital hard = new PosicionSatelital("5b9a6bbefe2a714978444832", "-34.895249", "-56.126989");
+            UbicacionVehiculos["5b9a6bbefe2a714978444832"] = hard;
+            PosicionSatelital hard2 = new PosicionSatelital("5b9a6bf2fe2a714978444833", "-34.909789", "-56.197760");
+            UbicacionVehiculos["5b9a6bf2fe2a714978444833"] = hard2;
         }
         //se actualizan los datos del vehiculo en memoria cuando sufre algun cambio y se respaldan en una tabla accesoria de la base de datos ante cualquier inconveniente
-        public void actualizarVehiculo(Vehiculo vehiculo)
-        {
-            try
-            {
-                Vehiculo eliminar = null;
-                foreach (Vehiculo v in Vehiculos)
-                {
-                    if (v.Id.ToString().Equals(vehiculo.Id.ToString()))
-                    {
-                        eliminar = v;
-                    }
-                }
-                Vehiculos.Remove(eliminar);
-                Vehiculos.Add(vehiculo);
-            }
-            catch (MensajeException msg)
-            {
-                throw msg;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
+        
 
-        public async Task actualizarTarifasVehiculos(Tarifa tarifa)
-        {
-            var vehiculos = await getVehiculos();
-            List<Vehiculo> aux = vehiculos.ToList();
-            foreach (Vehiculo v in aux)
-            {
-                if (v.Tipo == TipoVehiculo.Camioneta)
-                {
-                    v.Tarifa = tarifa.Camioneta;
-                }
-                if (v.Tipo == TipoVehiculo.CamionChico)
-                {
-                    v.Tarifa = tarifa.CamionChico;
-                }
-                if (v.Tipo == TipoVehiculo.Camion)
-                {
-                    v.Tarifa = tarifa.Camion;
-                }
-                if (v.Tipo == TipoVehiculo.CamionGrande)
-                {
-                    v.Tarifa = tarifa.CamionGrande;
-                }
-                if (v.Tipo == TipoVehiculo.CamionMudanza)
-                {
-                    v.Tarifa = tarifa.CamionMudanza;
-                }
-                await DBRepositoryMongo<Vehiculo>.UpdateAsync(v.Id, v, "Vehiculos");
-                foreach (Vehiculo veh in Vehiculos)
-                {
-                    if (veh.Id.ToString().Equals(v.ToString()))
-                    {
-                        veh.Tarifa = v.Tarifa;
-                    }
-                }
-            }
-        }
+       
         #endregion
     }
 }

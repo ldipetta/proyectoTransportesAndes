@@ -57,135 +57,59 @@ namespace ProyectoTransportesAndes.Models
         #endregion
 
         #region Metodos
-        public static string validarToken(string token)
+        /// <summary>
+        /// recibe un usuario desencriptado y lo devuelve encriptado
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <returns>usuario encriptado</returns>
+        public Usuario Encriptar(Usuario usuario)
         {
-            try
-            {
-                if (!token.Equals(""))
-                {
-                    var handler = new JwtSecurityTokenHandler();
-                    var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-                    if (tokenS.ValidTo > DateTime.UtcNow)
-                    {
-                        var rol = tokenS.Claims.First(c => c.Type == "actort").Value;
-                        return rol;
-                    }
-                }
-                return "";
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-           
+            usuario.Apellido = Seguridad.Encriptar(usuario.Apellido);
+            usuario.Direccion = Seguridad.Encriptar(usuario.Direccion);
+            usuario.Documento = Seguridad.Encriptar(usuario.Documento);
+            usuario.Email = Seguridad.Encriptar(usuario.Email);
+            usuario.FNacimiento = Seguridad.Encriptar(usuario.FNacimiento);
+            usuario.Nombre = Seguridad.Encriptar(usuario.Nombre);
+            usuario.Password = Seguridad.Encriptar(usuario.Password);
+            usuario.Telefono = Seguridad.Encriptar(usuario.Telefono);
+            usuario.Tipo = Seguridad.Encriptar(usuario.Tipo);
+            usuario.User = Seguridad.Encriptar(usuario.User);
+            usuario.Ubicacion.Latitud = Seguridad.Encriptar(usuario.Ubicacion.Latitud);
+            usuario.Ubicacion.Longitud = Seguridad.Encriptar(usuario.Ubicacion.Longitud);
+            return usuario;
         }
-        public static string BuildToken(Usuario user)
+        /// <summary>
+        /// recibe un usuario encriptado y lo devuelve desencriptado
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <returns>usuario desencriptado</returns>
+        public Usuario Desencriptar(Usuario usuario)
         {
-            try
-            {
-                var claims = new Claim[]
-            {
-                new Claim(JwtRegisteredClaimNames.UniqueName,user.User),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Actort,user.Tipo)
-            };
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("gjanvowIINFDk4086206ldvnffnhsdonL"));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                var expiration = DateTime.UtcNow.AddHours(1);
-                JwtSecurityToken token = new JwtSecurityToken(
-                    issuer: "yourDomain.com",
-                    audience: "yourDomain.com",
-                    claims: claims,
-                    expires: expiration,
-                    signingCredentials: creds);
-
-                return new JwtSecurityTokenHandler().WriteToken(token);
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-            
+            usuario.Apellido = Seguridad.Desencriptar(usuario.Apellido);
+            usuario.Direccion = Seguridad.Desencriptar(usuario.Direccion);
+            usuario.Documento = Seguridad.Desencriptar(usuario.Documento);
+            usuario.Email = Seguridad.Desencriptar(usuario.Email);
+            usuario.FNacimiento = Seguridad.Desencriptar(usuario.FNacimiento);
+            usuario.Nombre = Seguridad.Desencriptar(usuario.Nombre);
+            usuario.Password = Seguridad.Desencriptar(usuario.Password);
+            usuario.Telefono = Seguridad.Desencriptar(usuario.Telefono);
+            usuario.Tipo = Seguridad.Desencriptar(usuario.Tipo);
+            usuario.User = Seguridad.Desencriptar(usuario.User);
+            usuario.Ubicacion.Latitud = Seguridad.Desencriptar(usuario.Ubicacion.Latitud);
+            usuario.Ubicacion.Longitud = Seguridad.Desencriptar(usuario.Ubicacion.Longitud);
+            return usuario;
         }
-        public static bool validarUsuarioAdministrativo(string token)
+        public Usuario DesencriptarSuperUsuario(Usuario usuario)
         {
-            try
-            {
-                bool salida = false;
-                if (token != null)
-                {
-                    var rol = validarToken(token);
-                    if (rol == "Administrativo" || rol == "Administrador")
-                    {
-                        salida = true;
-                    }
-                }
-                return salida;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-           
-        }
-        public static bool validarUsuarioCliente(string token)
-        {
-            try
-            {
-                bool salida = false;
-                if (token != null)
-                {
-                    var rol = validarToken(token);
-                    if (rol == "Cliente")
-                    {
-                        salida = true;
-                    }
-                }
-                return salida;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-           
-        }
-        public static bool validarUsuarioChofer(string token)
-        {
-            try
-            {
-                bool salida = false;
-                if (token != null)
-                {
-                    var rol = validarToken(token);
-                    if (rol == "Chofer")
-                    {
-                        salida = true;
-                    }
-                }
-                return salida;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-           
-        }
-        public static bool validarUsuarioAdministrador(string token)
-        {
-            try
-            {
-                bool salida = false;
-                if (token != null)
-                {
-                    var rol = validarToken(token);
-                    if (rol == "Administrador")
-                    {
-                        salida = true;
-                    }
-                }
-                return salida;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            usuario.Password = Seguridad.Desencriptar(usuario.Password);
+            usuario.User = Seguridad.Desencriptar(usuario.User); 
+            return usuario;
         }
         #endregion
+
+
+
+
 
     }
 }

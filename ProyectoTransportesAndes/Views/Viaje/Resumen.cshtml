@@ -15,15 +15,19 @@
                         <th scope="row">Fecha</th>
                         <td>@Html.DisplayFor(model => model.FechaParaMostrar)</td>
                     </tr>
-                    <tr>
-                        <th scope="row">Tiempo de llegada</th>
-                        <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaHastaCliente.Minutes) minutos</td>
-                    </tr>
-                    @if (!string.IsNullOrEmpty(Model.Viaje.DireccionDestino))
+                    @if (!Model.Viaje.Compartido)
+                    {
+                        <tr>
+                            <th scope="row">Tiempo de llegada</th>
+                            <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaHastaCliente.Minutes) minutos</td>
+                        </tr>
+
+                    }
+                    @if (!Model.Viaje.DireccionDestino.Equals(Model.Viaje.DireccionOrigen))
                     {
                         <tr>
                             <th scope="row">Duración</th>
-                            <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaTotal.Minutes) minutos</td>
+                            <td>@Html.DisplayFor(model => model.DuracionEstimadaViaje)</td>
                         </tr>
                         <tr>
                             <th scope="row">Hora finalizacion</th>
@@ -51,16 +55,16 @@
                 <thead>
                     <tr>
                         <th>
-                            @Html.DisplayNameFor(model => model.Item.Imagen)
+                            @Html.DisplayNameFor(model => model.Item.Entregado)
                         </th>
                         <th>
                             @Html.DisplayNameFor(model => model.Item.Descripcion)
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model=>model.Item.DireccionOrigen)
+                            @Html.DisplayNameFor(model => model.Item.DireccionOrigen)
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model=>model.Item.DireccionDestino)
+                            @Html.DisplayNameFor(model => model.Item.DireccionDestino)
                         </th>
                     </tr>
                 </thead>
@@ -69,20 +73,20 @@
                     {
                         @foreach (var item in Model.Viaje.Items)
                         {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Imagen)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Descripcion)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.DireccionOrigen)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.DireccionDestino)
-                        </td>
-                    </tr>
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Entregado)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Descripcion)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.DireccionDestino)
+                                </td>
+                            </tr>
 
                         }
                     }
@@ -106,9 +110,14 @@
         }
 
     </div>
-    <div class="col-lg-7">
-        @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
-        <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
-    </div>
+    @if (!Model.Viaje.Compartido)
+    {
+        <div class="col-lg-7">
+            @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
+            <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
+        </div>
+
+    }
+
 </div>
 

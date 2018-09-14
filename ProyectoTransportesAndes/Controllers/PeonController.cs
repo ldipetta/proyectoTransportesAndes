@@ -39,11 +39,11 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
-                    var items = await DBRepositoryMongo<Peon>.GetItemsAsync(coleccion);
-                    return View(items);
+                    List<Peon> peones = await ControladoraUsuarios.getInstance(_settings).getPeones();
+                    return View(peones);
                 }
                 else
                 {
@@ -70,7 +70,7 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
                     if (ModelState.IsValid)
@@ -82,7 +82,7 @@ namespace ProyectoTransportesAndes.Controllers
                         }
                         else
                         {
-                            //falta solucionar el tema del id
+                            model = model.Encriptar(model);
                             await DBRepositoryMongo<Peon>.Create(model, coleccion);
                             return RedirectToAction("Index");
                         }
@@ -111,14 +111,14 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
                     if (id == null)
                     {
                         return BadRequest();
                     }
-                    Peon item = await DBRepositoryMongo<Peon>.GetItemAsync(id, coleccion);
+                    Peon item = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
                     if (item == null)
                     {
                         return NotFound();
@@ -146,12 +146,13 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
                     if (ModelState.IsValid)
                     {
                         peon.Id = new ObjectId(id);
+                        peon = peon.Encriptar(peon);
                         await DBRepositoryMongo<Peon>.UpdateAsync(peon.Id, peon, coleccion);
                         return RedirectToAction("Index");
                     }
@@ -177,14 +178,14 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
                     if (id == null)
                     {
                         return BadRequest();
                     }
-                    Peon item = await DBRepositoryMongo<Peon>.GetItemAsync(id, coleccion);
+                    Peon item = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
                     if (item == null)
                     {
                         return NotFound();
@@ -211,13 +212,12 @@ namespace ProyectoTransportesAndes.Controllers
             var token = _session.GetString("Token");
             if (token != null)
             {
-                var rol = Usuario.validarToken(token);
+                var rol = Seguridad.validarToken(token);
                 if (rol == "Administrador" || rol == "Administrativo")
                 {
                     if (ModelState.IsValid)
                     {
-                        peon.Id = new ObjectId(id);
-                        await DBRepositoryMongo<Peon>.DeleteAsync(peon.Id, coleccion);
+                        await DBRepositoryMongo<Peon>.DeleteAsync(id, coleccion);
                         return RedirectToAction("Index");
                     }
                     return View(peon);

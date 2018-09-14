@@ -11,5 +11,6 @@ namespace ProyectoTransportesAndes.ViewModels
         public Usuario Usuario { get; set; }
         public bool Administrador { get; set; }
         public string Id { get; set; }
+        public string ConfirmarPassword { get; set; }
     }
 }

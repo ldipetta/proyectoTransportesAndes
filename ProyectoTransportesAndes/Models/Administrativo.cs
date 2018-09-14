@@ -8,8 +8,10 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Administrativo:Usuario
     {
-      
-
+        #region Propiedades
         public CarneDeSalud CarneDeSalud { get; set; }
+        #endregion
+
+        
     }
 }

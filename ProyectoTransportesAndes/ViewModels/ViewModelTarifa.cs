@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProyectoTransportesAndes.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,5 +13,6 @@ namespace ProyectoTransportesAndes.ViewModels
         public string Camion { get; set; }
         public string CamionGrande { get; set; }
         public string CamionMudanza { get; set; }
+        public DateTime UltimaActualizacion { get; set; }
     }
 }

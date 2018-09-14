@@ -5,35 +5,25 @@
     ViewData["Title"] = "Ingreso";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<hr />
-@using (Html.BeginForm())
-{
-    <div class="row">
-        @Html.AntiForgeryToken()
-        <div class="form-horizontal col-lg-3 col-lg-offset-4">
-            <div class="form-group">
-                @Html.EditorFor(model => model.Usuario, new { htmlAttributes = new { @class = "form-control", placeholder = "Usuario" } })
-                @Html.ValidationMessageFor(model => model.Usuario, "", new { @class = "text-danger" })
-            </div>
-            <div class="form-group">
-                @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control", placeholder = "Contraseña" } })
-                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-            </div>
+
+
+<div class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1" style="margin-top:100px;">
+    <h4>Iniciar sesión</h4>
+    <hr/>
+    <form asp-controller="Account" asp-action="Login">
+        <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <input type="text" asp-for="Usuario" class="form-control" placeholder="Usuario" />
+            <span asp-validation-for="Usuario" class="text-danger"></span>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-3 col-lg-offset-4">
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <input type="password" asp-for="Password" class="form-control" placeholder="Contraseña" />
+            <span asp-validation-for="Password" class="text-danger"></span>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-1 col-lg-push-5">
-            <input type="submit" value="Entrar" class="btn btn-info" />
+        <div class="form-group col-lg-6 col-lg-offset-4 col-md-6 col-md-offset-4 col-sm-6 col-sm-offset-4 col-xs-6 col-xs-offset-4">
+            <input type="submit" value="Ingresar" class="btn btn-info"/>
         </div>
-    </div>
-}
-<div class="row">
-    <div class="col-lg-offset-4" style="margin-top:20px;">
-        @Html.ActionLink("No se encuentra registrado? Registrese!", "Create", "Cliente")
-    </div>
+        <div class="col-lg-11 col-lg-offset-1 col-md-11 col-md-offset-1 col-sm-11 col-sm-offset-1 col-xs-12">
+            @Html.ActionLink("No se encuentra registrado? Registrese!", "Create", "Cliente")
+        </div>
+    </form>
 </div>

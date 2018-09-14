@@ -1,9 +1,11 @@
-﻿@model ProyectoTransportesAndes.Models.Peon
+﻿@model ProyectoTransportesAndes.Models.Usuario
 
 @{
     ViewData["Title"] = "Delete";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+
 
 
 <div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
@@ -12,12 +14,20 @@
         <table class=" table table-responsive">
             <tbody>
                 <tr>
+                    <th scope="row">Matrícula</th>
+                    <td>@Html.DisplayFor(model => model.User)</td>
+                </tr>
+                <tr>
                     <th scope="row">Calificación</th>
                     <td>@Html.DisplayFor(model => model.Nombre)</td>
                 </tr>
                 <tr>
                     <th scope="row">Marca</th>
                     <td>@Html.DisplayFor(model => model.Apellido)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Modelo</th>
+                    <td>@Html.DisplayFor(model => model.Email)</td>
                 </tr>
                 <tr>
                     <th scope="row">Unidades</th>
@@ -35,13 +45,19 @@
                     <th scope="row">Capacidad</th>
                     <td>@Html.DisplayFor(model => model.FNacimiento)</td>
                 </tr>
+                <tr>
+                    <th scope="row">Capacidad</th>
+                    <td>@Html.DisplayFor(model => model.Tipo)</td>
+                </tr>
             </tbody>
         </table>
     </div>
-    <form asp-action="Delete" asp-controller="Peon">
+    <form asp-action="Delete" asp-controller="Administrativo">
         <input asp-for="Id" class="form-control hidden" />
         <div class="form-group">
-            <input type="submit" value="Eliminar peón" class="btn btn-danger btn-block" />
+            <input type="submit" value="Eliminar usuario" class="btn btn-danger btn-block" />
         </div>
     </form>
 </div>
+
+

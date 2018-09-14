@@ -24,6 +24,7 @@ namespace ProyectoTransportesAndes.ViewModels
         public EstadisticaVehiculo Estadistica{get;set;}
         private IOptions<AppSettingsMongo> _settings;
 
+
         public ViewModelEstadisticas(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -33,11 +34,12 @@ namespace ProyectoTransportesAndes.ViewModels
         }
         public ViewModelEstadisticas()
         {
-           
             cargarVehiculos().Wait();
             CargarMes();
             CargarAño();
         }
+
+
 
         public async Task cargarVehiculos()
         {
@@ -80,6 +82,7 @@ namespace ProyectoTransportesAndes.ViewModels
             }
             Años = new SelectList(selectList, "Value", "Text");
         }
+        
 
     }
 }

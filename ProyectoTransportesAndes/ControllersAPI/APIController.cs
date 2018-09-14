@@ -64,7 +64,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
                     user = await _controladoraUsuarios.Login(usuario, pass);
                     if (user == null)
                     {
-                        _session.SetString("Token", Usuario.BuildToken(user));
+                        _session.SetString("Token", Seguridad.BuildToken(user));
                         _session.SetString("User", usuario);
                         return Json(user);
                     }
@@ -92,9 +92,9 @@ namespace ProyectoTransportesAndes.ControllersAPI
                 if (ModelState.IsValid)
                 {
                     chofer = await _controladoraUsuarios.LoginChofer(usuario, pass);
-                    if (chofer == null)
+                    if (chofer != null)
                     {
-                        _session.SetString("Token", Usuario.BuildToken(chofer));
+                        _session.SetString("Token", Seguridad.BuildToken(chofer));
                         _session.SetString("User", usuario);
                         return Json(chofer);
                     }
@@ -218,7 +218,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("VehiculoPrueba")]
         public JsonResult VehiculoPrueba()
         {
-            return Json(_controladoraVehiculos.getVehiculo("5b60ad9ab73c94313c6c7552"));
+            return Json(_controladoraVehiculos.getVehiculoMemoria("5b60ad9ab73c94313c6c7552"));
         }
         //devuelve la ubicacion del vehiculo solicitado
         [HttpGet]
@@ -232,11 +232,14 @@ namespace ProyectoTransportesAndes.ControllersAPI
 
         [HttpPost]
         [Route("SolicitudServicio")]
-        public async Task<JsonResult> SolicitudServicio([FromBody]Viaje viaje)
+        public async Task<JsonResult> SolicitudServicio([FromBody]Viaje viaje,string idCliente)
         {
-            
+            ObjectId clienteId = deserealizarJsonToObjectId(idCliente);
+            viaje.Cliente.Id = clienteId;
             Viaje salida = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
             salida.CostoEstimadoFinal = _controladoraViajes.calcularPrecio(salida.DuracionEstimadaTotal, viaje.Vehiculo.Tarifa,viaje.Compartido);
+            salida.Vehiculo.Chofer = salida.Vehiculo.Chofer.Desencriptar(salida.Vehiculo.Chofer);
+            salida.Cliente = salida.Cliente.Desencriptar(salida.Cliente);
             return Json(salida);
         }
 
@@ -345,7 +348,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public JsonResult ViajesCliente(string idCliente)
         {
             ObjectId clienteId = deserealizarJsonToObjectId(idCliente);
-            return Json(_controladoraViajes.viajesCliente(clienteId.ToString()));
+            return Json(_controladoraViajes.getViajesCliente(clienteId.ToString()));
         }
         /// <summary>
         /// 
@@ -357,7 +360,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public JsonResult ViajesChofer(string idChofer)
         {
             ObjectId choferId = deserealizarJsonToObjectId(idChofer);
-            return Json(_controladoraViajes.viajesChofer(choferId.ToString()));
+            return Json(_controladoraViajes.getViajesChofer(choferId.ToString()));
         }
         /// <summary>
         /// VIAJES QUE NO ESTEN FINALIZADOS
@@ -369,7 +372,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public JsonResult ViajesActivosChofer(string idChofer)
         {
             ObjectId choferId = deserealizarJsonToObjectId(idChofer);
-            return Json(_controladoraViajes.viajesActivosChofer(choferId.ToString()));
+            return Json(_controladoraViajes.getViajesActivosChofer(choferId.ToString()));
         }
         /// <summary>
         /// DESEREALIZA UN JSON CON EL OBJECTID 

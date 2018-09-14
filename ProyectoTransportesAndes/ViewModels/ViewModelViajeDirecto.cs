@@ -42,7 +42,7 @@ namespace ProyectoTransportesAndes.ViewModels
         {
             var clientes = await ControladoraUsuarios.getInstance(_settings).getClientes();
             List<Cliente> lista = clientes.ToList();
-            Cliente c = new Cliente() { Id = new ObjectId(), Nombre = "Seleccione un cliente" };
+            Cliente c = new Cliente() { Id = new ObjectId(), Leyenda = "Seleccione un cliente" };
             lista.Insert(0, c);
             Clientes = new SelectList(lista, "Id", "Leyenda");
         }

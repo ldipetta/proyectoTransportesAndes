@@ -5,59 +5,42 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
-<h4>Eliminar vehiculo</h4>
-<a asp-action="Index">Volver a la lista</a>
-<div>
-    <hr />
-    <dl class="dl-horizontal">
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Matricula)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Matricula)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Calificacion)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Calificacion)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Marca)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Marca)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Modelo)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Modelo)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Unidades)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Unidades)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.CapacidadCargaKg)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.CapacidadCargaKg)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.CantidadPasajeros)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.CantidadPasajeros)
-        </dd>
-    </dl>
-
-    <form asp-action="Delete">
+<div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+    <div class="panel-heading">Vehículo para eliminar</div>
+    <div class="panel-body">
+        <table class=" table table-responsive">
+            <tbody>
+                <tr>
+                    <th scope="row">Matrícula</th>
+                    <td>@Html.DisplayFor(model => model.Matricula)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Calificación</th>
+                    <td>@Html.DisplayFor(model => model.Calificacion)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Marca</th>
+                    <td>@Html.DisplayFor(model => model.Marca)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Modelo</th>
+                    <td>@Html.DisplayFor(model => model.Modelo)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Unidades</th>
+                    <td>@Html.DisplayFor(model => model.Unidades)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Capacidad</th>
+                    <td>@Html.DisplayFor(model => model.CapacidadCargaKg)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form asp-action="Delete" asp-controller="Vehiculo">
         <input asp-for="Id" class="form-control hidden" />
-        <input type="submit" value="Eliminar" class="btn btn-info" />
+        <div class="form-group">
+            <input type="submit" value="Eliminar vehículo" class="btn btn-danger btn-block" />
+        </div>
     </form>
 </div>

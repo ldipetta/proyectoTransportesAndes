@@ -47,7 +47,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     var items = await _controladoraUsuarios.getChoferes();
                     return View(items);
@@ -77,7 +77,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     return View();
                 }
@@ -107,16 +107,24 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        Chofer chofer = await _controladoraUsuarios.CrearChofer(model.Chofer, model.Libreta);
-                        if (chofer != null)
+                        if (model.ConfirmarContraseña.Equals(model.Chofer.Password))
                         {
-                            return RedirectToAction("Index", "Chofer");
+                            Chofer chofer = await _controladoraUsuarios.CrearChofer(model.Chofer, model.Libreta);
+                            if (chofer != null)
+                            {
+                                return RedirectToAction("Index", "Chofer");
+                            }
+                            return View(model);
                         }
-                        return View(model);
+                        else
+                        {
+                            ModelState.AddModelError(string.Empty, "Las contraseñas deben coincidir");
+                            return View(model);
+                        }
                     }
                     else
                     {
@@ -149,7 +157,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     Chofer chofer = await _controladoraUsuarios.getChofer(id);
                     if (chofer == null)
@@ -159,6 +167,7 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     ViewModelChofer editar = new ViewModelChofer();
                     editar.Chofer = chofer;
+                    editar.Chofer.Password = chofer.Password;
                     editar.Libreta = chofer.LibretaDeConducir;
                     editar.Id = chofer.Id.ToString();
                     return View(editar);
@@ -189,10 +198,14 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    await _controladoraUsuarios.ModificarChofer(model.Chofer, model.Id);
-                    return RedirectToAction("Index");
+                    if (ModelState.IsValid)
+                    {
+                        await _controladoraUsuarios.ModificarChofer(model.Chofer, model.Id);
+                        return RedirectToAction("Index");
+                    }
+                    return View(model);
                 }
                 else
                 {
@@ -221,7 +234,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     Chofer chofer = await _controladoraUsuarios.getChofer(id);
                     return View(chofer);
@@ -253,7 +266,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     
                         await _controladoraUsuarios.EliminarChofer(chofer, id);

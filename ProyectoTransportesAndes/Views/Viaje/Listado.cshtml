@@ -1,0 +1,110 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViajeFiltro
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row" style="margin-top:50px;">
+    <div class="row col-md-12">
+        <form asp-action="Listado" asp-controller="Viaje">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-inline">
+                <div class="form-group">
+                    @Html.DropDownListFor(m => Model.TipoSeleccionado, Model.ListaTipos, new { @class = "form-control" })
+                </div>
+                <div class="form-group">
+                    @Html.DropDownListFor(m => Model.EstadoViaje, Model.ListaEstadoViaje, new { @class = "form-control" })
+                </div>
+                <div class="form-group">
+                    @Html.DropDownListFor(m => Model.IdCliente, Model.ListaClientes, new { @class = "form-control" })
+                </div>
+                <div class="form-group">
+                    @Html.DropDownListFor(m => Model.IdVehiculo, Model.ListaVehiculos, new { @class = "form-control" })
+                </div>
+                <div class="form-group">
+                    <label asp-for="Desde">Desde</label>
+                    <input asp-for="Desde" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Hasta">Hasta</label>
+                    <input asp-for="Hasta" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Filtrar" class="form-control btn-info" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row" style="margin-top:50px;">
+        <table class="table table-responsive table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.Label("Fecha")
+                    </th>
+                    <th>
+                        @Html.Label("Hora inicio")
+                    </th>
+                    <th>
+                        @Html.Label("Hora fin")
+                    </th>
+                    <th>
+                        @Html.Label("Vehiculo")
+                    </th>
+                    <th>
+                        @Html.Label("Chofer")
+                    </th>
+                    <th>
+                        @Html.Label("Cliente")
+                    </th>
+                    <th>
+                        @Html.Label("Estado")
+                    </th>
+                    <th>
+                        @Html.Label("Costo")
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Viajes)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Fecha.Date)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.HoraInicio)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.HoraFin)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Vehiculo.Matricula)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Vehiculo.Chofer.Leyenda)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Cliente.User)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Estado)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CostoFinal)
+                        </td>
+                    </tr>
+                }
+                <tr></tr>
+                <tr></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><p>Total viajes</p></td><td class="table-bordered"><p>@Model.TotalViajes</p></td></tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+

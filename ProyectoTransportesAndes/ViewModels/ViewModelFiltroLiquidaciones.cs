@@ -10,25 +10,22 @@ using System.Threading.Tasks;
 
 namespace ProyectoTransportesAndes.ViewModels
 {
-    public class ViewModelLiquidacion
+    public class ViewModelFiltroLiquidaciones
     {
+        public List<LiquidacionChofer> Liquidaciones { get; set; }
         private IOptions<AppSettingsMongo> _settings;
         public SelectList ListaChoferes { get; set; }
         public string IdChofer { get; set; }
-        public LiquidacionChofer Liquidacion { get; set; }
-        public string IdLiquidacionChofer { get; set; }
-        public string Documento { get; set; }
-        public bool Liquidar { get; set; }
-        public ViewModelLiquidacion(IOptions<AppSettingsMongo> settings)
+        public ViewModelFiltroLiquidaciones()
+        {
+            cargarChoferes().Wait();
+        }
+        public ViewModelFiltroLiquidaciones(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
             cargarChoferes().Wait();
+        }
 
-        }
-        public ViewModelLiquidacion()
-        {
-            cargarChoferes().Wait();
-        }
 
         public async Task cargarChoferes()
         {

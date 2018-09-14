@@ -15,7 +15,7 @@ namespace ProyectoTransportesAndes.Persistencia
     {
         private static IOptions<AppSettingsMongo> _settings;
         private static IMongoDatabase _database = null;
-        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","RespaldoVehiculos","Presupuestos","Tarifas","Liquidaciones","ViajesDirectos"};
+        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","RespaldoVehiculos","Presupuestos","Tarifas","Liquidaciones","ViajesDirectos","LiquidacionesPendientes"};
         private static MongoClient _client;
 
         public static void Iniciar(IOptions<AppSettingsMongo> settings)
@@ -118,12 +118,12 @@ namespace ProyectoTransportesAndes.Persistencia
                 throw new MensajeException("Se produjo un error al obtener el elemento");
             }
         }
-        public static async Task<bool> DeleteAsync(ObjectId id, string coleccion)
+        public static async Task<bool> DeleteAsync(string id, string coleccion)
         {
             try
             {
                 DeleteResult actionResult = await _database.GetCollection<T>(coleccion).DeleteOneAsync(
-                        Builders<T>.Filter.Eq("_id", id));
+                        Builders<T>.Filter.Eq("_id", ObjectId.Parse(id)));
 
                 return actionResult.IsAcknowledged
                     && actionResult.DeletedCount > 0;

@@ -35,8 +35,10 @@
 </style>
 <script>
     var map, infoWindow;
-    var latitud,longitud;
-    function initMap() {
+    var latitud, longitud;
+    function initMap(compartido) {
+        var viajeCompartido = "@Model.Viaje.Compartido";
+        var direccionOrigen = "@Model.Viaje.DireccionOrigen";
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: -34.9033926, lng: -56.1637164 },
             zoom: 16
@@ -54,6 +56,16 @@
                 infoWindow.setContent("<div><p><small><b>Salida</b></small></p>" + "<p><small>@Model.Viaje.DireccionOrigen</small></p></div>");
                 infoWindow.open(map);
                 map.setCenter(pos);
+                if (direccionOrigen != "") {
+                     var latitudOrigen = "@Model.Viaje.Origen.Latitud";
+                    var longitudOrigen = "@Model.Viaje.Origen.Longitud";
+                    var latLongOrigen = new google.maps.LatLng(latitudOrigen, longitudOrigen);
+                    var markerOrigen = new google.maps.Marker({ map: map, position: latLongOrigen });
+                }
+                if (compartido == true || viajeCompartido=="True") {
+                    infoWindow.close(map);
+                    $("#direcciones").addClass("hidden");
+                }
                 var direccionDestino = "@Model.Viaje.DireccionDestino";
                 if (direccionDestino !="") {
                     var latitudDestino = "@Model.Viaje.Destino.Latitud";
@@ -63,7 +75,10 @@
                     infoWindowDestino = new google.maps.InfoWindow;
                     infoWindowDestino.setPosition(latLongDestino);
                     infoWindowDestino.setContent("<div><p><small><b>Destino</b></small></p>" + "<p><small>@Model.Viaje.DireccionDestino</small></p></div>");
-                    infoWindowDestino.open(map);                    
+                    infoWindowDestino.open(map);
+                    if (compartido == true || viajeCompartido=="True") {
+                        infoWindowDestino.close(map);
+                    }
                     var cantidadItems = @Model.Viaje.Items.Count;
                     if (cantidadItems>0) {
                         @foreach(Item i in Model.Viaje.Items)
@@ -81,13 +96,11 @@
                                 @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b></small></p>" + "<p><small>@i.Descripcion</small></p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
                                 @:infoWindowItemDestino.open(map);
                             }
-
                     }
                 }
                 var input = document.getElementById('direccionOrigen');
                 var searchBox = new google.maps.places.Autocomplete(input);
                 searchBox.setComponentRestrictions({ 'country': ['uy'] });
-
                 var input2 = document.getElementById('direccionDestino');
                 var searchBox2 = new google.maps.places.Autocomplete(input2);
                 searchBox2.setComponentRestrictions({ 'country': ['uy'] });
@@ -103,6 +116,8 @@
                 var input6 = document.getElementById('direccionDestinoItem');
                 var searchBox6 = new google.maps.places.Autocomplete(input6);
                 searchBox6.setComponentRestrictions({ 'country': ['uy'] });
+
+              
 
                 //map.controls[google.maps.ControlPosition.TOP_LEFT].push(input); // SI SE QUISIERA AGREGAR AL MAPA
                 $.ajax({
@@ -185,7 +200,7 @@
                 <div class="row">
                     <div class="col-lg-6">
                         <label asp-for="ViajeCompartido">Desea compartir el viaje?</label>
-                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido" />
+                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido"/>
                         <span asp-validation-for="ViajeCompartido" class="text-danger"></span>
                     </div>
                 </div>
@@ -298,7 +313,7 @@
                                         @{
                                             var parms = new Dictionary<string, string> { { "itemId", item.Id.ToString() } };
                                         }
-                                        <a asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
+                                        <a  asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
                                         <a asp-area="" asp-action="EliminarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-remove"></span></a>
                                     </td>
                                 </tr>

@@ -20,10 +20,13 @@ namespace ProyectoTransportesAndes.Models
         public bool Pendiente { get; set; }
         public string Administrativo { get; set; }
         public DateTime FechaLiquidacion { get; set; }
+       
 
         public LiquidacionChofer()
         {
             Viajes = new List<Viaje>();
+            Chofer = new Chofer();
+           
         }
     }
 }

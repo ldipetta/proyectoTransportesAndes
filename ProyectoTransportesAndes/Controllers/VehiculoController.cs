@@ -40,12 +40,13 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> IndexAsync()
         {
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     var vehiculos = await _controladoraVehiculos.getVehiculos();
                     return View(vehiculos);
@@ -53,7 +54,7 @@ namespace ProyectoTransportesAndes.Controllers
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
@@ -70,13 +71,13 @@ namespace ProyectoTransportesAndes.Controllers
 
         [HttpGet]
         [Route("Nuevo")]
-        [ActionName("Nuevo")]
+        [AutoValidateAntiforgeryToken]
         public IActionResult Nuevo()
         {
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     ViewModelVehiculo model = new ViewModelVehiculo(_settings);
                     return View(model);
@@ -84,7 +85,7 @@ namespace ProyectoTransportesAndes.Controllers
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
@@ -101,25 +102,22 @@ namespace ProyectoTransportesAndes.Controllers
 
         [HttpPost]
         [Route("Nuevo")]
-        [ActionName("Nuevo")]
-        [ValidateAntiForgeryToken]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> NuevoAsync(ViewModelVehiculo model)
         {
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-
-                        model.Vehiculo.Tipo = model.TipoVehiculo;
-                        await _controladoraVehiculos.nuevoVehiculo(model.Vehiculo, model.ChoferSeleccionado);
-                        return RedirectToAction("Index");
-
+                    model.Vehiculo.Tipo = model.TipoVehiculo;
+                    await _controladoraVehiculos.nuevoVehiculo(model.Vehiculo, model.ChoferSeleccionado);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
@@ -137,23 +135,27 @@ namespace ProyectoTransportesAndes.Controllers
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
-        public IActionResult EditAsync(string id)
+        public async Task<IActionResult> EditAsync(string id)
         {
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    Vehiculo vehiculo = _controladoraVehiculos.getVehiculo(id);
+                    Vehiculo vehiculo = await _controladoraVehiculos.getVehiculoBaseDatos(id);
                     ViewModelVehiculo model = new ViewModelVehiculo(_settings);
                     model.Vehiculo = vehiculo;
                     model.Id = vehiculo.Id.ToString();
+                    if (vehiculo.Chofer == null)
+                    {
+                        model.Vehiculo.Chofer = new Chofer();
+                    }
                     return View(model);
                 }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
@@ -177,14 +179,12 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-                        await _controladoraVehiculos.editarVehiculo(model.Vehiculo, id,model.ChoferSeleccionado,model.TipoVehiculo);
+
+                        await _controladoraVehiculos.editarVehiculo(model.Vehiculo, id, model.ChoferSeleccionado, model.TipoVehiculo);
                         return RedirectToAction("Index");
-                    }
-                    return View(model);
+
                 }
                 else
                 {
@@ -212,15 +212,15 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    var vehiculo = _controladoraVehiculos.getVehiculo(id);
+                    var vehiculo = _controladoraVehiculos.getVehiculoMemoria(id);
                     return View(vehiculo);
                 }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
@@ -243,15 +243,15 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    await _controladoraVehiculos.eliminarVehiculo(id, vehiculo);
+                    await _controladoraVehiculos.eliminarVehiculo(id);
                     return RedirectToAction("Index");
                 }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login","Account");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)

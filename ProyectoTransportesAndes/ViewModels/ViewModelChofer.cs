@@ -13,6 +13,7 @@ namespace ProyectoTransportesAndes.ViewModels
         public Chofer Chofer { get; set; }
         public LibretaDeConducir Libreta { get; set; }
         public string Id { get; set; }
+        public string ConfirmarContraseña { get; set; }
        
         public ViewModelChofer() { }
        

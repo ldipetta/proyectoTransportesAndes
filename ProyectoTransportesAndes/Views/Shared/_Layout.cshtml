@@ -23,7 +23,7 @@
 </head>
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+        <div class="container" style="margin-left:50px;margin-right:0px;">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -38,30 +38,27 @@
                     <li id="about"><a asp-area="" asp-controller="Home" asp-action="About">Nuestra empresa</a></li>
                     <li id="contact"><a asp-area="" asp-controller="Home" asp-action="Contact">Contactenos</a></li>
                     <li class="hidden" id="vehiculos"><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
-                    <li class="hidden" id="choferes"><a asp-area="" asp-controller="Chofer" asp-action="Index">Choferes</a></li>
                     <li class='dropdown hidden' id="empleados">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Empleados <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
-                            <li><a asp-area='' asp-controller='Account' asp-action='Index'>Administrativos</a></li>
+                            <li><a asp-area='' asp-controller='Administrativo' asp-action='Index'>Administrativos</a></li>
                             <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
+                            <li><a asp-area="" asp-controller="Chofer" asp-action="Index">Choferes</a></li>
                         </ul>
                     </li>
+
                     <li class="hidden" id="tarifas"><a asp-area="" asp-controller="Viaje" asp-action="Tarifas">Tarifas</a></li>
 
                     <li class='dropdown hidden' id="ingresarViaje">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
                         <ul class='dropdown-menu'>
-                            <li><a asp-area='' asp-controller='Viaje' asp-action='ViajesDirectos'>Viajes directos</a></li>
-                            <li><a asp-area='' asp-controller='Viaje' asp-action='ViajesOnline'>Viajes online</a></li>
-                        </ul>
-                    </li>
-                    <li class='dropdown hidden' id="liquidarViajes">
-                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Liquidar viajes <span class='caret'></span></a>
-                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Listado'>Listado</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Nuevo'>Nuevo viaje</a></li>
                             <li><a asp-area='' asp-controller='Viaje' asp-action='LiquidacionViajesChofer'>Liquidar</a></li>
                             <li><a asp-area='' asp-controller='Viaje' asp-action='Liquidaciones'>Historico liquidaciones</a></li>
                         </ul>
                     </li>
+
                     <li class='dropdown hidden' id="estadisticas">
                         <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Estadísticas<span class='caret'></span></a>
                         <ul class='dropdown-menu'>
@@ -88,12 +85,20 @@
     </nav>
     <div class="container body-content">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>@*&copy; 2018 - Proyecto*@Transportes Andes - 2018</p>
-        </footer>
-    </div>
 
+        @*<footer  class="row col-lg-12" style="position:absolute;bottom:0;margin-left:0;">
+                <hr />
+                <div class="col-lg-4"><p>Transportes Andes - @DateTime.Now.Year</p></div>
+                <div class="col-lg-4"><p>Andes 1174 - Montevideo - Uruguay</p></div>
+                <div class="col-lg-4"><p>29081921 - 29011719</p></div>
+            </footer>*@
+    </div>
+    <footer class="row col-lg-12 col-md-12 col-sm-12 hidden-xs" style="margin-left:0;">
+        <hr />
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">Transportes Andes - @DateTime.Now.Year</p></div>
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">Andes 1174 - Montevideo - Uruguay</p></div>
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">29081921 - 29011719</p></div>
+    </footer>
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>

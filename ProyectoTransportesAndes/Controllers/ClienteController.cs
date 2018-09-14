@@ -42,13 +42,14 @@ namespace ProyectoTransportesAndes.Controllers
 
         [HttpGet]
         [Route("Index")]
+        [AutoValidateAntiforgeryToken]
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     var items = await _controladoraUsuarios.getClientes();
                     return View(items);
@@ -70,14 +71,19 @@ namespace ProyectoTransportesAndes.Controllers
                 return View();
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>devuelve la vista cargada con el ViewModelCliente</returns>
         [HttpGet]
         [Route("Create")]
+        [AutoValidateAntiforgeryToken]
         public IActionResult Create()
         {
             try
             {
-                    return View();
+                return View();
             }
             catch (MensajeException msg)
             {
@@ -90,22 +96,36 @@ namespace ProyectoTransportesAndes.Controllers
                 return View();
             }
         }
-
+        /// <summary>
+        /// si el modelo es valido, crea un nuevo cliente
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Create")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Create(ViewModelCliente model)
         {
             try
             {
-                    if (ModelState.IsValid)
+                if (ModelState.IsValid)
+                {
+                    if (model.ConfirmarPassword.Equals(model.Cliente.Password))
                     {
                         await _controladoraUsuarios.CrearCliente(model.Cliente, model.Tarjeta);
                         return RedirectToAction("Login", "Account");
                     }
                     else
                     {
+                        ModelState.AddModelError(string.Empty, "Deben coincidir las contraseñas");
                         return View(model);
                     }
+
+                }
+                else
+                {
+                    return View(model);
+                }
             }
             catch (MensajeException msg)
             {
@@ -127,7 +147,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     Cliente cliente = await _controladoraUsuarios.getCliente(id);
                     return View(cliente);
@@ -159,7 +179,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
@@ -194,7 +214,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     Cliente cliente = await _controladoraUsuarios.getCliente(id);
                     ViewModelCliente editar = new ViewModelCliente();
@@ -230,7 +250,7 @@ namespace ProyectoTransportesAndes.Controllers
             try
             {
                 var token = _session.GetString("Token");
-                if (Usuario.validarUsuarioAdministrativo(token))
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {

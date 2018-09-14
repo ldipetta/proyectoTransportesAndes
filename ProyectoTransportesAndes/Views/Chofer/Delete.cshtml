@@ -5,64 +5,47 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h4>Eliminar chofer</h4>
 
-<div>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Numero)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Numero)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Nombre)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Nombre)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Apellido)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Apellido)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Documento)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Documento)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Telefono)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Telefono)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Direccion)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Direccion)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.FNacimiento)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.FNacimiento)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Foto)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Foto)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
+<div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+    <div class="panel-heading">Chofer para eliminar</div>
+    <div class="panel-body">
+        <table class=" table table-responsive">
+            <tbody>
+                <tr>
+                    <th scope="row">Numero</th>
+                    <td>@Html.DisplayFor(model => model.Numero)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Nombre</th>
+                    <td>@Html.DisplayFor(model => model.Nombre)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Apellido</th>
+                    <td>@Html.DisplayFor(model => model.Apellido)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Documento</th>
+                    <td>@Html.DisplayFor(model => model.Documento)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Teléfono</th>
+                    <td>@Html.DisplayFor(model => model.Telefono)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Diección</th>
+                    <td>@Html.DisplayFor(model => model.Direccion)</td>
+                </tr>
+                <tr>
+                    <th scope="row">F.Nac</th>
+                    <td>@Html.DisplayFor(model => model.FNacimiento)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form asp-action="Delete" asp-controller="Chofer">
         <input asp-for="Id" class="form-control hidden" />
-        <input type="submit" value="Eliminar" class="btn btn-info" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="form-group">
+            <input type="submit" value="Eliminar chofer" class="btn btn-danger btn-block" />
+        </div>
     </form>
 </div>

@@ -1,18 +1,19 @@
-﻿@model IEnumerable<ProyectoTransportesAndes.Models.Peon>
-
-@{
-    ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+﻿@model IEnumerable<ProyectoTransportesAndes.Models.Usuario>
+@{ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml"; }
+    
 
 
 <div class="row" style="margin-top:50px;">
     <p>
-        @Html.ActionLink("Ingresar peón", "Create", new { }, new { @class = "btn btn-info" })
+        @Html.ActionLink("Ingresar administrativo", "Create", new { }, new { @class = "btn btn-info" })
     </p>
     <table class="table table-responsive">
         <thead>
             <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.User)
+                </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Nombre)
                 </th>
@@ -31,6 +32,9 @@
                 <th>
                     @Html.DisplayNameFor(model => model.FNacimiento)
                 </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Tipo)
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -38,6 +42,9 @@
             @foreach (var item in Model)
             {
                 <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.User)
+                    </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Nombre)
                     </td>
@@ -57,6 +64,9 @@
                         @Html.DisplayFor(modelItem => item.FNacimiento)
                     </td>
                     <td>
+                        @Html.DisplayFor(modelItem => item.Tipo)
+                    </td>
+                    <td>
                         @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
                         @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
                     </td>
@@ -65,3 +75,6 @@
         </tbody>
     </table>
 </div>
+
+
+

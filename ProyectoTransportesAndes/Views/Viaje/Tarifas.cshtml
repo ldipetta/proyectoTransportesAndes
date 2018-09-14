@@ -4,9 +4,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
 <div class="row">
-    <div class=" col-lg-2">
+    <p>Ultima actualizacion: @Model.UltimaActualizacion</p>
+</div>
+<div class="row" style="margin-top:50px;">
+    <div class=" col-sm-2 col-lg-offset-5">
         <form asp-action="Tarifas" asp-controller="Viaje">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <fieldset>
@@ -32,7 +34,7 @@
                     <input asp-for="CamionMudanza" value="@Model.CamionMudanza" class="form-control" />
                 </div>
                 <div class="form-group">
-                    <input type="submit" class="form-control btn btn-block btn-info" />
+                    <input type="submit" value="Modificar" class="form-control btn btn-block btn-info" />
                 </div>
             </fieldset>
         </form>

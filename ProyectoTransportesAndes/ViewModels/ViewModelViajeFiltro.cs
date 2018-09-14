@@ -21,6 +21,8 @@ namespace ProyectoTransportesAndes.ViewModels
         public string IdCliente { get; set; }
         [Display(Name = "Vehiculos")]
         public SelectList ListaVehiculos { get; set; }
+        public SelectList ListaTipos { get; set; }
+        public string TipoSeleccionado { get; set; }
         public string IdVehiculo { get; set; }
         public EstadoViaje EstadoViaje { get; set; }
         [DataType(DataType.Date)]
@@ -29,32 +31,30 @@ namespace ProyectoTransportesAndes.ViewModels
         public DateTime Hasta { get; set; } = DateTime.Today;
         public IEnumerable<Viaje> Viajes { get; set; }
         private IOptions<AppSettingsMongo> _settings;
-        //public string FechaParaMostrar { get; set; }
-        //public string HoraInicio { get; set; }
-        //public string HoraFin { get; set; }
-        //public string IdViaje { get; set; }
+        public double TotalViajes { get; set; }
 
         public ViewModelViajeFiltro(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-
             cargarClientes().Wait();
             cargarVehiculos().Wait();
             cargarEstados();
             Viajes = new List<Viaje>();
+            CargarTipo();
         }
         public ViewModelViajeFiltro()
         {
             cargarClientes().Wait();
             cargarVehiculos().Wait();
             cargarEstados();
+            CargarTipo();
         }
 
         public async Task cargarClientes()
         {
             var clientes = await ControladoraUsuarios.getInstance(_settings).getClientes();
             List<Cliente> lista = clientes.ToList();
-            Cliente c = new Cliente() { Id = new ObjectId(), Nombre = "Seleccione un cliente" };
+            Cliente c = new Cliente() { Id = new ObjectId(), Leyenda = "Seleccione un cliente" };
             lista.Insert(0, c);
             ListaClientes = new SelectList(lista, "Id", "Leyenda");
         }
@@ -106,6 +106,14 @@ namespace ProyectoTransportesAndes.ViewModels
                 return null;
 
             return displayAttribute[0].Name;
+        }
+        private void CargarTipo()
+        {
+            var selectList = new List<SelectListItem>();
+            selectList.Add(new SelectListItem { Value = "1", Text = "Todos" });
+            selectList.Add(new SelectListItem { Value = "2", Text = "Online" });
+            selectList.Add(new SelectListItem { Value = "3", Text = "Directo" });
+            ListaTipos = new SelectList(selectList, "Value", "Text");
         }
     }
 }

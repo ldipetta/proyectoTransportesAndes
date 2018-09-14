@@ -85,10 +85,10 @@
                 @Html.DisplayFor(modelItem => item.CostoFinal)
             </td>
             <td>
-                @Html.ActionLink("Detalles", "Resumen", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-success" })
+                @Html.ActionLink("Detalles", "Resumen", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-success btn-sm" })
                 @if (item.Estado != EstadoViaje.Finalizado)
                 {
-                    @Html.ActionLink("Cancelar", "CancelarViaje", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-danger" })
+                    @Html.ActionLink("Cancelar", "CancelarViaje", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-danger btn-sm" })
                 }
 
             </td>
