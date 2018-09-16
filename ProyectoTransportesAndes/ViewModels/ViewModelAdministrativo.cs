@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProyectoTransportesAndes.ViewModels
 {
-    public class ViewModelUsuario
+    public class ViewModelAdministrativo
     {
-        public Usuario Usuario { get; set; }
+        public Administrativo Administrativo { get; set; }
         public bool Administrador { get; set; }
         public string Id { get; set; }
         public string ConfirmarPassword { get; set; }

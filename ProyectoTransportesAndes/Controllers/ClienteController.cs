@@ -40,6 +40,10 @@ namespace ProyectoTransportesAndes.Controllers
 
         #region Acciones
 
+        /// <summary>
+        /// carga los usaurios administrativos en la vista
+        /// </summary>
+        /// <returns>vista index</returns>
         [HttpGet]
         [Route("Index")]
         [AutoValidateAntiforgeryToken]
@@ -56,21 +60,21 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index","Home");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index", "Home");
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -96,6 +100,7 @@ namespace ProyectoTransportesAndes.Controllers
                 return View();
             }
         }
+       
         /// <summary>
         /// si el modelo es valido, crea un nuevo cliente
         /// </summary>
@@ -130,18 +135,24 @@ namespace ProyectoTransportesAndes.Controllers
             catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                return View(model);
             }
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                return View(model);
             }
         }
 
+        /// <summary>
+        /// carga en la vista el cliente seleccionado para eliminar
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista para eliminar el usuario seleccionado</returns>
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
             try
@@ -154,22 +165,27 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// elimina al usuario seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="cliente"></param>
+        /// <returns>vista index</returns>
         [HttpPost]
         [Route("Delete")]
         [ActionName("Delete")]
@@ -181,34 +197,35 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-                        await _controladoraUsuarios.EliminarCliente(cliente, id);
-                        return RedirectToAction("Index");
-                    }
-                    return View(cliente);
+                    await _controladoraUsuarios.EliminarCliente(cliente, id);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                return View(cliente);
             }
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                return View(cliente);
             }
         }
 
+        /// <summary>
+        /// carga en la vista el cliente seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista para editar al usuario seleccionado</returns>
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Edit(string id)
         {
             try
@@ -225,22 +242,27 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// modifica al cliente seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="model"></param>
+        /// <returns>vista index</returns>
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
@@ -252,30 +274,118 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    if (ModelState.IsValid)
-                    {
-                        await _controladoraUsuarios.ModificarCliente(model.Cliente, id, model.Tarjeta);
-                        return RedirectToAction("Index");
-                    }
-                    return View(model.Cliente);
+                    model.Tarjeta = new TarjetaDeCredito() { fVencimiento = DateTime.Now.ToShortDateString(), Numero = "" };
+                    model.Cliente.Ubicacion = new PosicionSatelital();
+                    model.Cliente.Password = "";
+                    model.Cliente.Documento = "";
+                    await _controladoraUsuarios.ModificarCliente(model.Cliente, id, model.Tarjeta);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                return View(model);
             }
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                return View(model);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>vista para ingresar un cliente desde el backend</returns>
+        [HttpGet]
+        [Route("Ingresar")]
+        [AutoValidateAntiforgeryToken]
+        public IActionResult Ingresar()
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
+                {
+                    return View();
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// si el modelo es valido, crea un nuevo cliente
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>vista index</returns>
+        [HttpPost]
+        [Route("Ingresar")]
+        [AutoValidateAntiforgeryToken]
+        public async Task<IActionResult> Ingresar(ViewModelCliente model)
+        {
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
+                {
+                    model.Tarjeta = new TarjetaDeCredito();
+                    model.Cliente.Password = "";
+                    model.Cliente.FNacimiento = DateTime.Now.ToShortDateString();
+                    model.Cliente.Documento = "";
+                    if (!string.IsNullOrEmpty(model.Cliente.RazonSocial))
+                    {
+                        model.Cliente.User = model.Cliente.RazonSocial;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(model.Cliente.Nombre))
+                        {
+                            model.Cliente.User = model.Cliente.Nombre;
+                        }
+                        else
+                        {
+                            ModelState.AddModelError(string.Empty, "Debe ingresar la razon social o el nombre");
+                            return View(model);
+                        }
+                    }
+                    await _controladoraUsuarios.CrearCliente(model.Cliente, model.Tarjeta);
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                ModelState.AddModelError(string.Empty, msg.Message);
+                return View(model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
+                return View(model);
+            }
+        }
+
         #endregion
     }
 }

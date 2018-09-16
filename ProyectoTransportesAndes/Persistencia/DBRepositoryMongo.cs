@@ -15,7 +15,7 @@ namespace ProyectoTransportesAndes.Persistencia
     {
         private static IOptions<AppSettingsMongo> _settings;
         private static IMongoDatabase _database = null;
-        private static string[] colecciones = { "Viajes", "Administradores", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","RespaldoVehiculos","Presupuestos","Tarifas","Liquidaciones","ViajesDirectos","LiquidacionesPendientes"};
+        private static string[] colecciones = { "Viajes", "Administrativos", "Camiones", "Camionetas", "Choferes", "Clientes", "Peones", "ViajesPendientes","Presupuestos","Tarifas","Liquidaciones","ViajesDirectos","LiquidacionesPendientes"};
         private static MongoClient _client;
 
         public static void Iniciar(IOptions<AppSettingsMongo> settings)

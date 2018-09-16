@@ -5,8 +5,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h3>Clientes</h3>
+<div class="row">
+    <p class="text-danger"><b>@TempData["Error"]</b></p>
+</div>
 <div class="row" style="margin-top:50px;">
+    @Html.ActionLink("Ingresar cliente", "Ingresar", new { }, new { @class = "btn btn-info" })
     <table class="table table-responsive">
         <thead>
             <tr>
@@ -37,47 +40,51 @@
                 <th>
                     @Html.DisplayNameFor(model => model.Direccion)
                 </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.FNacimiento)
-                </th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model != null)
             {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.User)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RazonSocial)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Rut)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Nombre)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Apellido)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Documento)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Telefono)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Direccion)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FNacimiento)
-                </td>
-            </tr>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.User)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.RazonSocial)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Rut)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Nombre)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Apellido)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Email)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Documento)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Telefono)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Direccion)
+                        </td>
+                        @if (item.Password.Equals(""))
+                        {
+                            <td>
+                                @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
+                                @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
+                            </td>
+                        }
+                    </tr>
+                }
             }
         </tbody>
     </table>

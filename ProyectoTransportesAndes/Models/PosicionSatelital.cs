@@ -8,10 +8,13 @@ namespace ProyectoTransportesAndes.Models
 {
     public class PosicionSatelital
     {
+        #region Propiedades
         public string Id { get; set; }
         public string Latitud { get; set; }
         public string Longitud { get; set; }
+        #endregion
 
+        #region Constructores
         public PosicionSatelital(string id, string latitud, string longitud)
         {
             Id = id;
@@ -24,5 +27,6 @@ namespace ProyectoTransportesAndes.Models
             Latitud = "";
             Longitud = "";
         }
+        #endregion
     }
 }

@@ -1,4 +1,4 @@
-﻿@model ProyectoTransportesAndes.ViewModels.ViewModelUsuario
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelAdministrativo
 @{
     ViewData["Title"] = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -12,14 +12,14 @@
                 <legend>Usuario</legend>
                 <div class="row col-lg-12">
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="text" asp-for="Usuario.User" class="form-control" placeholder="Usuario" />
-                        <span asp-validation-for="Usuario.User" class="text-danger"></span>
+                        <input type="text" asp-for="Administrativo.User" class="form-control" placeholder="Usuario" />
+                        <span asp-validation-for="Administrativo.User" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="row col-lg-12">
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="password" asp-for="Usuario.Password" class="form-control" placeholder="Contraseña" />
-                        <span asp-validation-for="Usuario.Password" class="text-danger"></span>
+                        <input type="password" asp-for="Administrativo.Password" class="form-control" placeholder="Contraseña" />
+                        <span asp-validation-for="Administrativo.Password" class="text-danger"></span>
                     </div>
                     <div class="form-group col-lg-4 col-lg-offset-1">
                         <input type="password" asp-for="ConfirmarPassword" class="form-control" placeholder="Confirmar contraseña" />
@@ -40,39 +40,54 @@
                 <legend>Datos personales</legend>
                 <div class="row col-lg-12">
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="text" asp-for="Usuario.Nombre" class="form-control" placeholder="Nombre" />
-                        <span asp-validation-for="Usuario.Nombre" class="text-danger"></span>
+                        <input type="text" asp-for="Administrativo.Nombre" class="form-control" placeholder="Nombre" />
+                        <span asp-validation-for="Administrativo.Nombre" class="text-danger"></span>
                     </div>
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="text" asp-for="Usuario.Apellido" class="form-control" placeholder="Apellido" />
-                        <span asp-validation-for="Usuario.Apellido" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="row col-lg-12">
-                    <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="number" min="0" asp-for="Usuario.Documento" class="form-control" placeholder="Documento" />
-                        <span asp-validation-for="Usuario.Documento" class="text-danger"></span>
-                    </div>
-                    <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="email" asp-for="Usuario.Email" class="form-control" placeholder="e-mail" />
-                        <span asp-validation-for="Usuario.Email" class="text-danger"></span>
+                        <input type="text" asp-for="Administrativo.Apellido" class="form-control" placeholder="Apellido" />
+                        <span asp-validation-for="Administrativo.Apellido" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="row col-lg-12">
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input type="tel" asp-for="Usuario.Telefono" class="form-control" placeholder="Teléfono" />
-                        <span asp-validation-for="Usuario.Telefono" class="text-danger"></span>
+                        <input type="number" min="0" asp-for="Administrativo.Documento" class="form-control" placeholder="Documento" />
+                        <span asp-validation-for="Administrativo.Documento" class="text-danger"></span>
                     </div>
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <input asp-for="Usuario.Direccion" class="form-control" placeholder="Dirección" />
-                        <span asp-validation-for="Usuario.Direccion" class="text-danger"></span>
+                        <input type="email" asp-for="Administrativo.Email" class="form-control" placeholder="e-mail" />
+                        <span asp-validation-for="Administrativo.Email" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="row col-lg-12">
                     <div class="form-group col-lg-4 col-lg-offset-1">
-                        <label asp-for="Usuario.FNacimiento" class="control-label"></label>
-                        <input type="date" asp-for="Usuario.FNacimiento" class="form-control" />
-                        <span asp-validation-for="Usuario.FNacimiento" class="text-danger"></span>
+                        <input type="tel" asp-for="Administrativo.Telefono" class="form-control" placeholder="Teléfono" />
+                        <span asp-validation-for="Administrativo.Telefono" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input asp-for="Administrativo.Direccion" class="form-control" placeholder="Dirección" />
+                        <span asp-validation-for="Administrativo.Direccion" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <label asp-for="Administrativo.FNacimiento" class="control-label"></label>
+                        <input type="date" asp-for="Administrativo.FNacimiento" class="form-control" />
+                        <span asp-validation-for="Administrativo.FNacimiento" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Carne de salud</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <label asp-for="Administrativo.CarneDeSalud.FVencimiento" class="control-label"></label>
+                        <input type="date" asp-for="Administrativo.CarneDeSalud.FVencimiento" class="form-control" />
+                        <span asp-validation-for="Administrativo.CarneDeSalud.FVencimiento" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <label asp-for="Administrativo.CarneDeSalud.Observaciones" class="control-label"></label>
+                        <input type="text" asp-for="Administrativo.CarneDeSalud.Observaciones" class="form-control" />
+                        <span asp-validation-for="Administrativo.CarneDeSalud.Observaciones" class="text-danger"></span>
                     </div>
                 </div>
             </fieldset>

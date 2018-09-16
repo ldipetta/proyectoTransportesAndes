@@ -4,6 +4,7 @@ using ProyectoTransportesAndes.Configuracion;
 using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Persistencia;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,12 +13,16 @@ namespace ProyectoTransportesAndes.Models
 {
     public class ControladoraUsuarios
     {
+
         #region Atributos
+
         private IOptions<AppSettingsMongo> _settings;
         private static ControladoraUsuarios _instance;
+
         #endregion
 
         #region Propiedades
+
         public static ControladoraUsuarios getInstance(IOptions<AppSettingsMongo> settings)
         {
             if (_instance == null)
@@ -26,41 +31,53 @@ namespace ProyectoTransportesAndes.Models
             }
             return _instance;
         }
+        private Hashtable UbicacionesClientes { get; set; }
+
+
         #endregion
 
         #region Constructores
+
         private ControladoraUsuarios(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-            DBRepositoryMongo<Usuario>.Iniciar(_settings);
+            DBRepositoryMongo<Administrativo>.Iniciar(_settings);
             DBRepositoryMongo<Chofer>.Iniciar(_settings);
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Peon>.Iniciar(_settings);
+            UbicacionesClientes = new Hashtable();
+
         }
+
         #endregion
 
         #region Metodos
-        //Devuelve una lista de usuarios de tipo pasado por parametro
-        public async Task<List<Usuario>> getAdministrativos()
+
+        /// <summary>
+        /// DEVUELVE LOS ADMINISTRATIVOS DEL SISTEMA
+        /// DEJA POR FUERA UN USUARIO "SUPER" PARA QUE NO PUEDA SER MODIFICADO
+        /// </summary>
+        /// <returns>LISTA DE ADMINISTRATIVOS</returns>
+        public async Task<List<Administrativo>> getAdministrativos()
         {
             try
             {
-                var items = await DBRepositoryMongo<Usuario>.GetItemsAsync("Usuarios");
-                List<Usuario> aux = items.ToList();
-                List<Usuario> salida = new List<Usuario>();
-                Usuario usuario = null;
+                var items = await DBRepositoryMongo<Administrativo>.GetItemsAsync("Administrativos");
+                List<Administrativo> aux = items.ToList();
+                List<Administrativo> salida = new List<Administrativo>();
+                Administrativo admin = null;
 
-                foreach (Usuario u in aux)
+                foreach (Administrativo a in aux)
                 {
-                    usuario = u.Desencriptar(u);
-                    salida.Add(usuario);
+                    admin = a.Desencriptar(a);
+                    salida.Add(admin);
                 }
-                Usuario eliminar = null;
-                foreach(Usuario u in salida)
+                Administrativo eliminar = null;
+                foreach (Administrativo a in salida)
                 {
-                    if (u.User.Equals("super"))
+                    if (a.User.Equals("super"))
                     {
-                        eliminar = u;
+                        eliminar = a;
                     }
                 }
                 salida.Remove(eliminar);
@@ -76,24 +93,32 @@ namespace ProyectoTransportesAndes.Models
             }
            
         }
-        public async Task<Usuario>getAdministrativo(string id)
+
+        /// <summary>
+        /// DEVUELVE EL ADMINISTRATIVO CON EL SOLICITADO
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>ADMINISTRATIVO</returns>
+        public async Task<Administrativo>getAdministrativo(string id)
         {
-            Usuario usuario = null;
+            Administrativo administrativo = null;
             if (id == null)
             {
                 throw new MensajeException("Id de usuario inexistente");
             }
             else
             {
-                usuario = await DBRepositoryMongo<Usuario>.GetItemAsync(id, "Usuarios");
-                usuario = usuario.Desencriptar(usuario);
-                if (usuario == null)
-                {
-                    usuario.DesencriptarSuperUsuario(usuario);
-                }
-                return usuario;
+                administrativo = await DBRepositoryMongo<Administrativo>.GetItemAsync(id, "Administrativos");
+                administrativo = administrativo.Desencriptar(administrativo);
+                return administrativo;
             }
         }
+
+        /// <summary>
+        /// DEVUELVE EL CHOFER CON EL ID SOLICITADO
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>CHOFER</returns>
         public async Task<Chofer> getChofer(string id)
         {
             Chofer usuario = null;
@@ -108,6 +133,11 @@ namespace ProyectoTransportesAndes.Models
                 return usuario;
             }
         }
+
+        /// <summary>
+        /// DEVUELVE LA LISTA DE CHOFERES QUE HAY EN EL SISTEMA
+        /// </summary>
+        /// <returns>LISTA DE CHOFER</returns>
         public async Task<List<Chofer>> getChoferes()
         {
             try
@@ -130,6 +160,12 @@ namespace ProyectoTransportesAndes.Models
                 throw new MensajeException("Se produjo un error inesperado, intente de nuevo mas tarde");
             }
         }
+
+        /// <summary>
+        /// DEVUELVE UNA LISTA DE LOS CLIENTES QUE HAY EN EL SISTEMA
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>LISTA DE CLIENTE</returns>
         public async Task<Cliente> getCliente(string id)
         {
             Cliente cliente = null;
@@ -144,6 +180,11 @@ namespace ProyectoTransportesAndes.Models
                 return cliente;
             }
         }
+
+        /// <summary>
+        /// DEVUELVE UNA LISTA DE LOS PEONES QUE HAY EN EL SISTEMA
+        /// </summary>
+        /// <returns>LISTA PEON</returns>
         public async Task<List<Peon>> getPeones()
         {
             try
@@ -165,6 +206,12 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// DEVUELVE EL PEON CON EL ID SOLICITADO
+        /// </summary>
+        /// <param name="idPeon"></param>
+        /// <returns>PEON</returns>
         public async Task<Peon> getPeon(string idPeon)
         {
             try
@@ -182,10 +229,11 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
-        /// 
+        /// DEVUELVE UNA LISTA DE CLIENTES QUE HAY EN EL SISTEMA
         /// </summary>
-        /// <returns></returns>
+        /// <returns>LISTA DE CLIENTE</returns>
         public async Task<List<Cliente>> getClientes()
         {
             try
@@ -208,18 +256,23 @@ namespace ProyectoTransportesAndes.Models
                 throw new MensajeException("Se produjo un error inesperado, intente de nuevo mas tarde");
             }
         }
-        public async Task<Usuario> Login(string usuario, string pass)
+
+        /// <summary>
+        /// devuelve el administrativo o el cliente si lo puede validar o si no devuelve null
+        /// </summary>
+        /// <param name="administrativo"></param>
+        /// <param name="pass"></param>
+        /// <returns>el administrativo o cliente con las credenciales solicitadas</returns>
+        public async Task<Usuario> Login(string administrativo, string pass)
         {
             MensajeException mensajeError = new MensajeException("Usuario y/o contraseña incorrecta");
             Usuario salida = null;
             try
             {
-                string add = Seguridad.Desencriptar("cwB1AHAAZQByAA==");
-                string passw = Seguridad.Desencriptar("QQBkAG0AaQBuADEAMgAzAC4A");
-                Usuario user = await DBRepositoryMongo<Usuario>.Login(Seguridad.Encriptar(usuario), "Usuarios");
+                Administrativo user = await DBRepositoryMongo<Administrativo>.Login(Seguridad.Encriptar(administrativo), "Administrativos");
                 if (user == null)
                 {
-                    Cliente cliente = await DBRepositoryMongo<Cliente>.Login(Seguridad.Encriptar(usuario), "Clientes");
+                    Cliente cliente = await DBRepositoryMongo<Cliente>.Login(Seguridad.Encriptar(administrativo), "Clientes");
                     if (cliente != null)
                     {
                         cliente = cliente.Desencriptar(cliente);
@@ -256,6 +309,13 @@ namespace ProyectoTransportesAndes.Models
                 throw msg;
             }
         }
+
+        /// <summary>
+        /// devuelve el chofer si lo puede validar o si no devuelve null
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <param name="pass"></param>
+        /// <returns>el chofer con las credenciales solicitadas</returns>
         public async Task<Chofer>LoginChofer(string usuario, string pass)
         {
             try
@@ -287,18 +347,19 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
-        /// crea un usuario administrativo a administrador dependiendo de la variable pasada
+        /// crea un usuario administrativo
         /// </summary>
         /// <param name="usuario"></param>
         /// <param name="administrador"></param>
-        /// <returns></returns>
-        public async Task<Usuario> CrearAdministrativo(Usuario usuario, bool administrador)
+        /// <returns>el administrativo creado</returns>
+        public async Task<Usuario> CrearAdministrativo(Administrativo usuario, bool administrador)
         {
             try
             {
                 Usuario salida = null;
-                Usuario u = await DBRepositoryMongo<Usuario>.GetUsuario(Seguridad.Encriptar(usuario.User), "Usuarios");
+                Usuario u = await DBRepositoryMongo<Usuario>.GetUsuario(Seguridad.Encriptar(usuario.User), "Administrativos");
                 if (u != null)
                 {
                     throw new MensajeException("El usuario ya existe");
@@ -309,24 +370,20 @@ namespace ProyectoTransportesAndes.Models
                     {
                         usuario.Ubicacion = new PosicionSatelital() { Latitud = "", Longitud = "" };
                     }
+                    Administrativo nuevo = new Administrativo();
+                    nuevo = usuario;
+                    nuevo.Tipo = "Administrador";
                     if (administrador)
                     {
-                        Usuario admin = new Administrador();
-                        admin = usuario;
-                        admin.Tipo = "Administrador";
-                        admin = admin.Encriptar(admin);
-                        await DBRepositoryMongo<Usuario>.Create(admin, "Usuarios");
-                        salida = admin;
+                        nuevo.Administrador = true;
                     }
                     else
                     {
-                        Usuario admin = new Administrativo();
-                        admin = usuario;
-                        admin.Tipo = "Administrativo";
-                        admin = admin.Encriptar(admin);
-                        await DBRepositoryMongo<Usuario>.Create(admin, "Usuarios");
-                        salida = admin;
+                        nuevo.Administrador = false;
                     }
+                    nuevo = nuevo.Encriptar(nuevo);
+                    await DBRepositoryMongo<Usuario>.Create(nuevo, "Administrativos");
+                    salida = nuevo;
                 }
                 return salida;
             }
@@ -339,8 +396,9 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
-        /// elimna el administrativo o administrador pasado como parametro
+        /// elimna el administrativo pasado como parametro
         /// </summary>
         /// <param name="usuario"></param>
         /// <param name="id"></param>
@@ -351,8 +409,7 @@ namespace ProyectoTransportesAndes.Models
             {
                 if(usuario !=null && id != null)
                 {
-                    //usuario.Id = new ObjectId(id);
-                    await DBRepositoryMongo<Usuario>.DeleteAsync(id, "Usuarios");
+                    await DBRepositoryMongo<Usuario>.DeleteAsync(id, "Administrativos");
                 }
                 else
                 {
@@ -370,25 +427,26 @@ namespace ProyectoTransportesAndes.Models
             }
             
         }
+
         /// <summary>
-        /// modifica un administrativo o un administrador pasado como parametro
+        /// modifica un administrativo pasado como parametro
         /// </summary>
-        /// <param name="usuario"></param>
+        /// <param name="administrativo"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task ModificarAdministrativo(Usuario usuario, string id) 
+        public async Task ModificarAdministrativo(Administrativo administrativo, string id) 
         {
             try
             {
-                if (usuario != null && id!=null)
+                if (administrativo != null && id!=null)
                 {
-                    usuario.Id = new ObjectId(id);
-                    if (usuario.Ubicacion == null)
+                    administrativo.Id = new ObjectId(id);
+                    if (administrativo.Ubicacion == null)
                     {
-                        usuario.Ubicacion = new PosicionSatelital() { Latitud = "", Longitud = "" };
+                        administrativo.Ubicacion = new PosicionSatelital() { Latitud = "", Longitud = "" };
                     }
-                    usuario = usuario.Encriptar(usuario);
-                    await DBRepositoryMongo<Usuario>.UpdateAsync(usuario.Id, usuario, "Usuarios");
+                    administrativo = administrativo.Encriptar(administrativo);
+                    await DBRepositoryMongo<Usuario>.UpdateAsync(administrativo.Id, administrativo, "Administrativos");
                 }
                 else
                 {
@@ -406,12 +464,13 @@ namespace ProyectoTransportesAndes.Models
             }
            
         }
+
         /// <summary>
-        /// 
+        /// ingresa un nuevo chofer al sistema y lo devuelve
         /// </summary>
         /// <param name="chofer"></param>
         /// <param name="libreta"></param>
-        /// <returns></returns>
+        /// <returns>Chofer</returns>
         public async Task<Chofer> CrearChofer(Chofer chofer, LibretaDeConducir libreta)
         {
             Chofer salida = null;
@@ -446,6 +505,7 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
         /// modifica el chofer pasado en la base. Se tienen en cuenta tambien los vehiculos en base y en memoria
         /// </summary>
@@ -488,8 +548,9 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
-        /// 
+        /// SE ELIMINA EL CHOFER Y SE ACTUALIZAN LOS VEHICULOS EN MEMORIA Y EN LA BD
         /// </summary>
         /// <param name="chofer"></param>
         /// <param name="id"></param>
@@ -508,7 +569,7 @@ namespace ProyectoTransportesAndes.Models
                         if (v.Chofer.Id.ToString().Equals(id))
                         {
                             v.Chofer = new Chofer();
-                            ControladoraVehiculos.getInstance(_settings).actualizarVehiculo(v);
+                            await ControladoraVehiculos.getInstance(_settings).editarVehiculo(v, v.Id.ToString(), v.Chofer.Id.ToString(), v.Tipo); //  se acualiza el vehiculo en memoria y en la bd
                         }
                     }
                 }
@@ -526,8 +587,8 @@ namespace ProyectoTransportesAndes.Models
             {
                 throw ex;
             }
-
         }
+
         /// <summary>
         /// Inserta un cliente encriptado en la base de datos
         /// </summary>
@@ -548,7 +609,7 @@ namespace ProyectoTransportesAndes.Models
                     cliente.Tarjeta = tarjeta;
                     if (cliente.RazonSocial != null)
                     {
-                        cliente.Leyenda = cli.RazonSocial;
+                        cliente.Leyenda = cliente.RazonSocial;
                     }
                     else
                     {
@@ -590,6 +651,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// SE ELIMINA EL CLIENTE SELECCIONADO
+        /// </summary>
+        /// <param name="cliente"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task EliminarCliente(Cliente cliente, string id)
         {
             try
@@ -616,6 +684,14 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// SE MODIFICA EL CLIENTE SELECCIONADO
+        /// </summary>
+        /// <param name="cliente"></param>
+        /// <param name="id"></param>
+        /// <param name="tarjeta"></param>
+        /// <returns></returns>
         public async Task ModificarCliente(Cliente cliente, string id, TarjetaDeCredito tarjeta)
         {
             try
@@ -624,6 +700,7 @@ namespace ProyectoTransportesAndes.Models
                 {
                     cliente.Id = new ObjectId(id);
                     cliente.Tarjeta = tarjeta;
+                    cliente.Encriptar(cliente);
                     await DBRepositoryMongo<Cliente>.UpdateAsync(cliente.Id, cliente, "Clientes");
                 }
                 else
@@ -643,7 +720,131 @@ namespace ProyectoTransportesAndes.Models
 
         }
 
-        
+        /// <summary>
+        /// SE CREA UN NUEVO PEON EN LA BD
+        /// </summary>
+        /// <param name="peon"></param>
+        /// <returns></returns>
+        public async Task CrearPeon(Peon peon)
+        {
+            try
+            {
+                Peon salida = null;
+                Peon p = await DBRepositoryMongo<Peon>.GetPeon(Seguridad.Encriptar(peon.Documento), "Peones");
+                if (p == null)
+                {
+                    salida = peon;
+                    salida = salida.Encriptar(salida);
+                    await DBRepositoryMongo<Peon>.Create(salida, "Peones");
+                }
+                else
+                {
+                    throw new MensajeException("Ya existe el peon");
+                }
+
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// SE MODIFICA EL PEON SELECCIONADO EN LA BD
+        /// </summary>
+        /// <param name="peon"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task ModificarPeon(Peon peon, string id)
+        {
+            try
+            {
+                if (peon != null && id != null)
+                {
+                    peon.Id = new ObjectId(id);
+                    peon.Encriptar(peon);
+                    await DBRepositoryMongo<Peon>.UpdateAsync(peon.Id, peon, "Peones");
+                }
+                else
+                {
+                    throw new MensajeException("Ha ocurrido un error inesperado. Vuelva a intentarlo mas tarde");
+                }
+
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// SE ELIMINA EL PEON SELECCIONADO DE LA BD
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task EliminarPeon(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    await DBRepositoryMongo<Peon>.DeleteAsync(id, "Peones");
+                }
+                else
+                {
+                    throw new MensajeException("Ha ocurrido un error inesperado, vuelva a intentarlo mas tarde");
+                }
+
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// guarda la posicion satelital del cliente con el id pasado como parametro en el hash en memoria
+        /// </summary>
+        /// <param name="idCliente"></param>
+        /// <param name="latitud"></param>
+        /// <param name="longitud"></param>
+        /// <returns></returns>
+        public PosicionSatelital guardarUbicacionCliente(string idCliente, string latitud, string longitud)
+        {
+            PosicionSatelital posicion = new PosicionSatelital(idCliente, latitud, longitud);
+            if (UbicacionesClientes.Contains(idCliente))
+            {
+                UbicacionesClientes[idCliente] = posicion;
+            }
+            else
+            {
+                UbicacionesClientes.Add(posicion.Id, posicion);
+            }
+            return posicion;
+        }
+
+        /// <summary>
+        /// obtiende del hash de posiciones de cliente la posicion con el id de cliente pasado como parametro
+        /// </summary>
+        /// <param name="idCliente"></param>
+        /// <returns></returns>
+        public PosicionSatelital obtenerUbicacionCliente(string idCliente)
+        {
+            return (PosicionSatelital)UbicacionesClientes[idCliente];
+        }
+
         #endregion
 
 

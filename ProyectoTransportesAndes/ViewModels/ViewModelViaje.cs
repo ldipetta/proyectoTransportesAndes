@@ -11,7 +11,7 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelViaje
     {
-
+        #region Propiedades
         public List<Vehiculo> Vehiculos { get; set; }
         public Item Item { get; set; }
         public TipoItem TipoItem { get; set; }
@@ -28,16 +28,21 @@ namespace ProyectoTransportesAndes.ViewModels
         public bool Presupuesto { get; set; }
         public string TelefonoContacto { get; set; }
         public string Observaciones {get;set;}
-        public string EmailContacto { get; set; }
-        public bool MarcarDestino { get; set; }
         public string FechaParaMostrar { get; set; }
         public bool ViajeCompartido { get; set; }
         public bool DetallesViaje { get; set; }
+        public bool MarcarDestino { get; set; }
+        public string VehiculoParaMostrar { get; set; }
+        #endregion
 
+        #region Constructores
         public ViewModelViaje()
         {
             cargarDatos();
         }
+        #endregion
+
+        #region Metodos
         private void cargarDatos()
         {
             var selectList = new List<SelectListItem>();
@@ -67,6 +72,7 @@ namespace ProyectoTransportesAndes.ViewModels
 
             return displayAttribute[0].Name;
         }
+        #endregion
 
     }
 }

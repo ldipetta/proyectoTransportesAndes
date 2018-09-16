@@ -5,7 +5,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
+<div class="row">
+    <p><b>@TempData["Error"]</b></p>
+</div>
 
 <div class="row" style="margin-top:50px;">
     <p>
@@ -48,62 +50,65 @@
                     @Html.Label("Seguro")
                 </th>
                 <th>
-                    @Html.Label("Aseguradora")
+                    @Html.Label("Asegurador")
                 </th>
                 <th>
-                    @Html.Label("Pasajeros")
+                    @Html.Label("Pasaj")
                 </th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model != null)
             {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Matricula)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Calificacion)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Marca)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Modelo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Unidades)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CapacidadCargaKg)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.ConsumoKml)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.VencimientoPermisoPortuario)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Tarifa)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.VencimientoSeguro)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.EmpresaAseguradora)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CantidadPasajeros)
-                    </td>
-                    <td>
-                        @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
-                        @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
-                    </td>
-                </tr>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Matricula)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Calificacion)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Marca)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Modelo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Unidades)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CapacidadCargaKg)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ConsumoKml)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.VencimientoPermisoPortuario)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Tarifa)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.VencimientoSeguro)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EmpresaAseguradora)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CantidadPasajeros)
+                        </td>
+                        <td>
+                            @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
+                            @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

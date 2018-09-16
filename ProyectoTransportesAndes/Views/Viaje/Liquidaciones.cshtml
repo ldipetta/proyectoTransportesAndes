@@ -4,6 +4,9 @@
     ViewData["Title"] = "Liquidaciones";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<div class="row">
+    <p class="text-danger"><b>@TempData["Error"]</b></p>
+</div>
 <div class="row" style="margin-top:50px;">
     <form asp-action="LiquidacionViajesChofer" asp-controller="Viaje">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -46,26 +49,29 @@
         <tbody>
             @foreach (var item in Model.Liquidaciones)
             {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.FechaLiquidacion)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
-                    </td>
-                    <td>
-                        $@Html.DisplayFor(modelItem => item.TotalViajes)
-                    </td>
-                    <td>
-                        $@Html.DisplayFor(modelItem => item.TotalComision)
-                    </td>
-                    <td>
-                        $@Html.DisplayFor(modelItem => item.Liquidacion)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Administrativo)
-                    </td>
-                </tr>
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FechaLiquidacion)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Chofer.Leyenda)
+                </td>
+                <td>
+                    $@Html.DisplayFor(modelItem => item.TotalViajes)
+                </td>
+                <td>
+                    $@Html.DisplayFor(modelItem => item.TotalComision)
+                </td>
+                <td>
+                    $@Html.DisplayFor(modelItem => item.Liquidacion)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Administrativo)
+                </td>
+                <td>
+                    @Html.ActionLink("Detalles", "DetallesLiquidacion", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
+                </td>
+            </tr>
             }
         </tbody>
     </table>

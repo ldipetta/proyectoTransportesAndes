@@ -1,9 +1,11 @@
-﻿@model IEnumerable<ProyectoTransportesAndes.Models.Usuario>
+﻿@model IEnumerable<ProyectoTransportesAndes.Models.Administrativo>
 @{ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml"; }
     
 
-
+<div>
+    <p><b>@TempData["Error"]</b></p>
+</div>
 <div class="row" style="margin-top:50px;">
     <p>
         @Html.ActionLink("Ingresar administrativo", "Create", new { }, new { @class = "btn btn-info" })
@@ -33,44 +35,53 @@
                     @Html.DisplayNameFor(model => model.FNacimiento)
                 </th>
                 <th>
+                    @Html.DisplayNameFor(model => model.CarneDeSalud)
+                </th>
+                <th>
                     @Html.DisplayNameFor(model => model.Tipo)
                 </th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model != null)
             {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.User)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Nombre)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Apellido)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Documento)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Telefono)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Direccion)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.FNacimiento)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Tipo)
-                    </td>
-                    <td>
-                        @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
-                        @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
-                    </td>
-                </tr>
+                @foreach (var item in Model)
+                {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.User)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nombre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Apellido)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Documento)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Telefono)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Direccion)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FNacimiento)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CarneDeSalud.FVencimiento)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Tipo)
+                </td>
+                <td>
+                    @Html.ActionLink("Modificar", "Edit", new { id = item.Id }, new { @class = "btn btn-success btn-sm" })
+                    @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
+                </td>
+            </tr>
+                }
             }
         </tbody>
     </table>

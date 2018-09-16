@@ -5,24 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ProyectoTransportesAndes.Persistencia;
-using System.Collections;
 using ProyectoTransportesAndes.Exceptions;
 using MongoDB.Bson;
-using System.Net;
-using System.Xml.Linq;
 
 namespace ProyectoTransportesAndes.Models
 {
     public class ControladoraViajes
     {
-        #region "Atributos"
+        #region Atributos
+
         private static ControladoraViajes _instancia;
         private IOptions<AppSettingsMongo> _settings;
-        private Hashtable UbicacionesClientes { get; set; }
-        //private List<Viaje> ServiciosPendientes { get; set; }
+
         #endregion
 
-        #region "Propiedades"
+        #region Propiedades
+
         public static ControladoraViajes getInstancia(IOptions<AppSettingsMongo> settings)
         {
             if (_instancia == null)
@@ -31,13 +29,14 @@ namespace ProyectoTransportesAndes.Models
             }
             return _instancia;
         }
+
         #endregion
 
-        #region "Constructores"
+        #region Constructores
+
         private ControladoraViajes(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
-            UbicacionesClientes = new Hashtable();
             DBRepositoryMongo<Viaje>.Iniciar(_settings);
             DBRepositoryMongo<Cliente>.Iniciar(_settings);
             DBRepositoryMongo<Tarifa>.Iniciar(_settings);
@@ -45,11 +44,16 @@ namespace ProyectoTransportesAndes.Models
             DBRepositoryMongo<Presupuesto>.Iniciar(_settings);
            
         }
+
         #endregion
 
-        #region "Metodos"
+        #region Metodos
+
+        #region Get's
+
         /// <summary>
-        /// 
+        /// devuelve el viaje con el id seleccionado
+        /// se desencripta el chofer y el cliente antes de devolverlo
         /// </summary>
         /// <param name="idViaje"></param>
         /// <returns>Un viaje solicitado</returns>
@@ -58,6 +62,8 @@ namespace ProyectoTransportesAndes.Models
             try
             {
                 Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "Viajes");
+                viaje.Vehiculo.Chofer = viaje.Vehiculo.Chofer.Desencriptar(viaje.Vehiculo.Chofer);
+                viaje.Cliente = viaje.Cliente.Desencriptar(viaje.Cliente);
                 return viaje;
             }
             catch (MensajeException msg)
@@ -70,10 +76,13 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
-        /// 
+        /// se devuelve lista de viajes que se encuentrar pendientes o en curso que hay en la bd
+        /// tanto viajes online como viajes directos(ingresados desde el backend)
+        /// se desencriptan los cliente y los choferes antes de devolverlos
         /// </summary>
-        /// <returns>Lista con la totalidad de viajes del sistema</returns>
+        /// <returns>lista de viajes</returns>
         public async Task<List<Viaje>> getViajes()
         {
             try
@@ -112,16 +121,24 @@ namespace ProyectoTransportesAndes.Models
             }
            
         }
+
         /// <summary>
-        /// 
+        /// se devuelve el viaje pendiente sin confirmar con el id pasado como parametro
         /// </summary>
         /// <param name="idViaje"></param>
-        /// <returns>Viaje solicitado pendiente</returns>
+        /// <returns>Viaje</returns>
         public async Task<Viaje>getViajePendiente(string idViaje)
         {
             try
             {
                 Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "ViajesPendientes");
+                if (viaje != null)
+                {
+                    if (viaje.Vehiculo != null)
+                    {
+                        viaje.Vehiculo.Chofer = viaje.Vehiculo.Chofer.Desencriptar(viaje.Vehiculo.Chofer);
+                    }
+                }
                 return viaje;
             }
             catch (MensajeException msg)
@@ -134,10 +151,11 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
-        /// 
+        ///lista de viajes online ingresados al sistema
         /// </summary>
-        /// <returns>Lista de viajes online</returns>
+        /// <returns>Lista de viajes</returns>
         public async Task<List<Viaje>> getViajesOnline()
         {
             try
@@ -155,10 +173,11 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
-        /// 
+        /// lista de viajes ingresados desde el backend
         /// </summary>
-        /// <returns>Lista de viajes directos</returns>
+        /// <returns>Lista de viajes</returns>
         public async Task<List<Viaje>> getViajesDirectos()
         {
             try
@@ -175,6 +194,7 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
         /// <summary>
         /// Incluye viajes online y directos
         /// </summary>
@@ -197,34 +217,41 @@ namespace ProyectoTransportesAndes.Models
             }
             return salida;
         }
+
         /// <summary>
+        /// devuelve la lista de viajes activos del chofer
         /// Incluye viajes online y directos que no se encuentren finalizados
         /// </summary>
         /// <param name="idChofer"></param>
-        /// <returns>Lista de viajes activos por chofer</returns>
+        /// <returns>Lista de viajes</returns>
         public async Task<List<Viaje>> getViajesActivosChofer(string idChofer)
         {
             var viajesOnline = await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
-            List<Viaje> auxOnline = viajesOnline.Where(v => v.Vehiculo.Chofer.Id.ToString().Equals(idChofer)).Where(v => !v.Estado.Equals(EstadoViaje.Finalizado)).ToList();
+            List<Viaje> auxOnline = viajesOnline.Where(v => v.Vehiculo.Chofer.Id.ToString().Equals(idChofer)).Where(v => !v.Estado.Equals(EstadoViaje.Finalizado)).Where(v=>!v.Estado.Equals(EstadoViaje.Cancelado)).ToList();
             var viajesDirectos = await DBRepositoryMongo<Viaje>.GetItemsAsync("ViajesDirectos");
-            List<Viaje> auxDirecto = viajesDirectos.Where(v => v.Vehiculo.Chofer.Id.ToString().Equals(idChofer)).Where(v => !v.Estado.Equals(EstadoViaje.Finalizado)).ToList();
+            List<Viaje> auxDirecto = viajesDirectos.Where(v => v.Vehiculo.Chofer.Id.ToString().Equals(idChofer)).Where(v => !v.Estado.Equals(EstadoViaje.Finalizado)).Where(v => !v.Estado.Equals(EstadoViaje.Cancelado)).ToList();
             List<Viaje> salida = new List<Viaje>();
             foreach (Viaje v in auxOnline)
             {
+                v.Vehiculo.Chofer = v.Vehiculo.Chofer.Desencriptar(v.Vehiculo.Chofer);
+                v.Cliente = v.Cliente.Desencriptar(v.Cliente);
                 salida.Add(v);
             }
             foreach (Viaje v in auxDirecto)
             {
+                v.Vehiculo.Chofer = v.Vehiculo.Chofer.Desencriptar(v.Vehiculo.Chofer);
+                v.Cliente = v.Cliente.Desencriptar(v.Cliente);
                 salida.Add(v);
             }
             return salida;
 
         }
+
         /// <summary>
-        /// Todos los viajes de un chofer
+        /// Todos los viajes de un chofer que tiene el id pasado como parametro
         /// </summary>
         /// <param name="idChofer"></param>
-        /// <returns>Lista de viajes por chofer</returns>
+        /// <returns>Lista de viajes</returns>
         public async Task<List<Viaje>> getViajesChofer(string idChofer)
         {
             var viajesOnline = await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
@@ -243,10 +270,97 @@ namespace ProyectoTransportesAndes.Models
             return salida;
         }
 
+        /// <summary>
+        /// liquidacion de un chofer con los viajes cargados
+        /// </summary>
+        /// <param name="idChofer"></param>
+        /// <param name="idUsuario"></param>
+        /// <returns>liquidacion</returns>
+        public async Task<LiquidacionChofer> getLiquidacionChofer(string idChofer, string idUsuario)
+        {
+            try
+            {
+                LiquidacionChofer liquidacion = new LiquidacionChofer();
+                Chofer chofer = await ControladoraUsuarios.getInstance(_settings).getChofer(idChofer);
+                if (chofer != null)
+                {
+                    liquidacion.Chofer = chofer;
+                    List<Viaje> paraLiquidar = await getViajesParaLiquidarChofer(chofer);
+                    liquidacion.Viajes = paraLiquidar;
+                    liquidacion.FechaLiquidacion = DateTime.Now;
+                    var administrativo = await ControladoraUsuarios.getInstance(_settings).getAdministrativo(idUsuario);
+                    liquidacion.Administrativo = administrativo.User;
+                }
 
+                return liquidacion;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
+        /// <summary>
+        /// lista de viajes para liquidar un chofer.
+        /// se toman en cuenta solo los finalizados o cancelados
+        /// </summary>
+        /// <param name="chofer"></param>
+        /// <returns></returns>
+        public async Task<List<Viaje>> getViajesParaLiquidarChofer(Chofer chofer)
+        {
+            try
+            {
+                List<Viaje> salida = new List<Viaje>();
+                var viajes = await getViajes();
+                salida = viajes.Where(v => !v.Liquidado).Where(v => v.Estado.Equals(EstadoViaje.Finalizado)).Where(v => v.Estado == EstadoViaje.Cancelado).Where(v => v.Vehiculo.Chofer.Id.Equals(chofer.Id)).ToList();
+                return salida;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
+        /// <summary>
+        /// lista de liquidaciones realizadas
+        /// </summary>
+        /// <returns>lista liquidacion chofer</returns>
+        public async Task<List<LiquidacionChofer>> getLiquidacionesRealizadas()
+        {
+            try
+            {
+                var aux = await DBRepositoryMongo<LiquidacionChofer>.GetItemsAsync("Liquidaciones");
+                List<LiquidacionChofer> liquidacionesRealizadas = aux.Where(l => !l.Pendiente).ToList();
+                return liquidacionesRealizadas;
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
+        #endregion
+
+        /// <summary>
+        /// recibe un viaje inicializado, el tipo de vehiculo deseado(puede ser un flete comun o mudanza),
+        /// le termina de cargar datos, le asigna el mejor vehiculo, lo guarda o lo actualiza como pendiente de confirmacion 
+        /// segun sea el caso
+        /// </summary>
+        /// <param name="viaje"></param>
+        /// <param name="tipoVehiculo"></param>
+        /// <returns>viaje</returns>
         public async Task<Viaje> solicitarViaje(Viaje viaje, TipoVehiculo tipoVehiculo)
         {
             try
@@ -316,6 +430,7 @@ namespace ProyectoTransportesAndes.Models
                         }
                         viaje.DuracionEstimadaTotal = await ControladoraVehiculos.getInstance(_settings).tiempoDemoraTotal(viaje);
                         viaje.CantidadKm =(double)await ControladoraVehiculos.getInstance(_settings).cantidadKmAproximado(viaje);
+                        viaje.CostoEstimadoFinal = calcularPrecio(viaje.DuracionEstimadaTotal, viaje.Vehiculo.Tarifa, viaje.Compartido);
                         ControladoraVehiculos.getInstance(_settings).actualizarVehiculo(viaje.Vehiculo); //refresco el estado del vehiculo en base y en memoria
                         Viaje aux = await DBRepositoryMongo<Viaje>.GetItemAsync(viaje.Id.ToString(), "ViajesPendientes");
                         if (aux != null)
@@ -351,6 +466,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// guarda un nuevo presupuesto
+        /// </summary>
+        /// <param name="nuevo"></param>
+        /// <returns></returns>
         public async Task presupuestoNuevo(Presupuesto nuevo)
         {
             try
@@ -365,6 +486,14 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se confirma el viaje con el id pasado como parametro
+        /// se quita de viajes pendientes de confirmacion y se pasa a viajes pendientes de inicar
+        /// a la espera de que el chofer seleccionado de comienzo a la actividad
+        /// </summary>
+        /// <param name="idViaje"></param>
+        /// <returns>viaje</returns>
         public async Task<Viaje> confirmarViaje(string idViaje)
         {
             try
@@ -375,6 +504,7 @@ namespace ProyectoTransportesAndes.Models
                 viaje.FechaConfirmacionCliente = TimeZoneInfo.ConvertTime(DateTime.UtcNow, timeZone);
                 await DBRepositoryMongo<Viaje>.Create(viaje, "Viajes");
                 await DBRepositoryMongo<Viaje>.DeleteAsync(idViaje, "ViajesPendientes");
+                viaje.Cliente.Desencriptar(viaje.Cliente);
                 return viaje;
             }catch(MensajeException msg)
             {
@@ -384,14 +514,45 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// si el viaje todavia no habia sido confirmado se cancela y se elimina de los viajes pendientes de confirmacion
+        /// si ya habia sido confirmado se calcula el costo de cancelacion del viaje y se devuelve para la decision del cliente
+        /// si el viaje ya habia sido iniciado por el chofer se devuelve -1 y no se puede cancelar
+        /// </summary>
+        /// <param name="idViaje"></param>
+        /// <returns>double</returns>
         public async Task<double> cancelarViaje(string idViaje)
         {
             try
             {
+
                 double costo = 0;
                 Viaje viaje = await DBRepositoryMongo<Viaje>.GetItemAsync(idViaje, "ViajesPendientes");
                 if (viaje != null)
                 {
+                    foreach (Vehiculo v in ControladoraVehiculos.getInstance(_settings).Vehiculos)
+                    {
+                        if (v.Id.ToString().Equals(viaje.Vehiculo.Id.ToString()))
+                        {
+                            v.Disponible = true;
+                            if (viaje.Items.Count > 0)
+                            {
+                                foreach (Item i in viaje.Items)
+                                {
+                                    Item eliminar = null;
+                                    foreach (Item item in v.Items)
+                                    {
+                                        if (i.Id.ToString().Equals(item.Id.ToString()))
+                                        {
+                                            eliminar = item;
+                                        }
+                                    }
+                                    v.Items.Remove(eliminar);
+                                }
+                            }
+                        }
+                    }
                     costo = 0;
                     await DBRepositoryMongo<Viaje>.DeleteAsync(idViaje, "ViajesPendientes");
                     return costo;
@@ -426,7 +587,15 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        // se utiliza en el caso de que el viaje ya estuviera confirmado
+
+        /// <summary>
+        /// se confirmo la cancelacion, entonces se busca el viaje con el id seleccionado y se le asigna el costo final pasado como parametro
+        /// ademas se le asigna la hora de finalizacion, y se lo marca como cancelado.
+        /// ademas se liberan los items del vehiculo participante
+        /// </summary>
+        /// <param name="idViaje"></param>
+        /// <param name="costoFinal"></param>
+        /// <returns></returns>
         public async Task confirmarCancelacion(string idViaje, double costoFinal)
         {
             try
@@ -434,7 +603,7 @@ namespace ProyectoTransportesAndes.Models
                 if (!string.IsNullOrEmpty(idViaje))
                 {
                     Viaje cancelado = await getViaje(idViaje);
-                    cancelado.Estado = EstadoViaje.Finalizado;
+                    cancelado.Estado = EstadoViaje.Cancelado;
                     cancelado.CostoFinal = costoFinal;
                     TimeZoneInfo timeZone = TimeZoneInfo.Local;
                     cancelado.HoraFin = TimeZoneInfo.ConvertTime(DateTime.UtcNow, timeZone).TimeOfDay;
@@ -470,14 +639,22 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        //el chofer llega a destino y cambia el estado del viaje a en curso
-        public async Task<Viaje> levanteViaje(Viaje viaje)
+
+        /// <summary>
+        /// se cambia el estado del viaje con el id pasado como paramtro a en curso
+        /// </summary>
+        /// <param name="idViaje"></param>
+        /// <returns>viaje</returns>
+        public async Task<Viaje> levanteViaje(string idViaje)
         {
             try
             {
-                Viaje actualizar = await getViaje(viaje.Id.ToString());
+                Viaje actualizar = await getViaje(idViaje);
                 actualizar.Estado = EstadoViaje.EnCurso;
-                await actualizarViaje(actualizar);
+                actualizar.Cliente = actualizar.Cliente.Encriptar(actualizar.Cliente);
+                actualizar.Vehiculo.Chofer = actualizar.Vehiculo.Chofer.Encriptar(actualizar.Vehiculo.Chofer);
+                await DBRepositoryMongo<Viaje>.UpdateAsync(actualizar.Id, actualizar, "Viajes");
+                
                 return actualizar;
             }catch(MensajeException msg)
             {
@@ -486,22 +663,13 @@ namespace ProyectoTransportesAndes.Models
             {
                 throw ex;
             }
-           
         }
-        public async Task actualizarViaje(Viaje viaje)
-        {
-            try
-            {
-                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "Viajes");
-            }catch(MensajeException msg)
-            {
-                throw msg;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-            
-        }
+        
+        /// <summary>
+        /// se busca el viaje pendiente de confirmacion de un cliente con el id pasado como parametro
+        /// </summary>
+        /// <param name="cliente"></param>
+        /// <returns>viaje</returns>
         public async Task <Viaje> viajePendienteCliente(string cliente)
         {
             try
@@ -525,6 +693,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se le agrega el item pasado como parametro al viaje pendiente de confirmacion pasado como paramtro
+        /// </summary>
+        /// <param name="viaje"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public async Task agregarItem(Viaje viaje, Item item)
         {
             try
@@ -591,6 +766,7 @@ namespace ProyectoTransportesAndes.Models
                             i.Destino = await ControladoraVehiculos.getInstance(_settings).convertirDireccionEnCoordenadas(i.DireccionDestino);
                         }
                     }
+                    aux.Cliente.Encriptar(aux.Cliente);
                     await DBRepositoryMongo<Viaje>.UpdateAsync(aux.Id, aux, "ViajesPendientes");
                  
                 }
@@ -604,6 +780,14 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se recorren todos los items del viaje pasado como parametro y si no tiene direccion origen o destino se les asiga
+        /// la direccion origen o destino (dependiendo del caso) del viaje
+        /// ademas se cargarn las posiciones satelitales de los items
+        /// </summary>
+        /// <param name="viaje"></param>
+        /// <returns>viaje</returns>
         public async Task<Viaje> corroborarDireccionesItems(Viaje viaje)
         {
             try
@@ -638,60 +822,17 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task<Item> itemParaEditar(string idCliente, string idItem)
-        {
-            try
-            {
-                Viaje viaje =  await viajePendienteCliente(idCliente);
-                Item item = null;
-                foreach (Item i in viaje.Items)
-                {
-                    if (i.Id.ToString().Equals(idItem))
-                    {
-                        item = i;
-                    }
-                }
-                return item;
-            }
-            catch (MensajeException msg)
-            {
-                throw msg;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-        public async Task editarItem(string idCliente, Item item)
-        {
-            try
-            {
-                Viaje viaje = await viajePendienteCliente(idCliente);
-                foreach (Item i in viaje.Items)
-                {
-                    if (i.Id == item.Id)
-                    {
-                        i.Alto = item.Alto;
-                        i.Ancho = item.Ancho;
-                        i.Descripcion = item.Descripcion;
-                        i.Imagen = item.Imagen;
-                        i.Peso = item.Peso;
-                        i.Profundidad = item.Profundidad;
-                        i.Tipo = item.Tipo;
-                    }
-                }
-                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesPendienes");
-            }
-            catch (MensajeException msg)
-            {
-                throw msg;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
 
-        }
+        /// <summary>
+        /// se ingresa un nuevo viaje (directo) desde el backend
+        /// </summary>
+        /// <param name="idVehiculo"></param>
+        /// <param name="idCliente"></param>
+        /// <param name="direccion"></param>
+        /// <param name="fecha"></param>
+        /// <param name="horaInicio"></param>
+        /// <param name="comentarios"></param>
+        /// <returns></returns>
         public async Task nuevoViaje(string idVehiculo, string idCliente, string direccion, DateTime fecha, TimeSpan horaInicio, string comentarios)
         {
             try
@@ -737,6 +878,14 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se modifica un viaje ingresado desde el backend
+        /// no deja modificarlo si esta en curso
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="viaje"></param>
+        /// <returns></returns>
         public async Task modificarViaje(string id, Viaje viaje)
         {
             try
@@ -744,7 +893,15 @@ namespace ProyectoTransportesAndes.Models
                 if (id != null && viaje != null)
                 {
                     viaje.Id = new ObjectId(id);
-                    await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "Viajes");
+                    Viaje v = await DBRepositoryMongo<Viaje>.GetItemAsync(id, "ViajesDirectos");
+                    if (v.Estado.Equals(EstadoViaje.Pendiente))
+                    {
+                        await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "ViajesDirectos");
+                    }
+                    else
+                    {
+                        throw new MensajeException("No se puede modificar el viaje, ya se encuentra en curso");
+                    }
                 }
                 else
                 {
@@ -761,14 +918,25 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// elimina un viaje ingresado desde el backend
+        /// no permite eliminar un viaje en curso
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="viaje"></param>
+        /// <returns></returns>
         public async Task eliminarViaje(string id, Viaje viaje)
         {
             try
             {
                 if (id != null && viaje != null)
                 {
-                    //viaje.Id = new ObjectId(id);
-                    await DBRepositoryMongo<Viaje>.DeleteAsync(id, "Viajes");
+                    Viaje v = await DBRepositoryMongo<Viaje>.GetItemAsync(id, "ViajesDiretos");
+                    if (v.Estado.Equals(EstadoViaje.Pendiente))
+                    {
+                        await DBRepositoryMongo<Viaje>.DeleteAsync(id, "ViajesDirectos");
+                    }
                 }
                 else
                 {
@@ -784,56 +952,57 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task<Viaje> finalizarViaje(Viaje viaje)
+
+        /// <summary>
+        /// se da por finalizado el viaje con el id pasado como parametro
+        /// se le actualizan los datos de horas, costos, etc.
+        /// </summary>
+        /// <param name="idViaje"></param>
+        /// <returns>viaje</returns>
+        public async Task<Viaje> finalizarViaje(string idViaje)
         {
-            if (viaje != null)
+            Viaje salida = await getViaje(idViaje);
+            if (salida != null && salida.Estado!=EstadoViaje.Finalizado && salida.Estado!=EstadoViaje.Cancelado)
             {
-                viaje.Estado = EstadoViaje.Finalizado;
-                viaje.HoraFin = DateTime.UtcNow.TimeOfDay;
-                TimeSpan total = viaje.HoraFin.Subtract(viaje.HoraInicio);
-                double costo = calcularPrecio(total, viaje.Vehiculo.Tarifa,viaje.Compartido);
-                viaje.CostoFinal = costo;
-                viaje.Estado = EstadoViaje.Finalizado;
-                await DBRepositoryMongo<Viaje>.UpdateAsync(viaje.Id, viaje, "Viajes");
-                viaje.Vehiculo.Disponible = true;
-                if (viaje.Items.Count > 0) // me fijo si el viaje tiene items. si tiene es porque lo cancelo o finalizo inesperadamente. los saco tabien del vehiculo
+                salida.Estado = EstadoViaje.Finalizado;
+                salida.HoraFin = DateTime.UtcNow.TimeOfDay;
+                TimeSpan total = salida.HoraFin.Subtract(salida.HoraInicio);
+                double costo = calcularPrecio(total, salida.Vehiculo.Tarifa,salida.Compartido);
+                salida.CostoFinal = costo;
+                salida.Estado = EstadoViaje.Finalizado;
+                salida.Vehiculo.Chofer = salida.Vehiculo.Chofer.Encriptar(salida.Vehiculo.Chofer);
+                salida.Cliente = salida.Cliente.Encriptar(salida.Cliente);
+                await DBRepositoryMongo<Viaje>.UpdateAsync(salida.Id, salida, "Viajes");
+                salida.Vehiculo.Disponible = true;
+                if (salida.Items.Count > 0) // me fijo si el viaje tiene items. si tiene items es porque se esta cancelando desde el backend
                 {
-                    foreach(Item i in viaje.Items)
+                    foreach(Item i in salida.Items)
                     {
                         Item eliminar = null;
-                        foreach(Item it in viaje.Vehiculo.Items)
+                        foreach(Item it in salida.Vehiculo.Items)
                         {
                             if (it.Id.ToString().Equals(i.ToString()))
                             {
                                 eliminar = it;
                             }
                         }
-                        viaje.Vehiculo.Items.Remove(eliminar);
+                        salida.Vehiculo.Items.Remove(eliminar);
                     }
                 }
-                ControladoraVehiculos.getInstance(_settings).actualizarVehiculo(viaje.Vehiculo);
-                //await ControladoraVehiculos.getInstance(_settings).editarVehiculo(viaje.Vehiculo, viaje.Vehiculo.Id.ToString(), viaje.Vehiculo.Chofer.Id.ToString(), viaje.Vehiculo.Tipo);
-                return viaje;
+                ControladoraVehiculos.getInstance(_settings).actualizarVehiculo(salida.Vehiculo);
+                return salida;
             }
-            return null;
+            return salida;
         }
-        public PosicionSatelital guardarUbicacionCliente(string idCliente, string latitud, string longitud)
-        {
-            PosicionSatelital posicion = new PosicionSatelital(idCliente, latitud, longitud);
-            if (UbicacionesClientes.Contains(idCliente))
-            {
-                UbicacionesClientes[idCliente] = posicion;
-            }
-            else
-            {
-                UbicacionesClientes.Add(posicion.Id, posicion);
-            }
-            return posicion;
-        }
-        public PosicionSatelital obtenerUbicacionCliente(string idCliente)
-        {
-            return (PosicionSatelital)UbicacionesClientes[idCliente];
-        }
+
+       /// <summary>
+       /// se calcula el precio de un viaje segun el tiempo de viaje, la tarifa del vehiculo y si es compartido o no
+       /// para esto se tomaron en cuenta reglas de negocio
+       /// </summary>
+       /// <param name="tiempo"></param>
+       /// <param name="tarifa"></param>
+       /// <param name="compartido"></param>
+       /// <returns>double</returns>
         public double calcularPrecio(TimeSpan tiempo, int tarifa, bool compartido)
         {
             double precio = 0;
@@ -851,6 +1020,13 @@ namespace ProyectoTransportesAndes.Models
             }
             return precio;
         }
+
+        /// <summary>
+        /// se le agrega la lista de items pasada como parametro a vehiculo pasado como parametro
+        /// </summary>
+        /// <param name="paraLlevar"></param>
+        /// <param name="vehiculo"></param>
+        /// <returns>vehiculo</returns>
         public Vehiculo agreagrItemsaVehiculo(List<Item> paraLlevar, Vehiculo vehiculo)
         {
             foreach (Item i in paraLlevar)
@@ -859,6 +1035,11 @@ namespace ProyectoTransportesAndes.Models
             }
             return vehiculo; 
         }
+
+        /// <summary>
+        /// obtiene la ultima tarifa ingresada en la bd
+        /// </summary>
+        /// <returns>tarifa</returns>
         public async Task<Tarifa> obtenerUltimaTarifa()
         {
             try
@@ -875,6 +1056,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// guarda en la bd la tarifa y le asigna el usuario que la modifico
+        /// </summary>
+        /// <param name="nueva"></param>
+        /// <param name="idUsuario"></param>
+        /// <returns>tarifa</returns>
         public async Task<Tarifa> guardarTarifa(Tarifa nueva, string idUsuario)
         {
             try
@@ -894,31 +1082,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task<LiquidacionChofer>viajesParaLiquidarChofer(string idChofer, string idUsuario) 
-        {
-            try
-            {
-                LiquidacionChofer liquidacion = new LiquidacionChofer();
-                Chofer chofer = await ControladoraUsuarios.getInstance(_settings).getChofer(idChofer);
-                if (chofer != null)
-                {
-                    liquidacion.Chofer = chofer;
-                    List<Viaje>paraLiquidar = await viajesParaLiquidarChofer(chofer);
-                    liquidacion.Viajes = paraLiquidar;
-                    liquidacion.FechaLiquidacion = DateTime.Now;
-                    var administrativo = await ControladoraUsuarios.getInstance(_settings).getAdministrativo(idUsuario);
-                    liquidacion.Administrativo = administrativo.User;
-                }
-               
-                return liquidacion;
-            }catch(MensajeException msg)
-            {
-                throw msg;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-        }
+
+        /// <summary>
+        /// termina de asignar los valores a la liquidacion pasada como parametro.
+        /// la guarda como pendiente en la bd
+        /// </summary>
+        /// <param name="liquidacion"></param>
+        /// <returns>liquidacion chofer</returns>
         public async Task<LiquidacionChofer> liquidar(LiquidacionChofer liquidacion)
         {
             try
@@ -928,7 +1098,6 @@ namespace ProyectoTransportesAndes.Models
                     double totalViajes = 0, totalComision = 0, totalLiquidacion = 0;
                     foreach (Viaje v in liquidacion.Viajes)
                     {
-                      
                             totalViajes += v.CostoFinal;
                             totalComision = totalViajes * 0.25;
                             totalLiquidacion = totalViajes - totalComision;
@@ -949,38 +1118,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task<List<Viaje>>viajesParaLiquidarChofer(Chofer chofer)
-        {
-            try
-            {
-                List<Viaje> salida = new List<Viaje>();
-                var viajes = await getViajes();
-                salida = viajes.Where(v => !v.Liquidado).Where(v => v.Estado.Equals(EstadoViaje.Finalizado)).Where(v => v.Vehiculo.Chofer.Id.Equals(chofer.Id)).ToList();
-                ////var viajesOnline =await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
-                //var viajesOnline = await getViajesOnline();
 
-                //List<Viaje> auxOnline = viajesOnline.Where(v=>!v.Liquidado).Where(v=>v.Estado.Equals(EstadoViaje.Finalizado)).Where(v=>v.Vehiculo.Chofer.Id.Equals(chofer.Id)).ToList();
-                //var viajesDirectos = await DBRepositoryMongo<Viaje>.GetItemsAsync("ViajesDirectos");
-                //List<Viaje> auxDirectos = viajesDirectos.Where(v =>!v.Liquidado).Where(v => v.Estado.Equals(EstadoViaje.Finalizado)).Where(v => v.Vehiculo.Chofer.Id.Equals(chofer.Id)).ToList();
-                //List<Viaje> salida = new List<Viaje>();
-                //foreach(Viaje v in auxOnline)
-                //{
-                //    salida.Add(v);
-                //}
-                //foreach (Viaje v in auxDirectos)
-                //{
-                //    salida.Add(v);
-                //}
-                return salida;
-            }
-            catch(MensajeException msg)
-            {
-                throw msg;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-        }
+       /// <summary>
+       /// se confirma la liquidacion con id pasado como parametro y se le cambia el estado a realizada
+       /// ademas se marcan todos los viajes que tenia como liquidados
+       /// </summary>
+       /// <param name="idLiquidacionChofer"></param>
+       /// <returns></returns>
         public async Task confirmarLiquidacion(string idLiquidacionChofer)
         {
             try
@@ -1019,6 +1163,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se cancela liquidacion con id pasado como parametro 
+        /// se saca de la base como liquidacion pendiente
+        /// </summary>
+        /// <param name="idLiquidacion"></param>
+        /// <returns></returns>
         public async Task cancelarLiquidacion(string idLiquidacion)
         {
             try
@@ -1035,6 +1186,11 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se devuelve una lista con los presupuestos que estan pendientes de realizacion
+        /// </summary>
+        /// <returns> listapresupuesto</returns>
         public async Task<List<Presupuesto>> presupuestosPendientes()
         {
             try
@@ -1050,6 +1206,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se confirma un presupuesto con id pasado como parametro como realizado y
+        /// se modifica en la bd
+        /// </summary>
+        /// <param name="idPresupuesto"></param>
+        /// <returns></returns>
         public async Task confirmarPresupuesto(string idPresupuesto)
         {
             try
@@ -1067,29 +1230,22 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        public async Task<List<LiquidacionChofer>> liquidacionesRealizadas()
-        {
-            try
-            {
-                var aux = await DBRepositoryMongo<LiquidacionChofer>.GetItemsAsync("Liquidaciones");
-                List<LiquidacionChofer> liquidacionesRealizadas = aux.Where(l=>!l.Pendiente).ToList();
-                return liquidacionesRealizadas;
-            }catch(MensajeException msg)
-            {
-                throw msg;
-            }catch(Exception ex)
-            {
-                throw ex;
-            }
-        }
+
+        /// <summary>
+        /// genera estadisticas para el vehiculo con el id pasado como parametro en el año seleccionado y en el mes seleccionado
+        /// </summary>
+        /// <param name="año"></param>
+        /// <param name="mes"></param>
+        /// <param name="idVehiculo"></param>
+        /// <returns>estadistica vehiculo</returns>
         public async Task<EstadisticaVehiculo>estadisticaVehiculo(string año, string mes, string idVehiculo)
         {
             try
             {
                 var auxViajesOnline = await DBRepositoryMongo<Viaje>.GetItemsAsync("Viajes");
                 var auxViajesDirectos = await DBRepositoryMongo<Viaje>.GetItemsAsync("ViajesDirectos");
-                List<Viaje> viajesOnline = auxViajesOnline.Where(v=>v.Estado==EstadoViaje.Finalizado).Where(v=>v.Vehiculo.Id.ToString().Equals(idVehiculo)).ToList();
-                List<Viaje> viajesDirectos = auxViajesDirectos.Where(v => v.Estado == EstadoViaje.Finalizado).Where(v => v.Vehiculo.Id.ToString().Equals(idVehiculo)).ToList();
+                List<Viaje> viajesOnline = auxViajesOnline.Where(v=>v.Estado==EstadoViaje.Finalizado).Where(v => v.Estado == EstadoViaje.Cancelado).Where(v=>v.Vehiculo.Id.ToString().Equals(idVehiculo)).ToList();
+                List<Viaje> viajesDirectos = auxViajesDirectos.Where(v => v.Estado == EstadoViaje.Finalizado).Where(v => v.Estado == EstadoViaje.Cancelado).Where(v => v.Vehiculo.Id.ToString().Equals(idVehiculo)).ToList();
                 int cantidadViajesDirectos = 0;
                 int cantidadViajesOnline = 0;
                 double kmRecorridos = 0;

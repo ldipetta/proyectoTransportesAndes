@@ -11,6 +11,7 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Vehiculo
     {
+        #region Propiedades
         [BsonId]
         public ObjectId Id { get; set; }
         [Display(Name ="Calificación")]
@@ -46,7 +47,7 @@ namespace ProyectoTransportesAndes.Models
         public int Tarifa { get; set; }
         [Display(Name ="Vencimiento seguro")]
         [DataType(DataType.Date)]
-       [Required(ErrorMessage ="Debe ingresar el vencimiento del seguro")]
+        [Required(ErrorMessage ="Debe ingresar el vencimiento del seguro")]
         public DateTime VencimientoSeguro { get; set; }
         [Display(Name ="Empresa aseguradora")]
         [Required(ErrorMessage ="Debe ingresar la empresa aseguradora")]
@@ -54,7 +55,6 @@ namespace ProyectoTransportesAndes.Models
         [Display(Name ="Cantidad pasajeros")]
         [Required(ErrorMessage ="Debe ingresar la cantidad de pasajeros")]
         public int CantidadPasajeros { get; set; }
-        //estos items son las cosas que carga el vehiculo, por defecto debe estar vacio
         public List<Item> Items { get; set; }
         public Chofer Chofer { get; set; }
         public PosicionSatelital PosicionSatelital { get; set; }
@@ -62,6 +62,7 @@ namespace ProyectoTransportesAndes.Models
         public bool Disponible { get; set; }
         public TipoVehiculo Tipo { get; set; }
         public double ConsumoKml { get; set; }
+        #endregion
 
         #region Constructores
 
@@ -98,6 +99,12 @@ namespace ProyectoTransportesAndes.Models
         }
         #endregion
 
-       
+        #region Metodos
+        public override string ToString()
+        {
+            return "Matricula: "+ Matricula + "/Vehiculo: " + Marca + " " + Modelo;
+        }
+        #endregion
+
     }
 }

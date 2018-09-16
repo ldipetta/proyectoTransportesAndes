@@ -26,7 +26,13 @@ namespace ProyectoTransportesAndes.Controllers
         #endregion
 
         #region Acciones
+
+        /// <summary>
+        /// inicializa algunas variables usadas en session
+        /// </summary>
+        /// <returns>vista index</returns>
         [HttpGet]
+        [AutoValidateAntiforgeryToken]
         [ActionName("Index")]
         public IActionResult Index()
         {
@@ -45,12 +51,12 @@ namespace ProyectoTransportesAndes.Controllers
                 }
             }catch(MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
+                TempData["Error"] = msg.Message;
                 return View();
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado");
+                TempData["Error"] = "Ocurrió un error inesperado. Intente nuevamente mas tarde";
                 return View();
             }
            
@@ -68,11 +74,6 @@ namespace ProyectoTransportesAndes.Controllers
             ViewData["Message"] = "Your contact page.";
 
             return View();
-        }
-
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
         #endregion
     }

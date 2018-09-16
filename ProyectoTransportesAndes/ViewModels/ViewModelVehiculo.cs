@@ -14,6 +14,7 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelVehiculo
     {
+        #region Propiedades
         public SelectList ListaChoferes { get; set; }
         public string ChoferSeleccionado { get; set; }
         public Vehiculo Vehiculo { get; set; }
@@ -21,7 +22,9 @@ namespace ProyectoTransportesAndes.ViewModels
         public SelectList ListaTipoVehiculo { get; set; }
         public TipoVehiculo TipoVehiculo { get; set; }
         public string Id { get; set; }
+        #endregion
 
+        #region Constructores
         public ViewModelVehiculo(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -32,6 +35,9 @@ namespace ProyectoTransportesAndes.ViewModels
         {
           
         }
+        #endregion
+
+        #region Metodos
         public async Task CargarChoferes()
         {
             List<Chofer> choferes = await ControladoraVehiculos.getInstance(_settings).choferesDisponibles();
@@ -68,6 +74,7 @@ namespace ProyectoTransportesAndes.ViewModels
 
             return displayAttribute[0].Name;
         }
+        #endregion
 
 
     }

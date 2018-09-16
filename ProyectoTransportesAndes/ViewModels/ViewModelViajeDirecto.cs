@@ -12,6 +12,7 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelViajeDirecto
     {
+        #region Propiedades
         private IOptions<AppSettingsMongo> _settings;
         private ControladoraUsuarios _controladoraUsuarios;
         private ControladoraVehiculos _controladoraVehiculos;
@@ -27,7 +28,9 @@ namespace ProyectoTransportesAndes.ViewModels
         public double CostoFinal { get; set; }
         public bool UtilizarDireccionCliente { get; set; }
         public string FechaParaMostrar { get; set; }
+        #endregion
 
+        #region Constructores
         public ViewModelViajeDirecto(IOptions<AppSettingsMongo>settings)
         {
             _settings = settings;
@@ -37,7 +40,9 @@ namespace ProyectoTransportesAndes.ViewModels
             cargarVehiculos();
         }
         public ViewModelViajeDirecto() { }
+        #endregion
 
+        #region Metodos
         public async Task cargarClientes()
         {
             var clientes = await ControladoraUsuarios.getInstance(_settings).getClientes();
@@ -53,5 +58,6 @@ namespace ProyectoTransportesAndes.ViewModels
             vehiculos.Insert(0, v);
             Vehiculos = new SelectList(vehiculos, "Id", "Matricula");
         }
+        #endregion
     }
 }

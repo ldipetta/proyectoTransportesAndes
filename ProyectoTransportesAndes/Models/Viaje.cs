@@ -11,13 +11,17 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Viaje
     {
+        #region Propiedades
         [BsonId]
         public ObjectId Id { get; set; }
         public Vehiculo Vehiculo { get; set; }
         public Cliente Cliente { get; set; }
         public List<Item> Items { get; set; }
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
         public DateTime Fecha { get; set; }
+        [DisplayFormat(DataFormatString = "{0:hh\\:mm}")]
         public TimeSpan HoraInicio { get; set; }
+        [DisplayFormat(DataFormatString = "{0:hh\\:mm}")]
         public TimeSpan HoraFin { get; set; }
         public double Calificacion { get; set; }
         public string Comentarios { get; set; }
@@ -26,7 +30,6 @@ namespace ProyectoTransportesAndes.Models
         public double CostoEstimadoFinal { get; set; }
         public TimeSpan DuracionEstimadaHastaCliente { get; set; }
         public TimeSpan DuracionEstimadaTotal { get; set; }
-        //[Required(ErrorMessage ="El destino no puede ser vacio")]
         public string DireccionDestino { get; set; }
         public string DireccionOrigen { get; set; }
         public bool Compartido { get; set; }
@@ -36,7 +39,7 @@ namespace ProyectoTransportesAndes.Models
         public bool ConfirmacionCliente { get; set; }
         public DateTime FechaConfirmacionCliente { get; set; }
         public double CantidadKm { get; set; }
-
+        #endregion
 
         #region Constructores
         public Viaje() { Items = new List<Item>(); }

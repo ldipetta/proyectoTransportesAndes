@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 
 namespace ProyectoTransportesAndes.Json
 {
+
+    /// <summary>
+    /// ESTA CLASE SE UTILIZA PARA DESEREALIZAR LA RESPUESTA DE LA API GEOCODE DE GOOGLE
+    /// </summary>
     public class DireccionToCoordenadas
     {
         public class AddressComponent

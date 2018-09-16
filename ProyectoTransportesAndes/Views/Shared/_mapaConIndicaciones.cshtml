@@ -86,32 +86,33 @@
 
                                 @if (!i.Retirado)
                                 {
-                                     @:way.push({ location: origenItem});
+                                  @:way.push({ location: origenItem });
+                                  @:infoWindowItemOrigen = new google.maps.InfoWindow;
+                                  @:infoWindowItemOrigen.setPosition(origenItem);
+                                  @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                  @:infoWindowItemOrigen.open(map);
+                                  @: var markerItemOrigen = new google.maps.Marker({ position: origenItem, map: map });
+
                                 }
 
                                 @if (!i.Entregado)
                                 {
-                                     @:way.push({ location: destinoItem });
+                                    @:way.push({ location: destinoItem });
+                                    @:infoWindowItemDestino = new google.maps.InfoWindow;
+                                    @:infoWindowItemDestino.setPosition(destinoItem);
+                                    @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b><small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                    @:infoWindowItemDestino.open(map);
+                                    @: var markerItemDestino = new google.maps.Marker({ position: destinoItem, map: map });
                                 }
-
-                                @:infoWindowItemOrigen = new google.maps.InfoWindow;
-                                @:infoWindowItemOrigen.setPosition(origenItem);
-                                @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
-                                @:infoWindowItemOrigen.open(map);
-
-                                @:infoWindowItemDestino = new google.maps.InfoWindow;
-                                @:infoWindowItemDestino.setPosition(destinoItem);
-                                @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b><small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
-                                @:infoWindowItemDestino.open(map);
                             }
 
                             var objConfigDS = {
                                 origin: latLongOrigen,
                                 destination: latLongDestino,
-                                    //waypoints: way,
-                                    //optimizeWaypoints: true,
-                                    travelMode: google.maps.TravelMode.DRIVING
-                                };
+                                waypoints: way,
+                                optimizeWaypoints: true,
+                                travelMode: google.maps.TravelMode.DRIVING
+                             };
                             
                             var ds = new google.maps.DirectionsService();
                             var dr = new google.maps.DirectionsRenderer(objConfigDR);

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+/// <summary>
+/// ESTA CLASE SE UTILIZA PARA DESEREALIZAR LA API DE GOOGLE DIRECTIONS
+/// QUE NOS PERMITE CALCULAR EL TIEMPO DE DEMORA TOTAL DE UN VIAJE CON VARIOS PUNTOS INTERMEDIOS
+/// </summary>
 namespace ProyectoTransportesAndes.Json
 {
     public class TiempoDemoraWaypoints

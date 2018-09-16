@@ -10,12 +10,13 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Cliente:Usuario
     {
-        #region Atributos
+        #region Propiedades
         public TarjetaDeCredito Tarjeta { get; set; }
         public string RazonSocial { get; set; }
         public string Rut { get; set; }
         public string Leyenda { get; set; }
         #endregion
+
         #region Constructores
         public Cliente(string usuario, string pass, string razonSocial,string rut, string nombre, string apellido, string email, string documento, string telefono, string direccion, string fNacimiento, string numeroTarjeta, string fVencTarjeta) : base()
         {
@@ -39,6 +40,7 @@ namespace ProyectoTransportesAndes.Models
         }
         public Cliente():base() { }
         #endregion
+
         #region Metodos
         /// <summary>
         /// recibe un cliente desencriptado y lo devuelve encriptado

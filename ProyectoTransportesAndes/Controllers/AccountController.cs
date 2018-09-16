@@ -45,8 +45,14 @@ namespace ProyectoTransportesAndes.Controllers
         #endregion
 
         #region Acciones
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>vista para ingresar al sistema</returns>
         [HttpGet]
         [Route("Login")]
+        [AutoValidateAntiforgeryToken]
         public IActionResult Login()
         {
             try
@@ -66,6 +72,11 @@ namespace ProyectoTransportesAndes.Controllers
            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>vista index del home</returns>
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         [Route("Login")]
@@ -98,6 +109,11 @@ namespace ProyectoTransportesAndes.Controllers
 
         }
 
+        /// <summary>
+        /// sale del sistema
+        /// </summary>
+        /// <returns>vista index de home</returns>
+        [AutoValidateAntiforgeryToken]
         [Route("Salir")]
         public IActionResult Salir()
         {
@@ -111,7 +127,7 @@ namespace ProyectoTransportesAndes.Controllers
                 return RedirectToAction("Index", "Home");
             }catch(MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
+                //ModelState.AddModelError(string.Empty, msg.Message);
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception)

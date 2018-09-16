@@ -5,75 +5,43 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div>
-    <h4>Cliente</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.User)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Password)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Password)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Nombre)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Nombre)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Apellido)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Apellido)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Documento)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Documento)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Telefono)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Telefono)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Direccion)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Direccion)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.FNacimiento)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.FNacimiento)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Tipo)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Tipo)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
+<div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+    <div class="panel-heading">Vehículo para eliminar</div>
+    <div class="panel-body">
+        <table class=" table table-responsive">
+            <tbody>
+                <tr>
+                    <th scope="row">Matrícula</th>
+                    <td>@Html.DisplayFor(model => model.RazonSocial)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Calificación</th>
+                    <td>@Html.DisplayFor(model => model.Nombre)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Marca</th>
+                    <td>@Html.DisplayFor(model => model.Apellido)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Modelo</th>
+                    <td>@Html.DisplayFor(model => model.Email)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Unidades</th>
+                    <td>@Html.DisplayFor(model => model.Direccion)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Capacidad</th>
+                    <td>@Html.DisplayFor(model => model.Telefono)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form asp-action="Delete" asp-controller="Cliente">
         <input asp-for="Id" class="form-control hidden" />
-        <input type="submit" value="Delete" class="btn btn-info btn-block" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="form-group">
+            <input type="submit" value="Eliminar cliente" class="btn btn-danger btn-block" />
+        </div>
     </form>
 </div>
+

@@ -189,6 +189,9 @@
 </div>
 <hr />
 <div class="row">
+    <div>
+        <p class="text-danger"><b>@TempData["Error"]</b></p>
+    </div>
     <div id="contenedorFlete">
         <div class="col-lg-7">
             <form asp-action="Servicio" asp-controller="Viaje">
@@ -200,7 +203,7 @@
                 <div class="row">
                     <div class="col-lg-6">
                         <label asp-for="ViajeCompartido">Desea compartir el viaje?</label>
-                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido"/>
+                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido" />
                         <span asp-validation-for="ViajeCompartido" class="text-danger"></span>
                     </div>
                 </div>
@@ -208,67 +211,69 @@
                     <fieldset>
                         <legend>Direcciones</legend>
                         <div class="form-group input-sm col-lg-6">
-                            <input type="text" asp-for="Viaje.DireccionOrigen" class="form-control" placeholder="Dirección origen" id="direccionOrigen" value="@Model.Viaje.DireccionOrigen" />
+                            <input type="text" asp-for="Viaje.DireccionOrigen" class="form-control" placeholder="Dirección origen" id="direccionOrigen" value="@Model.Viaje.DireccionOrigen" aria-describedby="fileHelp" />
+                            <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
                             <span asp-validation-for="Viaje.DireccionOrigen" class="text-danger"></span>
                         </div>
                         <div class="form-group input-sm col-lg-6">
-                            <input type="text" asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestino" value="@Model.Viaje.DireccionDestino" />
+                            <input type="text" asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestino" value="@Model.Viaje.DireccionDestino" aria-describedby="fileHelp"/>
+                            <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
                             <span asp-validation-for="Viaje.DireccionDestino" class="text-danger"></span>
                         </div>
                     </fieldset>
                 </div>
-                <fieldset>
-                    <legend>Datos del item</legend>
-                    <div class="row">
-                        <div class="form-group col-lg-6">
-                            <input type="text" asp-for="Item.Descripcion" class="form-control" placeholder="Descripcion" />
-                            <span asp-validation-for="Item.Descripcion" class="text-danger"></span>
+                <div class="row" style="margin-top:20px;">
+                    <fieldset>
+                        <legend>Datos del item</legend>
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.Descripcion" class="form-control" placeholder="Descripcion" />
+                                <span asp-validation-for="Item.Descripcion" class="text-danger"></span>
+                            </div>
                         </div>
-                        <div class="col-lg-6">
-                            <input type="file" asp-for="Item.Imagen" placeholder="Imagen" aria-describedby="fileHelp" />
-                            <span asp-validation-for="Item.Imagen" class="text-danger"></span>
-                            <small id="fileHelp" class="form-text text-muted">Ingrese la imagen del item</small>
+                        <div class="row">
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Alto" class="form-control" placeholder="Alto(cm)" />
+                                <span asp-validation-for="Item.Alto" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Ancho" class="form-control" placeholder="Ancho(cm)" />
+                                <span asp-validation-for="Item.Ancho" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Profundidad" class="form-control" placeholder="Profundidad(cm)" />
+                                <span asp-validation-for="Item.Profundidad" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Peso" class="form-control" placeholder="Peso(kg)" />
+                                <span asp-validation-for="Item.Peso" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-lg-3">
-                            <input type="number" min="0" asp-for="Item.Alto" class="form-control" placeholder="Alto(cm)" />
-                            <span asp-validation-for="Item.Alto" class="text-danger"></span>
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.DireccionOrigen" class="form-control" placeholder="Direccion origen item" id="direccionOrigenItem" aria-describedby="fileHelp" />
+                                <span asp-validation-for="Item.DireccionOrigen" class="text-danger"></span>
+                                <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            </div>
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.DireccionDestino" class="form-control" placeholder="Direccion destino item" id="direccionDestinoItem" aria-describedby="fileHelp"/>
+                                <span asp-validation-for="Item.DireccionDestino" class="text-danger"></span>
+                                <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            </div>
                         </div>
-                        <div class="form-group col-lg-3">
-                            <input type="number" min="0" asp-for="Item.Ancho" class="form-control" placeholder="Ancho(cm)" />
-                            <span asp-validation-for="Item.Ancho" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-lg-3">
-                            <input type="number" min="0" asp-for="Item.Profundidad" class="form-control" placeholder="Profundidad(cm)" />
-                            <span asp-validation-for="Item.Profundidad" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-lg-3">
-                            <input type="number" min="0" asp-for="Item.Peso" class="form-control" placeholder="Peso(kg)" />
-                            <span asp-validation-for="Item.Peso" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-lg-6">
-                            <input type="text" asp-for="Item.DireccionOrigen" class="form-control" placeholder="Direccion origen item" id="direccionOrigenItem" />
-                            <span asp-validation-for="Item.DireccionOrigen" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <input type="text" asp-for="Item.DireccionDestino" class="form-control" placeholder="Direccion destino item" id="direccionDestinoItem" />
-                            <span asp-validation-for="Item.DireccionDestino" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-lg-6">
-                            <input type="submit" value="Agregar item" class="btn btn-success btn-block" name="item" />
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                <input type="submit" value="Agregar item" class="btn btn-success btn-block" name="item" />
+                            </div>
+
+                            <div class="form-group col-lg-6">
+                                <input type="submit" value="Solicitar viaje" class="btn btn-info btn-block" name="solicitar" />
+                            </div>
                         </div>
 
-                        <div class="form-group col-lg-6">
-                            <input type="submit" value="Solicitar viaje" class="btn btn-info btn-block" name="solicitar" />
-                        </div>
-                    </div>
-
-                </fieldset>
+                    </fieldset>
+                </div>
+             
             </form>
         </div>
         <div class="col-lg-5">
@@ -309,24 +314,15 @@
                                     <td>
                                         @Html.DisplayFor(modelItem => item.DireccionDestino)
                                     </td>
-                                    <td>
-                                        @{
-                                            var parms = new Dictionary<string, string> { { "itemId", item.Id.ToString() } };
-                                        }
-                                        <a  asp-area="" asp-action="EditarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-edit"></span></a>
-                                        <a asp-area="" asp-action="EliminarItem" asp-controller="Viaje" asp-all-route-data="parms"><span class="glyphicon glyphicon-remove"></span></a>
-                                    </td>
                                 </tr>
-
                             }
-
                         }
                         else
                         {
                             <tr><td></td><td></td><td>@ViewData["Mensaje"]</td></tr>
                         }
                     </tbody>
-                    </table>
+                </table>
             </div>
         </div>
     </div>

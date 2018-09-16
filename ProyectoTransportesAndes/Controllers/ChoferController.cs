@@ -20,14 +20,17 @@ namespace ProyectoTransportesAndes.Controllers
     public class ChoferController : Controller
     {
         #region Atributos
+
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
         private ControladoraUsuarios _controladoraUsuarios;
+
         #endregion
 
         #region Constructores
+
         public ChoferController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
@@ -36,12 +39,18 @@ namespace ProyectoTransportesAndes.Controllers
             _settings = settings;
             _controladoraUsuarios = ControladoraUsuarios.getInstance(_settings);
         }
+
         #endregion
 
         #region Acciones
 
+        /// <summary>
+        /// carga los choferes de la bd en la vista
+        /// </summary>
+        /// <returns>vista index</returns>
         [HttpGet]
         [Route("Index")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Index()
         {
             try
@@ -54,24 +63,28 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index", "Home");
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>vista create</returns>
         [HttpGet]
         [Route("Create")]
+        [AutoValidateAntiforgeryToken]
         public IActionResult Create()
         {
             try
@@ -83,25 +96,30 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
 
         }
 
+        /// <summary>
+        /// crea un nuevo chofer segun modelo
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>vista index</returns>
         [HttpPost]
         [Route("Create")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Create(ViewModelChofer model)
         {
             try
@@ -116,7 +134,7 @@ namespace ProyectoTransportesAndes.Controllers
                             Chofer chofer = await _controladoraUsuarios.CrearChofer(model.Chofer, model.Libreta);
                             if (chofer != null)
                             {
-                                return RedirectToAction("Index", "Chofer");
+                                return RedirectToAction("Index");
                             }
                             return View(model);
                         }
@@ -133,25 +151,30 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
                 ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                return View(model);
             }
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                return View(model);
             }
         }
 
+        /// <summary>
+        /// carga el chofer seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista edit</returns>
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
+        [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Edit(string id)
         {
             try
@@ -174,25 +197,31 @@ namespace ProyectoTransportesAndes.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// modifica el chofer seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="model"></param>
+        /// <returns>vista index</returns>
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Edit(string id, ViewModelChofer model)
         {
             try
@@ -226,9 +255,15 @@ namespace ProyectoTransportesAndes.Controllers
 
         }
 
+        /// <summary>
+        /// carga la vista con el chofer a eliminar
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista delete</returns>
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Delete(string id)
         {
             try
@@ -257,6 +292,12 @@ namespace ProyectoTransportesAndes.Controllers
             }
         }
 
+        /// <summary>
+        /// elimina el chofer seleccionado
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="chofer"></param>
+        /// <returns>vista index</returns>
         [HttpPost]
         [Route("Delete")]
         [ActionName("Delete")]
@@ -268,26 +309,23 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    
-                        await _controladoraUsuarios.EliminarChofer(chofer, id);
-                        return RedirectToAction("Index");
-
+                    await _controladoraUsuarios.EliminarChofer(chofer, id);
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "No posee los permisos. Inicie sesión");
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", "Account");
                 }
             }
             catch (MensajeException msg)
             {
-                ModelState.AddModelError(string.Empty, msg.Message);
-                return View();
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ModelState.AddModelError(string.Empty, "Se produjo un error inesperado. Intente de nuevo mas tarde");
-                return View();
+                TempData["Error"] = "Se produjo un error inesperado. Intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 

@@ -9,6 +9,7 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Presupuesto
     {
+        #region Propiedades
         [BsonId]
         public ObjectId Id { get; set; }
         public DateTime FechaSolicitud { get; set; }
@@ -17,7 +18,9 @@ namespace ProyectoTransportesAndes.Models
         public Cliente Cliente { get; set; }
         public string Observaciones { get; set; }
         public bool Realizado { get; set; }
+        #endregion
 
+        #region Constructores
         public Presupuesto()
         {
             FechaSolicitud = DateTime.Now;
@@ -27,5 +30,6 @@ namespace ProyectoTransportesAndes.Models
             Observaciones = "";
             Realizado = false;
         }
+        #endregion
     }
 }

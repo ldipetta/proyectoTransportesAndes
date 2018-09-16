@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+/// <summary>
+/// ESTAS CLASES SE UTILIZAN PARA DESEREALIZAR LA API DISTANCEMATRIX DE GOOGLE 
+/// QUE UTILIZAMOS PARA CALCULAR EL VEHICULO MAS CERCANO 
+/// </summary>
 namespace ProyectoTransportesAndes.Json
 {
+    
     public class Distance
     {
         public string text { get; set; }

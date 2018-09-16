@@ -13,6 +13,8 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelEstadisticas
     {
+
+        #region Propiedades
         public SelectList Vehiculos { get; set; }
         public string IdVehiculo { get; set; }
         public SelectList Choferes { get; set; }
@@ -23,8 +25,9 @@ namespace ProyectoTransportesAndes.ViewModels
         public string AñoSeleccionado { get; set; }
         public EstadisticaVehiculo Estadistica{get;set;}
         private IOptions<AppSettingsMongo> _settings;
+        #endregion
 
-
+        #region Constructores
         public ViewModelEstadisticas(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -38,9 +41,9 @@ namespace ProyectoTransportesAndes.ViewModels
             CargarMes();
             CargarAño();
         }
+        #endregion
 
-
-
+        #region Metodos
         public async Task cargarVehiculos()
         {
             var vehiculos = await ControladoraVehiculos.getInstance(_settings).getVehiculos();
@@ -82,7 +85,7 @@ namespace ProyectoTransportesAndes.ViewModels
             }
             Años = new SelectList(selectList, "Value", "Text");
         }
-        
+        #endregion
 
     }
 }

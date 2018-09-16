@@ -12,6 +12,7 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelLiquidacion
     {
+        #region Propiedades
         private IOptions<AppSettingsMongo> _settings;
         public SelectList ListaChoferes { get; set; }
         public string IdChofer { get; set; }
@@ -19,6 +20,9 @@ namespace ProyectoTransportesAndes.ViewModels
         public string IdLiquidacionChofer { get; set; }
         public string Documento { get; set; }
         public bool Liquidar { get; set; }
+        #endregion
+
+        #region Constructores
         public ViewModelLiquidacion(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -29,7 +33,9 @@ namespace ProyectoTransportesAndes.ViewModels
         {
             cargarChoferes().Wait();
         }
+        #endregion
 
+        #region Metodos
         public async Task cargarChoferes()
         {
             var clientes = await ControladoraUsuarios.getInstance(_settings).getChoferes();
@@ -38,5 +44,6 @@ namespace ProyectoTransportesAndes.ViewModels
             lista.Insert(0, c);
             ListaChoferes = new SelectList(lista, "Id", "Leyenda");
         }
+        #endregion
     }
 }

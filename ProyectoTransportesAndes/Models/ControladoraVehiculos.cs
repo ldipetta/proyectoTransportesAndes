@@ -23,13 +23,15 @@ namespace ProyectoTransportesAndes.Models
     public class ControladoraVehiculos
     {
         #region Atributos
+
         private IOptions<AppSettingsMongo> _settings;
         private static ControladoraVehiculos _instance;
         private ControladoraViajes _controladoraViajes;
-        public Hashtable UbicacionVehiculos { get; set; }
+
         #endregion
 
         #region Propiedades
+
         public static ControladoraVehiculos getInstance(IOptions<AppSettingsMongo> settings)
         {
             if (_instance == null)
@@ -39,9 +41,12 @@ namespace ProyectoTransportesAndes.Models
             return _instance;
         }
         public List<Vehiculo> Vehiculos { get; set; }
+        public Hashtable UbicacionVehiculos { get; set; }
+
         #endregion
 
         #region Constructores
+
         private ControladoraVehiculos(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -52,10 +57,17 @@ namespace ProyectoTransportesAndes.Models
             cargarVehicuos();
             datos();
         }
+
         #endregion
 
         #region Metodos
 
+        #region Get's
+        /// <summary>
+        /// se toma en cuenta los vehiculos de la bd
+        /// se desencriptan los choferes antes de devolverlos
+        /// </summary>
+        /// <returns>lista de vehiculos que estan ingresados al sistema</returns>
         public async Task<IEnumerable<Vehiculo>> getVehiculos()
         {
             try
@@ -64,10 +76,14 @@ namespace ProyectoTransportesAndes.Models
                 List<Vehiculo> salida = new List<Vehiculo>();
                 foreach (Vehiculo v in items)
                 {
-                    if (v.Chofer != null)
+                    if (!v.Chofer.Id.ToString().Equals("000000000000000000000000"))
                     {
                         Chofer c = v.Chofer;
                         v.Chofer = c.Desencriptar(c);
+                        salida.Add(v);
+                    }
+                    else
+                    {
                         salida.Add(v);
                     }
                 }
@@ -83,6 +99,11 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// se toma en cuenta la lista en memoria que  es la que lleva el control en tiempo real del estado del vehiculo
+        /// </summary>
+        /// <returns>lista de vehiculos disponibles</returns>
         public List<Vehiculo> getVehiculosDisponibles()
         {
             try
@@ -100,6 +121,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// se toma en cuenta la lista en memoria. este metodo se utiliza para la adjudicación de viajes
+        /// </summary>
+        /// <param name="idVehiculo"></param>
+        /// <returns>vehiculo solicitado</returns>
         public Vehiculo getVehiculoMemoria(string idVehiculo)
         {
             try
@@ -131,6 +158,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// se toma en cuenta los vehiculos de la bd. se utiliza para el abm
+        /// </summary>
+        /// <param name="idVehiculo"></param>
+        /// <returns>vehiculo solicitado</returns>
         public async Task<Vehiculo> getVehiculoBaseDatos(string idVehiculo)
         {
             try
@@ -147,6 +180,13 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// se devuelve el chofer con el id seleccionado
+        /// se desencripta antes de devolverlo
+        /// </summary>
+        /// <param name="idChofer"></param>
+        /// <returns>Chofer</returns>
         public async Task<Chofer> getChofer(string idChofer)
         {
             try
@@ -172,6 +212,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
+        /// <summary>
+        /// se devuelve el vehiculo que tiene un chofer determinado desde la bd
+        /// </summary>
+        /// <param name="idChofer"></param>
+        /// <returns></returns>
         public async Task<Vehiculo> getVehiculoChofer(string idChofer)
         {
             try
@@ -189,6 +235,8 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+
+        #endregion
 
         #region Abm
 
@@ -282,6 +330,7 @@ namespace ProyectoTransportesAndes.Models
         }
         /// <summary>
         /// Se edita el vehiculo pasado. El id del vehiculo se utiliza para reconstruir el objeto ObjectId.
+        /// si no se pasa un chofer, se crea solo un vehiculo
         /// </summary>
         /// <param name="vehiculo"></param>
         /// <param name="idVehiculo"></param>
@@ -356,6 +405,7 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
         /// se elimina el vehiculo y se actualiza el estado del chofer.
         /// </summary>
@@ -390,6 +440,40 @@ namespace ProyectoTransportesAndes.Models
 
 
         }
+
+        #endregion
+
+        #region Utilidades
+
+        /// <summary>
+        /// se actualiza el estado en memoria del vehiculo pasado como parametro
+        /// </summary>
+        /// <param name="vehiculo"></param>
+        public void actualizarVehiculo(Vehiculo vehiculo)
+        {
+            try
+            {
+                Vehiculo eliminar = null;
+                foreach (Vehiculo v in Vehiculos)
+                {
+                    if (v.Id.ToString().Equals(vehiculo.Id.ToString()))
+                    {
+                        eliminar = v;
+                    }
+                }
+                Vehiculos.Remove(eliminar);
+                Vehiculos.Add(vehiculo);
+            }
+            catch (MensajeException msg)
+            {
+                throw msg;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         /// <summary>
         /// actualiza las tarifas
         /// </summary>
@@ -433,35 +517,6 @@ namespace ProyectoTransportesAndes.Models
             }
         }
 
-        public void actualizarVehiculo(Vehiculo vehiculo)
-        {
-            try
-            {
-                Vehiculo eliminar = null;
-                foreach (Vehiculo v in Vehiculos)
-                {
-                    if (v.Id.ToString().Equals(vehiculo.Id.ToString()))
-                    {
-                        eliminar = v;
-                    }
-                }
-                Vehiculos.Remove(eliminar);
-                Vehiculos.Add(vehiculo);
-            }
-            catch (MensajeException msg)
-            {
-                throw msg;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        #endregion
-
-        #region Utilidades
-
         /// <summary>
         /// Es una aproximacion para determinar la capacidad de carga de un vehículo.
         /// Se toman las unidades como m3 de capacidad de carga.
@@ -487,6 +542,7 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
         /// De acuerdo a la latitud y longitud del cliente se busca el vehiculo para mudanza mas cercano
         /// </summary>
@@ -533,6 +589,7 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
+
         /// <summary>
         /// Retorna el vehiculo mas cercano al cliente con capacidad para trasladar lo necesario
         /// </summary>
@@ -555,8 +612,6 @@ namespace ProyectoTransportesAndes.Models
                     int tiempo = int.MaxValue;
                     minutos = await tiempoDemora(latitudCliente, longitudCliente, pos.Latitud, pos.Longitud);
                     tiempo = minutos.Minutes;
-                    //vehiculo = getVehiculo(pos.Id);
-                    //vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
                     if (tiempo < menorTiempo)
                     {
                         menorTiempo = tiempo;
@@ -604,81 +659,9 @@ namespace ProyectoTransportesAndes.Models
             }
         }
 
-        public async Task<Vehiculo> mejorVehiculoFletePrueba(string latitudCliente, string longitudCliente, double unidadadesTraslado, double pesoTraslado)
-        {
-            try
-            {
-                List<PosicionSatelital> ubicaciones = obtenerUbicacionesVehiculosFletes();
-                int menorTiempo = int.MaxValue;
-                Vehiculo vehiculo = null;
-                Vehiculo masCercanoConCapacidad = null;
-                TimeSpan minutos;
-                foreach (PosicionSatelital pos in ubicaciones)
-                {
-                    int tiempo = int.MaxValue;
-                    minutos = await tiempoDemora(latitudCliente, longitudCliente, pos.Latitud, pos.Longitud);
-                    tiempo = minutos.Minutes;
-                    vehiculo = getVehiculoMemoria(pos.Id);
-                    vehiculo.PosicionSatelital = obtenerUltimaUbicacionVehiculo(vehiculo.Id.ToString());
-
-                    if (vehiculo.Disponible)
-                    {
-                        if (masCercanoConCapacidad == null)
-                        {
-                            if (vehiculo.Unidades >= unidadadesTraslado)
-                            {
-                                if (vehiculo.CapacidadCargaKg >= pesoTraslado)
-                                {
-                                    menorTiempo = tiempo;
-                                    masCercanoConCapacidad = vehiculo;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (tiempo < menorTiempo)
-                            {
-                                if (vehiculo.Unidades < masCercanoConCapacidad.Unidades && vehiculo.Unidades >= unidadadesTraslado)
-                                {
-                                    if (vehiculo.CapacidadCargaKg < masCercanoConCapacidad.CapacidadCargaKg && vehiculo.CapacidadCargaKg >= pesoTraslado)
-                                    {
-                                        masCercanoConCapacidad = vehiculo;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (vehiculo.Unidades < masCercanoConCapacidad.Unidades && vehiculo.Unidades >= unidadadesTraslado)
-                                {
-                                    if (vehiculo.CapacidadCargaKg < masCercanoConCapacidad.CapacidadCargaKg && vehiculo.CapacidadCargaKg >= pesoTraslado)
-                                    {
-                                        masCercanoConCapacidad = vehiculo;
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-
-                }
-                return masCercanoConCapacidad;
-            }
-            catch (TimeoutException)
-            {
-                throw new MensajeException("Se agoto el tiempo de espera. Compruebe la conexion");
-            }
-            catch (MensajeException msg)
-            {
-                throw msg;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
         /// <summary>
         /// determina el tiempo de demora entre dos juegos de coordenadas
+        /// se utiliza para determinar el tiempo de demora entre el vehiculo y el cliente
         /// </summary>
         /// <param name="latitudCliente"></param>
         /// <param name="longitudCliente"></param>
@@ -700,7 +683,14 @@ namespace ProyectoTransportesAndes.Models
                     {
                         foreach (Element e in r.elements)
                         {
-                            tiempo = int.Parse(e.duration.text.Split(" ")[0]);
+                            if (!e.status.Equals("ZERO_RESULTS"))
+                            {
+                                tiempo = int.Parse(e.duration.text.Split(" ")[0]);
+                            }
+                            else
+                            {
+                                throw new MensajeException("Compruebe el formato de la dirección ingresada");
+                            }
                         }
                     }
                 }
@@ -720,6 +710,7 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
+        
         /// <summary>
         /// calcula el tiempo de demora de un determinado viaje
         /// </summary>
@@ -735,6 +726,11 @@ namespace ProyectoTransportesAndes.Models
                 if (!string.IsNullOrEmpty(viaje.DireccionDestino))
                 {
                     path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Destino.Latitud + "," + viaje.Destino.Longitud;
+                }
+                else
+                {
+                    path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Origen.Latitud + "," + viaje.Origen.Longitud;
+
                 }
                 if (viaje.Items.Count > 10)
                 {
@@ -773,12 +769,17 @@ namespace ProyectoTransportesAndes.Models
             {
                 throw msg;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw new MensajeException("Compruebe el formato de las direcciones ingresadas");
             }
         }
 
+        /// <summary>
+        /// basandose en la api de google se calculan aprox los km del viaje
+        /// </summary>
+        /// <param name="viaje"></param>
+        /// <returns>double con la cantidad de km del viaje</returns>
         public async Task<double> cantidadKmAproximado(Viaje viaje)
         {
             try
@@ -789,6 +790,11 @@ namespace ProyectoTransportesAndes.Models
                 if (!string.IsNullOrEmpty(viaje.DireccionDestino))
                 {
                     path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Destino.Latitud + "," + viaje.Destino.Longitud;
+                }
+                else
+                {
+                    path = "https://maps.googleapis.com/maps/api/directions/json?origin=" + viaje.Origen.Latitud + ", " + viaje.Origen.Longitud + "&destination=" + viaje.Vehiculo.PosicionSatelital.Latitud+ "," + viaje.Vehiculo.PosicionSatelital.Longitud;
+
                 }
                 if (viaje.Items.Count > 10)
                 {
@@ -824,12 +830,16 @@ namespace ProyectoTransportesAndes.Models
 
                 return salida;
             }
+            catch (TimeoutException)
+            {
+                throw new MensajeException("Se agoto el tiempo de espera, vuelva a intentarlo en unos minutos");
+            }
             catch (MensajeException msg)
             {
                 throw msg;
-            }catch(Exception ex)
+            }catch(Exception)
             {
-                throw ex;
+                throw new MensajeException("Compruebe el formato de las direcciones ingresadas");
             }
         }
             
@@ -857,18 +867,24 @@ namespace ProyectoTransportesAndes.Models
                     }
                 }
                 return posicion;
-            }catch(Exception ex)
+            }
+            catch (TimeoutException)
             {
-                throw ex;
+                throw new MensajeException("Se agoto el tiempo de espera, vuelva a intentarlo en unos minutos");
+            }
+            catch (Exception)
+            {
+                throw new MensajeException("Compruebe el formato de las direcciones ingresadas");
             }
            
         }
 
-
-        #endregion
-
-
-
+        /// <summary>
+        /// convierte un par de coordenadas en una direccion de calle
+        /// </summary>
+        /// <param name="latitud"></param>
+        /// <param name="longitud"></param>
+        /// <returns></returns>
         public async Task<string> convertirCoordenadasEnDireccion(string latitud, string longitud)
         {
             HttpClient cliente = new HttpClient();
@@ -887,18 +903,30 @@ namespace ProyectoTransportesAndes.Models
             }
             return direccion;
         }
-        //devuelve la lista de vehiculos que hay en el sistema con su posicion asociada
+
+        /// <summary>
+        /// devuelve una lista de vehiculos con la posicion satelital actualizada segun el hash de posiciones que hay en memoria
+        /// </summary>
+        /// <returns>lista de vehiculos</returns>
         public async Task<List<Vehiculo>> vehiculosConPosicion()
         {
             try
             {
                 List<PosicionSatelital> posicionesFletes = obtenerUbicacionesVehiculosFletes();
                 List<PosicionSatelital> posicionesMudanza = obtenerUbicacionesVehiculosMudanza();
-                posicionesFletes.Concat(posicionesMudanza);
-                List<Vehiculo> salida = new List<Vehiculo>();
-                if (posicionesFletes != null && posicionesFletes.Count > 0)
+                List<PosicionSatelital> aux = new List<PosicionSatelital>();
+                foreach (PosicionSatelital p in posicionesFletes)
                 {
-                    foreach (PosicionSatelital pos in posicionesFletes)
+                    aux.Add(p);
+                }
+                foreach (PosicionSatelital p in posicionesMudanza)
+                {
+                    aux.Add(p);
+                }
+                List<Vehiculo> salida = new List<Vehiculo>();
+                if (posicionesFletes != null && aux.Count > 0)
+                {
+                    foreach (PosicionSatelital pos in aux)
                     {
                         Vehiculo v = await DBRepositoryMongo<Vehiculo>.GetItemAsync(pos.Id, "Vehiculos");
                         if (v != null)
@@ -921,7 +949,11 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        // devuelve la lista de choferes que estan sin un vehiculo asociado
+
+        /// <summary>
+        /// devuelve la lista de choferes de la bd que no tienen vehiculos asociados
+        /// </summary>
+        /// <returns>lista de choferes</returns>
         public async Task<List<Chofer>> choferesDisponibles()
         {
             try
@@ -930,7 +962,7 @@ namespace ProyectoTransportesAndes.Models
                 var lista = await DBRepositoryMongo<Chofer>.GetItemsAsync("Choferes");
                 List<Chofer> aux = new List<Chofer>();
 
-                foreach(Chofer c in lista)
+                foreach (Chofer c in lista)
                 {
                     Chofer chofer = c.Desencriptar(c);
                     aux.Add(chofer);
@@ -955,7 +987,14 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        // desde los api se manda guardar la ubicacion actual del vehiculo en un hash
+
+        /// <summary>
+        /// desde la api guarda la posicion actual del vehiculo en el hash de posiciones
+        /// </summary>
+        /// <param name="idVehiculo"></param>
+        /// <param name="latitud"></param>
+        /// <param name="longitud"></param>
+        /// <returns></returns>
         public PosicionSatelital guardarUbicacionVehiculo(string idVehiculo, string latitud, string longitud)
         {
             try
@@ -977,7 +1016,11 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        //devuelve una lista de las posiciones de los vehiculos obtenidas del hash en memoria
+
+        /// <summary>
+        /// devuelve una lista de posiciones satelitales de los vehiculos aptos para fletes que hay en el hash de memoria
+        /// </summary>
+        /// <returns>lista de posiciones satelitales</returns>
         public List<PosicionSatelital> obtenerUbicacionesVehiculosFletes()
         {
             try
@@ -991,7 +1034,10 @@ namespace ProyectoTransportesAndes.Models
                         {
                             if (v.Tipo != TipoVehiculo.CamionMudanza)
                             {
-                                ubicaciones.Add((PosicionSatelital)UbicacionVehiculos[v.Id.ToString()]);
+                                if (UbicacionVehiculos[v.Id.ToString()] != null)
+                                {
+                                    ubicaciones.Add((PosicionSatelital)UbicacionVehiculos[v.Id.ToString()]);
+                                }
                             }
                         }
                         else
@@ -1009,6 +1055,11 @@ namespace ProyectoTransportesAndes.Models
 
 
         }
+
+        /// <summary>
+        /// devuelve una lista de posiciones satelitales de los vehiculos aptos para mudanzas que hay en el hash de memoria
+        /// </summary>
+        /// <returns>lista de posiciones satelitales</returns>
         public List<PosicionSatelital> obtenerUbicacionesVehiculosMudanza()
         {
             try
@@ -1022,9 +1073,12 @@ namespace ProyectoTransportesAndes.Models
                         {
                             if (v.Tipo == TipoVehiculo.CamionMudanza)
                             {
-                                string id = v.Id.ToString();
-                                PosicionSatelital posicion = (PosicionSatelital)UbicacionVehiculos[id];
-                                ubicaciones.Add(posicion);
+                                if (UbicacionVehiculos[v.Id.ToString()] != null)
+                                {
+                                    string id = v.Id.ToString();
+                                    PosicionSatelital posicion = (PosicionSatelital)UbicacionVehiculos[id];
+                                    ubicaciones.Add(posicion);
+                                }
                             }
                         }
                         else
@@ -1041,7 +1095,12 @@ namespace ProyectoTransportesAndes.Models
             }
 
         }
-        //obtiene la ultima posicion de un determinado vehiculo
+
+        /// <summary>
+        /// obtiene la ultima posicion conocida de un vehiculo que se encuentra en el hash en memoria
+        /// </summary>
+        /// <param name="idVehiculo"></param>
+        /// <returns>posicion satelital</returns>
         public PosicionSatelital obtenerUltimaUbicacionVehiculo(string idVehiculo)
         {
             try
@@ -1053,24 +1112,31 @@ namespace ProyectoTransportesAndes.Models
                 throw ex;
             }
         }
-        //hardcord de datos
+
+        /// <summary>
+        /// la primera vez que inicia el sitema carga todos los vehiculos que hay en memoria
+        /// </summary>
         public async void cargarVehicuos()
         {
             var veh = await DBRepositoryMongo<Vehiculo>.GetItemsAsync("Vehiculos");
             Vehiculos = veh.ToList();
         }
+
+        #endregion
+
+        #endregion
+
+
+
         public void datos()
         {
             //se harcodea hasta que se obtenga la posicion dinamicamente
-            PosicionSatelital hard = new PosicionSatelital("5b9a6bbefe2a714978444832", "-34.895249", "-56.126989");
-            UbicacionVehiculos["5b9a6bbefe2a714978444832"] = hard;
+            //PosicionSatelital hard = new PosicionSatelital("5b9a6bbefe2a714978444832", "-34.895249", "-56.126989");
+            //UbicacionVehiculos["5b9a6bbefe2a714978444832"] = hard;
             PosicionSatelital hard2 = new PosicionSatelital("5b9a6bf2fe2a714978444833", "-34.909789", "-56.197760");
             UbicacionVehiculos["5b9a6bf2fe2a714978444833"] = hard2;
+            PosicionSatelital hard3 = new PosicionSatelital("5b9b1b02c7de353ce4e553d9", "-34.895090", "-56.164818");
+            UbicacionVehiculos["5b9b1b02c7de353ce4e553d9"] = hard3;
         }
-        //se actualizan los datos del vehiculo en memoria cuando sufre algun cambio y se respaldan en una tabla accesoria de la base de datos ante cualquier inconveniente
-        
-
-       
-        #endregion
     }
 }

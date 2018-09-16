@@ -14,6 +14,7 @@ namespace ProyectoTransportesAndes.ViewModels
 {
     public class ViewModelViajeFiltro
     {
+        #region Propiedades
         [Display(Name = "Estado")]
         public SelectList ListaEstadoViaje { get; set; }
         [Display(Name = "Cliente")]
@@ -32,7 +33,9 @@ namespace ProyectoTransportesAndes.ViewModels
         public IEnumerable<Viaje> Viajes { get; set; }
         private IOptions<AppSettingsMongo> _settings;
         public double TotalViajes { get; set; }
+        #endregion
 
+        #region Constructores
         public ViewModelViajeFiltro(IOptions<AppSettingsMongo> settings)
         {
             _settings = settings;
@@ -49,7 +52,9 @@ namespace ProyectoTransportesAndes.ViewModels
             cargarEstados();
             CargarTipo();
         }
+        #endregion
 
+        #region Metodos
         public async Task cargarClientes()
         {
             var clientes = await ControladoraUsuarios.getInstance(_settings).getClientes();
@@ -115,5 +120,6 @@ namespace ProyectoTransportesAndes.ViewModels
             selectList.Add(new SelectListItem { Value = "3", Text = "Directo" });
             ListaTipos = new SelectList(selectList, "Value", "Text");
         }
+        #endregion
     }
 }

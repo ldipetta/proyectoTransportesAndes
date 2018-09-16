@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
+<div class="row"><p><b>@TempData["Error"]</b></p></div>
 <div class="row" style="margin-top:50px;">
     <div class="row col-md-12">
         <form asp-action="Listado" asp-controller="Viaje">
@@ -63,44 +63,68 @@
                         @Html.Label("Estado")
                     </th>
                     <th>
+                        @Html.Label("Costo estimado")
+                    </th>
+                    <th>
                         @Html.Label("Costo")
                     </th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.Viajes)
+                @if (Model.Viajes != null)
                 {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Fecha.Date)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.HoraInicio)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.HoraFin)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Vehiculo.Matricula)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Vehiculo.Chofer.Leyenda)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Cliente.User)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Estado)
-                        </td>
+                    @foreach (var item in Model.Viajes)
+                    {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Fecha)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.HoraInicio)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.HoraFin)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Vehiculo.Matricula)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Vehiculo.Chofer.Leyenda)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Cliente.User)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Estado)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CostoEstimadoFinal)
+                    </td>
+                    @if (item.Estado.Equals(EstadoViaje.Finalizado) || item.Equals(EstadoViaje.Cancelado))
+                    {
                         <td>
                             @Html.DisplayFor(modelItem => item.CostoFinal)
                         </td>
-                    </tr>
+                    }
+                    else
+                    {
+                        <td></td>
+
+                    }
+
+                    @if (!item.Estado.Equals(EstadoViaje.Finalizado) && !item.Estado.Equals(EstadoViaje.Cancelado))
+                    {
+                        <td>
+                            @Html.ActionLink("Finalizar", "FinalizarViaje", new { id = item.Id }, new { @class = "btn btn-danger btn-sm" })
+                        </td>
+                    }
+                </tr>
+                    }
                 }
                 <tr></tr>
                 <tr></tr>
-                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><p>Total viajes</p></td><td class="table-bordered"><p>@Model.TotalViajes</p></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><p>Total viajes</p></td><td class="table-bordered"><p>@Model.TotalViajes</p></td></tr>
             </tbody>
         </table>
 

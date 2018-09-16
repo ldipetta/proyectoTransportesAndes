@@ -5,7 +5,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
+<div>
+    <p><b>@TempData["Error"]</b></p>
+</div>
 <div class="row" style="margin-top:50px;">
     @Html.ActionLink("Ingresar chofer", "Create", new { }, new { @class = "btn btn-info" })
     <table class="table table-responsive">

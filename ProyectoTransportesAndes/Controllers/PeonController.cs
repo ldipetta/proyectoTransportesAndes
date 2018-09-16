@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using ProyectoTransportesAndes.Configuracion;
+using ProyectoTransportesAndes.Exceptions;
 using ProyectoTransportesAndes.Models;
 using ProyectoTransportesAndes.Persistencia;
 
@@ -17,12 +18,14 @@ namespace ProyectoTransportesAndes.Controllers
     [Route("api/Peon")]
     public class PeonController : Controller
     {
-        private string coleccion = "Peones";
+        #region Atributos
         private IOptions<AppSettingsMongo> _settings;
         private readonly IConfiguration _configuration;
         private readonly ISession _session;
         private readonly IHttpContextAccessor _httpContext;
+        #endregion
 
+        #region Constructores
         public PeonController(IOptions<AppSettingsMongo> settings, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _session = httpContextAccessor.HttpContext.Session;
@@ -31,207 +34,270 @@ namespace ProyectoTransportesAndes.Controllers
             _settings = settings;
             DBRepositoryMongo<Peon>.Iniciar(_settings);
         }
+        #endregion
+
+        #region Acciones
+
+        /// <summary>
+        /// carga en la vista todos los peones ingresados
+        /// </summary>
+        /// <returns>vista index</returns>
         [HttpGet]
         [Route("Index")]
         [ActionName("Index")]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Index()
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     List<Peon> peones = await ControladoraUsuarios.getInstance(_settings).getPeones();
                     return View(peones);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index", "Home");
             }
         }
 
+        /// <summary>
+        /// vista para crear un nuevo peon
+        /// </summary>
+        /// <returns>vista create</returns>
         [Route("Create")]
         [HttpGet]
+        [AutoValidateAntiforgeryToken]
         public ActionResult Create()
         {
-            return View();
+            try
+            {
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
+                {
+                    return View();
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (MensajeException msg)
+            {
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
+        /// <summary>
+        /// ingresa un nuevo peon al sistema
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>vista index</returns>
         [Route("Create")]
         [HttpPost]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Create(Peon model)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        Peon peon = await DBRepositoryMongo<Peon>.GetPeon(model.Documento, coleccion);
-                        if (peon != null)
-                        {
-                            return BadRequest("El peon ya existe");
-                        }
-                        else
-                        {
-                            model = model.Encriptar(model);
-                            await DBRepositoryMongo<Peon>.Create(model, coleccion);
-                            return RedirectToAction("Index");
-                        }
+                        await ControladoraUsuarios.getInstance(_settings).CrearPeon(model);
+                        return RedirectToAction("Index");
                     }
-                    else
-                    {
-                        return BadRequest(ModelState);
-                    }
+                        return View(model);
                 }
                 else
                 {
-                    return BadRequest("Debe iniciar sesión");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("No posee los permisos");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista edit</returns>
         [HttpGet]
         [Route("Edit")]
         [ActionName("Edit")]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Edit(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
-                    {
-                        return BadRequest();
-                    }
-                    Peon item = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
-                    if (item == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(item);
+                    Peon p = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
+                    return View(p);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
-
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index");
+            }
         }
 
+        /// <summary>
+        /// vista con el peon seleccionado para editar
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="peon"></param>
+        /// <returns>vista edit</returns>
         [HttpPost]
         [Route("Edit")]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(string id, Peon peon)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        peon.Id = new ObjectId(id);
-                        peon = peon.Encriptar(peon);
-                        await DBRepositoryMongo<Peon>.UpdateAsync(peon.Id, peon, coleccion);
+                       await ControladoraUsuarios.getInstance(_settings).ModificarPeon(peon,id);
                         return RedirectToAction("Index");
                     }
                     return View(peon);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
             }
-
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index");
+            }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>vista delete</returns>
         [HttpGet]
         [Route("Delete")]
         [ActionName("Delete")]
+        [AutoValidateAntiforgeryToken]
         public async Task<ActionResult> Delete(string id)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
-                    if (id == null)
-                    {
-                        return BadRequest();
-                    }
-                    Peon item = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
-                    if (item == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(item);
+                    Peon p = await ControladoraUsuarios.getInstance(_settings).getPeon(id);
+                    return View(p);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// vista cargada con el peon solicitado para eliminar
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="peon"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Delete")]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult>Delete(string id, Peon peon)
+        public async Task<ActionResult> Delete(string id, Peon peon)
         {
-            var token = _session.GetString("Token");
-            if (token != null)
+            try
             {
-                var rol = Seguridad.validarToken(token);
-                if (rol == "Administrador" || rol == "Administrativo")
+                var token = _session.GetString("Token");
+                if (Seguridad.validarUsuarioAdministrativo(token))
                 {
                     if (ModelState.IsValid)
                     {
-                        await DBRepositoryMongo<Peon>.DeleteAsync(id, coleccion);
+                        await ControladoraUsuarios.getInstance(_settings).EliminarPeon(id);
                         return RedirectToAction("Index");
                     }
                     return View(peon);
                 }
                 else
                 {
-                    return BadRequest("No posee los permisos");
+                    return RedirectToAction("Login", "Account");
                 }
             }
-            else
+            catch (MensajeException msg)
             {
-                return BadRequest("Debe iniciar sesión");
+                TempData["Error"] = msg.Message;
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ha ocurrido un error inesperado, intente de nuevo mas tarde";
+                return RedirectToAction("Index");
             }
         }
-
+        #endregion
     }
 }

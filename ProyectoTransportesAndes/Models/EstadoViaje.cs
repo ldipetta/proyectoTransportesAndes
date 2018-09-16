@@ -11,5 +11,6 @@ namespace ProyectoTransportesAndes.Models
         Finalizado,
         Pendiente,
         EnCurso,
+        Cancelado
     }
 }

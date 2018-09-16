@@ -10,7 +10,7 @@ namespace ProyectoTransportesAndes.Models
 {
     public class Chofer:Usuario
     {
-
+        #region Propiedades
         public string Numero { get; set; }
         [Display(Name ="Carnet de salud")]
         [DataType(DataType.Date)]
@@ -24,8 +24,9 @@ namespace ProyectoTransportesAndes.Models
         public string Foto { get; set; }
         public bool Disponible { get; set; }
         public string Leyenda { get; set; }
-     
+        #endregion
 
+        #region Constructores
         public Chofer() : base()
         {
             User = "";
@@ -66,6 +67,7 @@ namespace ProyectoTransportesAndes.Models
             Tipo = "Chofer";
             Leyenda = "";
         }
+        #endregion
 
         #region Metodos
         /// <summary>
