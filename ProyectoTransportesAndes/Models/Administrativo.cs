@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +10,10 @@ namespace ProyectoTransportesAndes.Models
     public class Administrativo:Usuario
     {
         #region Propiedades
-        public CarneDeSalud CarneDeSalud { get; set; }
+        [Display(Name = "Carnet de salud")]
+        [DataType(DataType.Date)]
+        [Required(ErrorMessage = "El vencimiento del carnet de salud no puede ser vacío")]
+        public DateTime VencimientoCarneDeSalud { get; set; }
         public bool Administrador { get; set; }
         #endregion
 
