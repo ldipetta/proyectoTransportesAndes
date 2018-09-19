@@ -403,7 +403,7 @@ namespace ProyectoTransportesAndes.Models
         /// <param name="usuario"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task EliminarAdministrativo(Usuario usuario, string id)
+        public async Task EliminarAdministrativo(Administrativo usuario, string id)
         {
             try
             {
@@ -431,22 +431,22 @@ namespace ProyectoTransportesAndes.Models
         /// <summary>
         /// modifica un administrativo pasado como parametro
         /// </summary>
-        /// <param name="administrativo"></param>
+        /// <param name="usuario"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task ModificarAdministrativo(Administrativo administrativo, string id) 
+        public async Task ModificarAdministrativo(Administrativo usuario, string id) 
         {
             try
             {
-                if (administrativo != null && id!=null)
+                if (usuario != null && id!=null)
                 {
-                    administrativo.Id = new ObjectId(id);
-                    if (administrativo.Ubicacion == null)
+                    usuario.Id = new ObjectId(id);
+                    if (usuario.Ubicacion == null)
                     {
-                        administrativo.Ubicacion = new PosicionSatelital() { Latitud = "", Longitud = "" };
+                        usuario.Ubicacion = new PosicionSatelital() { Latitud = "", Longitud = "" };
                     }
-                    administrativo = administrativo.Encriptar(administrativo);
-                    await DBRepositoryMongo<Usuario>.UpdateAsync(administrativo.Id, administrativo, "Administrativos");
+                    usuario = usuario.Encriptar(usuario);
+                    await DBRepositoryMongo<Usuario>.UpdateAsync(usuario.Id, usuario, "Administrativos");
                 }
                 else
                 {

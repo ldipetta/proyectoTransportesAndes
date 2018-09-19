@@ -409,6 +409,13 @@ namespace ProyectoTransportesAndes.Controllers
                         var viajePendienteCliente = await _controladoraViajes.viajePendienteCliente(cliente);
                         var vehiculos = await  _controladoraVehiculos.vehiculosConPosicion();
                         model.Viaje = viajePendienteCliente;
+                        model.Vehiculos = vehiculos;
+                        PosicionSatelital ubicacionCliente = _controladoraUsuarios.obtenerUbicacionCliente(cliente);
+                        if (ubicacionCliente == null)
+                        {
+                            TempData["Error"] = "No se ha podido establecer la posición del cliente. Intente nuevamente";
+                            return View();
+                        }
                         if (model.Viaje != null)
                         {
                             model.IdViaje = viajePendienteCliente.Id.ToString();
@@ -417,10 +424,6 @@ namespace ProyectoTransportesAndes.Controllers
                         else
                         {
                             ViewData["Mensaje"] = "No tiene items ingresados";
-                        }
-                        model.Vehiculos = vehiculos;
-                        if (model.Viaje == null)
-                        {
                             model.Viaje = new Viaje();
                             model.Viaje.DireccionDestino = "";
                             ViewData["Mensaje"] = "No tiene items ingresados";
@@ -430,11 +433,10 @@ namespace ProyectoTransportesAndes.Controllers
                             model.Viaje.Origen = new PosicionSatelital();
                             model.Viaje.Compartido = false;
                         }
-                        PosicionSatelital ubicacionCliente = _controladoraUsuarios.obtenerUbicacionCliente(cliente);
+                        
                         if (string.IsNullOrEmpty(model.Viaje.DireccionOrigen))
                         {
                             model.Viaje.DireccionOrigen = await _controladoraVehiculos.convertirCoordenadasEnDireccion(ubicacionCliente.Latitud, ubicacionCliente.Longitud);
-
                         }
                         return View(model);
                     }
@@ -522,6 +524,10 @@ namespace ProyectoTransportesAndes.Controllers
                             {
                                 viaje = await _controladoraViajes.corroborarDireccionesItems(viaje);
                             }
+                            if (!string.IsNullOrEmpty(model.Viaje.DireccionDestino))
+                            {
+                                viaje.DireccionDestino = model.Viaje.DireccionDestino;
+                            }
                             viaje = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
                             if(string.IsNullOrEmpty(viaje.Vehiculo.Matricula) && string.IsNullOrEmpty(viaje.Vehiculo.Marca) && string.IsNullOrEmpty(viaje.Vehiculo.Modelo))
                             {
@@ -553,7 +559,6 @@ namespace ProyectoTransportesAndes.Controllers
                             }
                             nuevo.DireccionOrigen = model.Viaje.DireccionOrigen;
                             nuevo.Cliente = cliente;
-
                             if (model.ViajeCompartido)
                             {
                                 nuevo.Compartido = true;
@@ -601,7 +606,7 @@ namespace ProyectoTransportesAndes.Controllers
                 var token = _session.GetString("Token");
                 if (Seguridad.validarUsuarioCliente(token))
                 {
-                    if (!string.IsNullOrEmpty(idViaje))
+                    if (!idViaje.Equals("000000000000000000000000"))
                     {
                         ViewModelViaje resumen = new ViewModelViaje();
                         resumen.DetallesViaje = false;
@@ -648,6 +653,7 @@ namespace ProyectoTransportesAndes.Controllers
                             resumen.FechaParaMostrar = enCurso.Fecha.ToShortDateString();
                             resumen.IdViaje = enCurso.Id.ToString();
                             resumen.VehiculoParaMostrar = enCurso.Vehiculo.ToString();
+                            resumen.Viaje.Vehiculo.PosicionSatelital = _controladoraVehiculos.obtenerUltimaUbicacionVehiculo(enCurso.Vehiculo.Id.ToString());
                         }
                         else
                         {
@@ -658,8 +664,10 @@ namespace ProyectoTransportesAndes.Controllers
                     }
                     else
                     {
-                        ViewModelViaje resumen = new ViewModelViaje();
-                        return View(resumen);
+                        //ViewModelViaje resumen = new ViewModelViaje();
+                        //return View(resumen);
+                        TempData["Error"] = "No hay vehiculos disponibles por el momento. Intente nuevamente mas tarde";
+                        return RedirectToAction("Servicio");
                     }
                 }
                 else

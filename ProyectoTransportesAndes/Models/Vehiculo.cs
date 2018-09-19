@@ -76,7 +76,7 @@ namespace ProyectoTransportesAndes.Models
             Modelo = "";
             Unidades = 0;
             Tipo = TipoVehiculo.Otros;
-            Disponible = false;
+            Disponible = true;
             PosicionSatelital = new PosicionSatelital();
             Chofer = new Chofer();
             CantidadPasajeros = 0;

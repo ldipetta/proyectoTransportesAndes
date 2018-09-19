@@ -56,12 +56,6 @@ namespace ProyectoTransportesAndes.Models
             usuario.Ubicacion.Longitud = Seguridad.Desencriptar(usuario.Ubicacion.Longitud);
             return usuario;
         }
-        public Usuario DesencriptarSuperUsuario(Usuario usuario)
-        {
-            usuario.Password = Seguridad.Desencriptar(usuario.Password);
-            usuario.User = Seguridad.Desencriptar(usuario.User);
-            return usuario;
-        }
         #endregion
 
 

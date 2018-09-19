@@ -24,7 +24,6 @@ namespace ProyectoTransportesAndes
         }
 
         public IConfiguration Configuration { get; }
-        private IOptions<AppSettings> _settings;
         private IOptions<AppSettingsMongo> _settingsMongo;
         
 
@@ -57,7 +56,7 @@ namespace ProyectoTransportesAndes
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env,IOptions<AppSettings> appSettings,IOptions<AppSettingsMongo>appSettingsMongo)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,IOptions<AppSettingsMongo>appSettingsMongo)
         {
             if (env.IsDevelopment())
             {
@@ -78,7 +77,6 @@ namespace ProyectoTransportesAndes
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-            _settings = appSettings;
             _settingsMongo = appSettingsMongo;
             
             //DBRepository<AppSettings>.Iniciar(_settings);

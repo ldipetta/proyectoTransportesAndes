@@ -64,5 +64,30 @@ namespace ProyectoTransportesAndes.Models
             ObjectId id = new ObjectId(time, machine, pid, increment);
             return id;
         }
+
+        public static Viaje encriptarViaje(Viaje viaje)
+        {
+            viaje.Cliente = viaje.Cliente.Encriptar(viaje.Cliente);
+            if (viaje.Vehiculo != null)
+            {
+                if (!viaje.Vehiculo.Id.ToString().Equals("000000000000000000000000"))
+                {
+                    viaje.Vehiculo.Chofer = viaje.Vehiculo.Chofer.Encriptar(viaje.Vehiculo.Chofer);
+                }
+            }
+            return viaje;
+        }
+        public static Viaje desencriptarViaje(Viaje viaje)
+        {
+            viaje.Cliente = viaje.Cliente.Desencriptar(viaje.Cliente);
+            if (viaje.Vehiculo != null)
+            {
+                if (!viaje.Vehiculo.Id.ToString().Equals("000000000000000000000000"))
+                {
+                    viaje.Vehiculo.Chofer = viaje.Vehiculo.Chofer.Desencriptar(viaje.Vehiculo.Chofer);
+                }
+            }
+            return viaje;
+        }
     }
 }

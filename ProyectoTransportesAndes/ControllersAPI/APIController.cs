@@ -215,7 +215,9 @@ namespace ProyectoTransportesAndes.ControllersAPI
         public async Task<JsonResult> FinalizarViaje(string idViaje)
         {
             ObjectId viajeId = Utilidades.deserealizarJsonToObjectId(idViaje);
-            return Json(await _controladoraViajes.finalizarViaje(viajeId.ToString()));
+            Viaje viaje = await _controladoraViajes.finalizarViaje(viajeId.ToString());
+            //viaje = Utilidades.desencriptarViaje(viaje);
+            return Json(viaje);
         }
 
         /// <summary>
@@ -238,7 +240,8 @@ namespace ProyectoTransportesAndes.ControllersAPI
         [Route("UbicacionVehiculo")]
         public JsonResult UbicacionVehiculo(string idVehiculo)
         {
-            return Json((PosicionSatelital)_controladoraVehiculos.UbicacionVehiculos[idVehiculo]);
+            ObjectId vehiculoId = Utilidades.deserealizarJsonToObjectId(idVehiculo);
+            return Json((PosicionSatelital)_controladoraVehiculos.UbicacionVehiculos[vehiculoId.ToString()]);
         }
 
         /// <summary>
@@ -255,8 +258,10 @@ namespace ProyectoTransportesAndes.ControllersAPI
             ObjectId clienteId = Utilidades.deserealizarJsonToObjectId(idCliente);
             viaje.Cliente.Id = clienteId;
             Viaje salida = await _controladoraViajes.solicitarViaje(viaje, TipoVehiculo.Otros);
-            salida.Vehiculo.Chofer = salida.Vehiculo.Chofer.Desencriptar(salida.Vehiculo.Chofer);
-            salida.Cliente = salida.Cliente.Desencriptar(salida.Cliente);
+            if (!salida.Vehiculo.Id.ToString().Equals("000000000000000000000000"))
+            {
+                //salida = Utilidades.desencriptarViaje(salida);
+            }
             return Json(salida);
         }
 
@@ -371,6 +376,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             ObjectId viajeId = Utilidades.deserealizarJsonToObjectId(idViaje);
             Viaje salida = await _controladoraViajes.confirmarViaje(viajeId.ToString());
+            salida = Utilidades.desencriptarViaje(salida);
             return Json(salida);
         }
 
@@ -385,6 +391,7 @@ namespace ProyectoTransportesAndes.ControllersAPI
         {
             ObjectId viajeId = Utilidades.deserealizarJsonToObjectId(idViaje);
             Viaje salida = await _controladoraViajes.levanteViaje(viajeId.ToString());
+            //salida = Utilidades.desencriptarViaje(salida);
             return Json(salida);
         }
 

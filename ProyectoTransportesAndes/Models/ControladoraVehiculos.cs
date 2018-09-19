@@ -577,6 +577,10 @@ namespace ProyectoTransportesAndes.Models
                         }
                     }
                 }
+                if (masCercano != null)
+                {
+                    masCercano.Chofer = masCercano.Chofer.Desencriptar(masCercano.Chofer);
+                }
                 return masCercano;
             }
             catch (MensajeException msg)
@@ -642,6 +646,10 @@ namespace ProyectoTransportesAndes.Models
                             }
                         }
                     }
+                }
+                if (masCercanoConCapacidad != null)
+                {
+                    masCercanoConCapacidad.Chofer = masCercanoConCapacidad.Chofer.Desencriptar(masCercanoConCapacidad.Chofer);
                 }
                 return masCercanoConCapacidad;
             }
