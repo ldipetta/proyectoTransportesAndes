@@ -1,0 +1,67 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelCliente
+@{
+    ViewData["Title"] = "Ingresar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row col-lg-8 col-lg-offset-2" style="margin-top:50px;">
+    <form asp-action="Ingresar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row col-lg-12">
+            <fieldset>
+                <legend>Datos empresariales</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Cliente.RazonSocial" class="form-control" placeholder="Razón social" />
+                        <span asp-validation-for="Cliente.RazonSocial" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="number" min="0" asp-for="Cliente.Rut" class="form-control" placeholder="Rut" />
+                        <span asp-validation-for="Cliente.Rut" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row col-lg-12">
+            <fieldset>
+                <legend>Datos contacto</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Cliente.Nombre" class="form-control" placeholder="Nombre contacto" />
+                        <span asp-validation-for="Cliente.Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Cliente.Apellido" class="form-control" placeholder="Apellido" />
+                        <span asp-validation-for="Cliente.Apellido" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="email" asp-for="Cliente.Email" class="form-control" placeholder="e-mail" />
+                        <span asp-validation-for="Cliente.Email" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="tel" asp-for="Cliente.Telefono" class="form-control" placeholder="Teléfono" />
+                        <span asp-validation-for="Cliente.Telefono" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Cliente.Direccion" class="form-control" placeholder="Dirección" />
+                        <span asp-validation-for="Cliente.Direccion" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row col-lg-12">
+            <div class="form-group col-lg-8 col-lg-offset-4">
+                <input type="submit" value="Ingresar cliente" class="btn btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+

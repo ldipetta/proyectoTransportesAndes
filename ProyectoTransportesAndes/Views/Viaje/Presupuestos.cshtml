@@ -1,0 +1,59 @@
+﻿@model IEnumerable<ProyectoTransportesAndes.Models.Presupuesto>
+
+@{
+    ViewData["Title"] = "Presupuestos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <p class="text-danger"><b>@TempData["Error"]</b></p>
+</div>
+<div class="row">
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.FechaSolicitud)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DireccionOrigen)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DireccionDestino)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Observaciones)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Realizado)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FechaSolicitud)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DireccionDestino)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Observaciones)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Realizado)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Realizado", "RealizarPresupuesto", new { idPresupuesto = item.Id }) |
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

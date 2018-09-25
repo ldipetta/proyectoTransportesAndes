@@ -1,24 +1,29 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ProyectoTransportesAndes</title>
+    <title>@*@ViewData["Title"] -*@ Transportes Andes</title>
 
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/css/Estilos.css" />
+        <link href="~/js/map.js" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/Estilos.css" />
     </environment>
 </head>
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+        <div class="container" style="margin-left:50px;margin-right:0px;">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -26,25 +31,73 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">ProyectoTransportesAndes</a>
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Transportes Andes</a>
             </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+            <div class="navbar-collapse collapse" id="contenedorCabecera" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserTipo").ToString()">
+                <ul class="nav navbar-nav" id="menuComun" data-value="@HttpContextAccessor.HttpContext.Session.GetString("Session")">
+                    <li id="about"><a asp-area="" asp-controller="Home" asp-action="About">Nuestra empresa</a></li>
+                    <li id="contact"><a asp-area="" asp-controller="Home" asp-action="Contact">Contactenos</a></li>
+                    <li class="hidden" id="vehiculos"><a asp-area="" asp-controller="Vehiculo" asp-action="Index">Vehiculos</a></li>
+                    <li class='dropdown hidden' id="empleados">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Empleados <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Administrativo' asp-action='Index'>Administrativos</a></li>
+                            <li><a asp-area='' asp-controller='Peon' asp-action='Index'>Peones</a></li>
+                            <li><a asp-area="" asp-controller="Chofer" asp-action="Index">Choferes</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="hidden" id="tarifas"><a asp-area="" asp-controller="Viaje" asp-action="Tarifas">Tarifas</a></li>
+
+                    <li class='dropdown hidden' id="ingresarViaje">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Listado'>Listado</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Nuevo'>Nuevo viaje</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='LiquidacionViajesChofer'>Liquidar</a></li>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='Liquidaciones'>Historico liquidaciones</a></li>
+                        </ul>
+                    </li>
+
+                    <li class='dropdown hidden' id="estadisticas">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Estadísticas<span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='EstadisticasVehiculo'>Vehiculos</a></li>
+                        </ul>
+                    </li>
+                    <li class="hidden" id="presupuestos"><a asp-area="" asp-controller="Viaje" asp-action="Presupuestos">Presupuestos</a></li>
+                    <li id="clientes" class="hidden"><a asp-area='' asp-controller='Cliente' asp-action='Index'>Clientes</a></li>
+                    <li id="solicitarViaje" class="hidden"><a asp-area="" asp-controller="Viaje" asp-action="Servicio">Solicitar viaje</a></li>
+                    <li class='dropdown hidden' id="misViajes">
+                        <a class='dropdown-toggle' data-toggle='dropdown' href='#'>Viajes <span class='caret'></span></a>
+                        <ul class='dropdown-menu'>
+                            <li><a asp-area='' asp-controller='Viaje' asp-action='MisViajes'>Mis viajes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav" style="float:right">
+                    <li id="userName" data-value="@HttpContextAccessor.HttpContext.Session.GetString("UserName").ToString()"></li>
+                    <li id="salir" class="hidden"><a asp-area="" asp-controller="Account" asp-action="salir"><span class="glyphicon glyphicon-log-out"></span></a></li>
                 </ul>
             </div>
         </div>
     </nav>
     <div class="container body-content">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; 2018 - ProyectoTransportesAndes</p>
-        </footer>
-    </div>
 
+        @*<footer  class="row col-lg-12" style="position:absolute;bottom:0;margin-left:0;">
+                <hr />
+                <div class="col-lg-4"><p>Transportes Andes - @DateTime.Now.Year</p></div>
+                <div class="col-lg-4"><p>Andes 1174 - Montevideo - Uruguay</p></div>
+                <div class="col-lg-4"><p>29081921 - 29011719</p></div>
+            </footer>*@
+    </div>
+    <footer class="row col-lg-12 col-md-12 col-sm-12 hidden-xs" style="margin-left:0;">
+        <hr />
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">Transportes Andes - @DateTime.Now.Year</p></div>
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">Andes 1174 - Montevideo - Uruguay</p></div>
+        <div class="col-lg-4 col-md-4 col-sm-4"><p style="text-align:center">29081921 - 29011719</p></div>
+    </footer>
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
@@ -64,6 +117,7 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
     </environment>
 
     @RenderSection("Scripts", required: false)

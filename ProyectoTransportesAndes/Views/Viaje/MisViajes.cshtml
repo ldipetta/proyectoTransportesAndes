@@ -1,0 +1,111 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViajeFiltro
+
+@{
+    ViewData["Title"] = "MisViajes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>Mi viajes</h3>
+
+<div style="margin-top:50px">
+    <form asp-action="MisViajes" asp-controller="Viaje">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group hidden">
+            <label asp-for="IdCliente"></label>
+            <input asp-for="IdCliente" class="form-control" />
+        </div>
+        <div class="form-inline">
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.EstadoViaje, Model.ListaEstadoViaje, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <label asp-for="Desde">Desde</label>
+                <input asp-for="Desde" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Hasta">Hasta</label>
+                <input asp-for="Hasta" class="form-control" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Filtrar" class="form-control btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="table" style="margin-top:50px;">
+    <thead>
+        <tr>
+            <th>
+                @Html.Label("Fecha")
+            </th>
+            <th>
+                @Html.Label("Hora inicio")
+            </th>
+            <th>
+                @Html.Label("Hora fin")
+            </th>
+            <th>
+                @Html.Label("Estado")
+            </th>
+            <th>
+                @Html.Label("Costo estimado")
+            </th>
+            <th>
+                @Html.Label("Costo final")
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Viajes)
+        {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Fecha)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HoraInicio)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HoraFin)
+            </td>
+            @if (item.Estado == EstadoViaje.Finalizado)
+            {
+                <td class="danger">
+                    @Html.DisplayFor(modelItem => item.Estado, new { @class = "danger" })
+                </td>
+            }
+            else
+            {
+                <td class="success">
+                    @Html.DisplayFor(modelItem => item.Estado, new { @class = "success" })
+                </td>
+
+            }
+            @if (item.Estado.Equals(EstadoViaje.Finalizado) || item.Estado.Equals(EstadoViaje.Cancelado))
+            {
+                <td></td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CostoFinal)
+                </td>
+            }
+            else
+            {
+                <td>
+                    @Html.DisplayFor(modelItem => item.CostoEstimadoFinal)
+                </td>
+                <td></td>
+            }
+            <td>
+                @Html.ActionLink("Detalles", "Resumen", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-success btn-sm" })
+                @if (item.Estado != EstadoViaje.Finalizado && item.Estado != EstadoViaje.Cancelado)
+                {
+                    @Html.ActionLink("Cancelar", "CancelarViaje", new { idViaje = item.Id.ToString() }, new { @class = "btn btn-danger btn-sm" })
+                }
+
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>

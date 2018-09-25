@@ -1,0 +1,121 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelLiquidacion
+@{
+    ViewData["Title"] = "LiquidacionViajesChofer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+   
+</script>
+<div class="row" style="margin-top:50px;">
+    <form asp-action="LiquidacionViajesChofer" asp-controller="Viaje">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-inline">
+            <div class="form-group">
+                @Html.DropDownListFor(m => Model.IdChofer, Model.ListaChoferes, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Buscar" name="buscar" class="form-control btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row" style="margin-top:30px;">
+    <form asp-action="LiquidacionViajesChofer" asp-controller="Viaje">
+
+        <div class="panel panel-info" id="documento">
+            @if (Model.Liquidacion.Chofer != null)
+            {
+                <div class="panel-heading" value="" id="idChofer">Liquidacion chofer @Model.Liquidacion.Chofer.Leyenda</div>
+
+            }
+            else
+            {
+                <div class="panel-heading">Liquidacion chofer</div>
+            }
+            <div class="panel-body">
+                <div class="row">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Hora inicio</th>
+                                <th scope="col">Hora fin</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Costo viaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Liquidacion.Viajes.Count == 0)
+                            {
+                                <tr><td>No hay viajes para liquidar</td></tr>
+
+                            }
+                            @foreach (var item in Model.Liquidacion.Viajes)
+                            {
+                                <tr>
+                                    <td>@item.Fecha.Date</td>
+                                    <td>@item.HoraInicio</td>
+                                    @if (item.HoraFin != null)
+                                    {
+                                        <td>@item.HoraFin</td>
+                                    }
+                                    else
+                                    {
+                                        <td><input asp-for="@item.HoraFin" value="@item.HoraFin" class="form-control" /></td>
+                                    }
+                                    <td>@item.Cliente.Leyenda</td>
+                                    <td>@item.CostoFinal</td>
+                                </tr>
+                            }
+                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td>Total viajes</td><td>@Model.Liquidacion.TotalViajes</td></tr>
+                            <tr><td></td><td></td><td></td><td>Total comisión</td><td>@Model.Liquidacion.TotalComision</td></tr>
+                            <tr><td></td><td></td><td></td><td>Liquidación</td><td>@Model.Liquidacion.Liquidacion</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <input asp-for="Liquidacion.Chofer" type="hidden" />
+                    <input asp-for="Documento" type="hidden" id="documentoHtml" />
+                    <input asp-for="IdChofer" class="form-control hidden" />
+                    <input asp-for="IdLiquidacionChofer" value="@Model.IdLiquidacionChofer" class="form-control hidden" />
+                </div>
+            </div>
+        </div>
+        @if (!Model.Liquidar)
+        {
+            @if (Model.Liquidacion.Viajes.Count > 0)
+            {
+                <div class="row">
+                    <div class="form-group col-md-2">
+                        <input type="submit" value="Liquidar" name="liquidar" class="btn btn-info btn-block" />
+                    </div>
+                </div>
+
+            }
+        }
+
+        @if (Model.Liquidar)
+        {
+            <div class="row">
+                <div class="form-group col-md-2">
+                    <input type="submit" value="Confirmar" name="confirmar" class="btn btn-success btn-block" id="btnConfirmar" />
+                </div>
+                <div class="form-group col-md-2">
+                    <input type="submit" value="Cancelar" name="cancelar" class="btn btn-danger btn-block" />
+                </div>
+            </div>
+        }
+
+    </form>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+
+
+

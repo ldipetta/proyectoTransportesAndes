@@ -1,16 +1,22 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace ProyectoTransportesAndes.Models
 {
     public class Tarifa
     {
-        [JsonProperty(PropertyName = "monto")]
-        public int Monto { get; set; }
-        [JsonProperty(PropertyName = "fecha")]
-        public DateTime Fecha { get; set; }
+        [BsonId]
+        public ObjectId Id { get; set; }
+        public int Camioneta { get; set; }
+        public int CamionChico { get; set; }
+        public int Camion { get; set; }
+        public int CamionGrande { get; set; }
+        public int CamionMudanza { get; set; }
+        public string UsuarioModificacion { get; set; }
+        public DateTime FechaModificacion { get; set; }
     }
 }

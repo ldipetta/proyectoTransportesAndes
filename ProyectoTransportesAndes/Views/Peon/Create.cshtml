@@ -1,0 +1,59 @@
+﻿@model ProyectoTransportesAndes.Models.Peon
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row col-lg-8 col-lg-offset-2" style="margin-top:50px;">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row col-lg-12">
+            <fieldset>
+                <legend>Datos personales</legend>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Nombre" class="form-control" placeholder="Nombre" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="text" asp-for="Apellido" class="form-control" placeholder="Apellido" />
+                        <span asp-validation-for="Apellido" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="number" min="0" asp-for="Documento" class="form-control" placeholder="Documento" />
+                        <span asp-validation-for="Documento" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input type="tel" asp-for="Telefono" class="form-control" placeholder="Teléfono" />
+                        <span asp-validation-for="Telefono" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <input asp-for="Direccion" class="form-control" placeholder="Dirección" />
+                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row col-lg-12">
+                    <div class="form-group col-lg-4 col-lg-offset-1">
+                        <label asp-for="FNacimiento" class="control-label"></label>
+                        <input type="date" asp-for="FNacimiento" class="form-control" />
+                        <span asp-validation-for="FNacimiento" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="row col-lg-12">
+            <div class="col-lg-8 col-lg-offset-4">
+                <input type="submit" value="Ingresar peón" class="btn btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

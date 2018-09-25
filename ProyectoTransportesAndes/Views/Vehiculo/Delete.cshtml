@@ -1,0 +1,46 @@
+﻿@model ProyectoTransportesAndes.Models.Vehiculo
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+    <div class="panel-heading">Vehículo para eliminar</div>
+    <div class="panel-body">
+        <table class=" table table-responsive">
+            <tbody>
+                <tr>
+                    <th scope="row">Matrícula</th>
+                    <td>@Html.DisplayFor(model => model.Matricula)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Calificación</th>
+                    <td>@Html.DisplayFor(model => model.Calificacion)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Marca</th>
+                    <td>@Html.DisplayFor(model => model.Marca)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Modelo</th>
+                    <td>@Html.DisplayFor(model => model.Modelo)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Unidades</th>
+                    <td>@Html.DisplayFor(model => model.Unidades)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Capacidad</th>
+                    <td>@Html.DisplayFor(model => model.CapacidadCargaKg)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form asp-action="Delete" asp-controller="Vehiculo">
+        <input asp-for="Id" class="form-control hidden" />
+        <div class="form-group">
+            <input type="submit" value="Eliminar vehículo" class="btn btn-danger btn-block" />
+        </div>
+    </form>
+</div>

@@ -1,0 +1,51 @@
+﻿@model ProyectoTransportesAndes.Models.Chofer
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="panel panel-info col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+    <div class="panel-heading">Chofer para eliminar</div>
+    <div class="panel-body">
+        <table class=" table table-responsive">
+            <tbody>
+                <tr>
+                    <th scope="row">Numero</th>
+                    <td>@Html.DisplayFor(model => model.Numero)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Nombre</th>
+                    <td>@Html.DisplayFor(model => model.Nombre)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Apellido</th>
+                    <td>@Html.DisplayFor(model => model.Apellido)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Documento</th>
+                    <td>@Html.DisplayFor(model => model.Documento)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Teléfono</th>
+                    <td>@Html.DisplayFor(model => model.Telefono)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Diección</th>
+                    <td>@Html.DisplayFor(model => model.Direccion)</td>
+                </tr>
+                <tr>
+                    <th scope="row">F.Nac</th>
+                    <td>@Html.DisplayFor(model => model.FNacimiento)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form asp-action="Delete" asp-controller="Chofer">
+        <input asp-for="Id" class="form-control hidden" />
+        <div class="form-group">
+            <input type="submit" value="Eliminar chofer" class="btn btn-danger btn-block" />
+        </div>
+    </form>
+</div>

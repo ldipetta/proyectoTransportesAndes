@@ -1,0 +1,70 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViajeDirecto
+
+@{
+    ViewData["Title"] = "Nuevo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+    function initMap() {
+        var input = document.getElementById('direccionOrigen');
+        var searchBox = new google.maps.places.Autocomplete(input);
+        searchBox.setComponentRestrictions({ 'country': ['uy'] });
+    }
+</script>
+<script async defer src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap&libraries=places"></script>
+
+
+<div class="row col-md-10 col-md-offset-1" style="margin-top:50px;">
+    <form asp-action="Nuevo">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-2 col-md-offset-5">
+                <input style="text-align:center;" asp-for="FechaParaMostrar" class="form-control" readonly />
+            </div>
+        </div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-4 col-md-offset-2">
+                @Html.DropDownListFor(m => Model.VehiculoId, Model.Vehiculos, new { @id = "vehiculos", @class = "form-control" })
+            </div>
+            <div class="form-group col-md-4 col-md-offset-2">
+                @Html.DropDownListFor(m => Model.ClienteId, Model.Clientes, new { @id = "clientes", @class = "form-control" })
+            </div>
+        </div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-4 col-md-offset-2">
+                <label asp-for="UtilizarDireccionCliente"></label>
+                <input type="checkbox" asp-for="UtilizarDireccionCliente" id="utilizarDireccionCliente" />
+                <span asp-validation-for="UtilizarDireccionCliente" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4 col-md-offset-2" id="contenedorDestino">
+                <input asp-for="Direccion" class="form-control" id="direccionOrigen" placeholder="Dirección" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-3 col-md-offset-2">
+                <label asp-for="HoraInicio" class="control-label"></label>
+                <input type="time" asp-for="HoraInicio" class="form-control" />
+                <span asp-validation-for="HoraInicio" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-6 col-md-offset-2">
+                <label asp-for="Comentarios" class="control-label"></label>
+                <input asp-for="Comentarios" class="form-control" />
+                <span asp-validation-for="Comentarios" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row col-md-12">
+            <div class="form-group col-md-2 col-md-offset-5">
+                <input type="submit" value="Nuevo viaje" class="btn btn-info btn-block" />
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+

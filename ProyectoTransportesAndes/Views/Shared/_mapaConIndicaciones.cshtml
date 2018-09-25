@@ -1,0 +1,214 @@
+﻿@model ProyectoTransportesAndes.Models.Viaje
+<style>
+    #map {
+        height: 500px;
+        background-color: red;
+        margin-bottom: 50px;
+    }
+</style>
+<script>
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            $.ajax({
+                url: '/api/CoordenadasClienteWeb',
+                type: "GET",
+                data: { 'latitud': position.coords.latitude, "longitud": position.coords.longitude },
+                dataType: "json",
+                traditional: true,
+                contentType: "aplication/json",
+                //success: function (data) {
+                //    if (data.status == "Success") {
+                //        alert(data.message);
+                //    }
+                //    else
+                //    {
+                //        alert("No success");
+                //    }
+                //},
+                //error: function () {
+                //    alert("error en la funcion");
+
+                //}
+            });
+        });
+    }
+</script>
+<script>
+    function initMap(compartido)
+    {
+        var map, infoWindow;
+        var latitud, longitud;
+        var direccionDestino = "@Model.DireccionDestino";
+        var direccionOrigen = "@Model.DireccionOrigen";
+   
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: -34.9033926, lng: -56.1637164 },
+            zoom: 16
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+
+                if (direccionOrigen != "") {
+                    var latVehiculo = @Model.Vehiculo.PosicionSatelital.Latitud;
+                    var longVehiculo = @Model.Vehiculo.PosicionSatelital.Longitud;
+                    var latLongVehiculo = new google.maps.LatLng(latVehiculo, longVehiculo);
+                    var latitudOrigen = "@Model.Origen.Latitud";
+                    var longitudOrigen = "@Model.Origen.Longitud";
+                    var latLongOrigen = new google.maps.LatLng(latitudOrigen, longitudOrigen);
+                    var markerOrigen = new google.maps.Marker({ map: map, position: latLongOrigen });
+                    infoWindowOrigen = new google.maps.InfoWindow;
+                    infoWindowOrigen.setPosition(latLongOrigen);
+                    infoWindowOrigen.setContent("<div><p><small><b>Salida</b></small></p>"+"<p>@Model.DireccionOrigen</p></div>");
+                    infoWindowOrigen.open(map);
+                    map.setCenter(latLongOrigen);
+                    infoWindowOrigen.close(map);
+
+                    if (direccionDestino != "") {
+                        var latitudDestino = "@Model.Destino.Latitud";
+                        var longitudDestino = "@Model.Destino.Longitud";
+                        var latLongDestino = new google.maps.LatLng(latitudDestino, longitudDestino);
+                        var markerDestino = new google.maps.Marker({ map: map, position: latLongDestino });
+                        infoWindowDestino = new google.maps.InfoWindow;
+                        infoWindowDestino.setPosition(latLongDestino);
+                        infoWindowDestino.setContent("<div><p><small><b>Destino</b></small></p>" + "<p>@Model.DireccionDestino</p></div>");
+                        infoWindowDestino.open(map);
+                        infoWindowDestino.close(map);
+
+                        var cantidadItems = @Model.Items.Count;
+                        if (cantidadItems > 0) {
+                            var objConfigDR = { map: map, suppressMarkers: true };
+                            var way=[];
+                            @foreach(Item i in Model.Items)
+                            {
+                                @: var origenItem = new google.maps.LatLng(@i.Origen.Latitud,@i.Origen.Longitud);
+                                @: var destinoItem = new google.maps.LatLng(@i.Destino.Latitud,@i.Destino.Longitud);
+
+                                @if (!i.Retirado)
+                                {
+                                  @:way.push({ location: origenItem });
+                                  @:infoWindowItemOrigen = new google.maps.InfoWindow;
+                                  @:infoWindowItemOrigen.setPosition(origenItem);
+                                  @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                  @:infoWindowItemOrigen.open(map);
+                                  @: var markerItemOrigen = new google.maps.Marker({ position: origenItem, map: map });
+
+                                }
+
+                                @if (!i.Entregado)
+                                {
+                                    @:way.push({ location: destinoItem });
+                                    @:infoWindowItemDestino = new google.maps.InfoWindow;
+                                    @:infoWindowItemDestino.setPosition(destinoItem);
+                                    @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b><small></p>" + "<p>@i.Descripcion</p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                    @:infoWindowItemDestino.open(map);
+                                    @: var markerItemDestino = new google.maps.Marker({ position: destinoItem, map: map });
+                                }
+                            }
+
+                            var objConfigDS = {
+                                origin: latLongOrigen,
+                                destination: latLongDestino,
+                                waypoints: way,
+                                optimizeWaypoints: true,
+                                travelMode: google.maps.TravelMode.DRIVING
+                             };
+                            
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+
+                            }
+                        }
+                        
+                        else {
+                            var objConfigDR = {
+                                map: map,
+                                suppressMarkers: true
+                            };
+                            var objConfigDS = {
+                                origin: latLongVehiculo,
+                                destination: latLongDestino,
+                                waypoints: [{ location: latLongOrigen }],
+                                optimizeWaypoints: true,
+                                travelMode: google.maps.TravelMode.DRIVING
+                            };
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                       var objConfigDR = {
+                           map: map,
+                           suppressMarkers:true
+                       };
+                       var objConfigDS = {
+                           origin: latLongVehiculo,
+                           destination: latLongOrigen,
+                           //waypoints: [{ location: origen }],
+                            optimizeWaypoints: true,
+                            travelMode: google.maps.TravelMode.DRIVING
+                       };
+                            var ds = new google.maps.DirectionsService();
+                            var dr = new google.maps.DirectionsRenderer(objConfigDR);
+                            ds.route(objConfigDS, rutear);
+                            function rutear(resultados, status) {
+                                if (status == 'OK') {
+                                    dr.setDirections(resultados);
+                                }
+                                else {
+                                    alert('Error' + status);
+                                }
+                            }
+                        }
+                }
+            });
+        }
+        addMarker(@Model.Vehiculo.PosicionSatelital.Latitud,@Model.Vehiculo.PosicionSatelital.Longitud, "@Model.Vehiculo.Matricula", "@Model.Vehiculo.Marca", "@Model.Vehiculo.Modelo", "@Model.Vehiculo.Chofer.Nombre" + " " + "@Model.Vehiculo.Chofer.Apellido");
+        function addMarker(latitud, longitud, matricula, marca, modelo, chofer, direccion) {
+            if (direccion == null) {
+                var coordenadas = { lat: latitud, lng: longitud };
+                var marker = new google.maps.Marker({ position: coordenadas, icon: {path:google.maps.SymbolPath.FORWARD_CLOSED_ARROW,scale:3}, map: map });
+                infoWindowMarker = new google.maps.InfoWindow;
+                var pos = { lat: latitud, lng: longitud };
+                infoWindowMarker.setPosition(pos);
+                var contentString = '<div><p>' + matricula + '</p><p>' + marca + " " + modelo + '</p><p>' + chofer + '</p></div>';
+                infoWindowMarker.setContent(contentString);
+                google.maps.event.addListener(marker, 'click', function () {
+                    infoWindowMarker.open(map, marker);
+                });
+            }
+        }
+    }
+
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+            'Error: The Geolocation service failed.' :
+            'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap">
+</script>
+
+<div id="map"></div>
+

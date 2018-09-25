@@ -1,0 +1,371 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViaje
+
+@{
+    ViewData["Title"] = "SolicitarViaje";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    #map {
+        height: 500px;
+        background-color: red;
+        margin-bottom: 50px;
+    }
+    #Refresh {
+        display: block;
+        width: 50px;
+        height: 40px;
+        padding: 10px 0 10px 0;
+        margin: 0 auto;
+        background-color: #5cb85c;
+        text-decoration: none;
+        font: 15px Verdana, Sans-Serif;
+        text-align: center;
+        color: white;
+        border-radius: 50px;
+    }
+    #Refresh a {
+        color:white;
+    }
+    #btnFlete{
+        border-radius:10px;
+    }
+    #btnMudanza{
+        border-radius:10px;
+    }
+</style>
+<script>
+    var map, infoWindow;
+    var latitud, longitud;
+    function initMap(compartido) {
+        var viajeCompartido = "@Model.Viaje.Compartido";
+        var direccionOrigen = "@Model.Viaje.DireccionOrigen";
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: -34.9033926, lng: -56.1637164 },
+            zoom: 16
+        });
+        infoWindow = new google.maps.InfoWindow;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                latitud = position.coords.latitude;
+                longitud = position.coords.longitude;
+                infoWindow.setPosition(pos);
+                infoWindow.setContent("<div><p><small><b>Salida</b></small></p>" + "<p><small>@Model.Viaje.DireccionOrigen</small></p></div>");
+                infoWindow.open(map);
+                map.setCenter(pos);
+                if (direccionOrigen != "") {
+                     var latitudOrigen = "@Model.Viaje.Origen.Latitud";
+                    var longitudOrigen = "@Model.Viaje.Origen.Longitud";
+                    var latLongOrigen = new google.maps.LatLng(latitudOrigen, longitudOrigen);
+                    var markerOrigen = new google.maps.Marker({ map: map, position: latLongOrigen });
+                }
+                if (compartido == true || viajeCompartido=="True") {
+                    infoWindow.close(map);
+                    $("#direcciones").addClass("hidden");
+                }
+                var direccionDestino = "@Model.Viaje.DireccionDestino";
+                if (direccionDestino !="") {
+                    var latitudDestino = "@Model.Viaje.Destino.Latitud";
+                    var longitudDestino = "@Model.Viaje.Destino.Longitud";
+                    var latLongDestino = new google.maps.LatLng(latitudDestino, longitudDestino);
+                    var markerDestino = new google.maps.Marker({ map: map, position: latLongDestino });
+                    infoWindowDestino = new google.maps.InfoWindow;
+                    infoWindowDestino.setPosition(latLongDestino);
+                    infoWindowDestino.setContent("<div><p><small><b>Destino</b></small></p>" + "<p><small>@Model.Viaje.DireccionDestino</small></p></div>");
+                    infoWindowDestino.open(map);
+                    if (compartido == true || viajeCompartido=="True") {
+                        infoWindowDestino.close(map);
+                    }
+                    var cantidadItems = @Model.Viaje.Items.Count;
+                    if (cantidadItems>0) {
+                        @foreach(Item i in Model.Viaje.Items)
+                            {
+                                @: var origenItem = new google.maps.LatLng(@i.Origen.Latitud,@i.Origen.Longitud);
+                                @: var destinoItem = new google.maps.LatLng(@i.Destino.Latitud,@i.Destino.Longitud);
+
+                                @:infoWindowItemOrigen = new google.maps.InfoWindow;
+                                @:infoWindowItemOrigen.setPosition(origenItem);
+                                @:infoWindowItemOrigen.setContent("<div><p><small><b>Retiro</b></small></p>" + "<p><small>@i.Descripcion</small></p><p>Dirección:" + "@i.DireccionOrigen" + "</p></div>");
+                                @:infoWindowItemOrigen.open(map);
+
+                                @:infoWindowItemDestino = new google.maps.InfoWindow;
+                                @:infoWindowItemDestino.setPosition(destinoItem);
+                                @:infoWindowItemDestino.setContent("<div><p><small><b>Entrega</b></small></p>" + "<p><small>@i.Descripcion</small></p><p>Dirección:" + "@i.DireccionDestino" + "</p></div>");
+                                @:infoWindowItemDestino.open(map);
+                            }
+                    }
+                }
+                var input = document.getElementById('direccionOrigen');
+                var searchBox = new google.maps.places.Autocomplete(input);
+                searchBox.setComponentRestrictions({ 'country': ['uy'] });
+                var input2 = document.getElementById('direccionDestino');
+                var searchBox2 = new google.maps.places.Autocomplete(input2);
+                searchBox2.setComponentRestrictions({ 'country': ['uy'] });
+                var input3 = document.getElementById('direccionOrigenMudanza');
+                var searchBox3 = new google.maps.places.Autocomplete(input3);
+                searchBox3.setComponentRestrictions({ 'country': ['uy'] });
+                var input4 = document.getElementById('direccionDestinoMudanza');
+                var searchBox4 = new google.maps.places.Autocomplete(input4);
+                searchBox4.setComponentRestrictions({ 'country': ['uy'] });
+                var input5 = document.getElementById('direccionOrigenItem');
+                var searchBox5 = new google.maps.places.Autocomplete(input5);
+                searchBox5.setComponentRestrictions({ 'country': ['uy'] });
+                var input6 = document.getElementById('direccionDestinoItem');
+                var searchBox6 = new google.maps.places.Autocomplete(input6);
+                searchBox6.setComponentRestrictions({ 'country': ['uy'] });
+
+              
+
+                //map.controls[google.maps.ControlPosition.TOP_LEFT].push(input); // SI SE QUISIERA AGREGAR AL MAPA
+                $.ajax({
+                    url: '/api/CoordenadasClienteWeb',
+                    type: "GET",
+                    data: { 'latitud': position.coords.latitude, "longitud": position.coords.longitude },
+                    dataType: "json",
+                    traditional: true,
+                    contentType: "aplication/json",
+                    //success: function (data) {
+                    //    if (data.status == "Success") {
+                    //        alert(data.message);
+                    //    }
+                    //    else
+                    //    {
+                    //        alert("No success");
+                    //    }
+                    //},
+                    //error: function () {
+                    //    alert("error en la funcion");
+
+                    //}
+                });
+            }, function () {
+                handleLocationError(true, infoWindow, map.getCenter());
+            });
+        } else {
+            handleLocationError(false, infoWindow, map.getCenter());
+        }
+
+        function addMarker(latitud,longitud,matricula,marca,modelo,chofer) {
+            var coordenadas = { lat: latitud, lng: longitud };
+            var marker = new google.maps.Marker({ position: coordenadas, icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3 }, map: map });
+            infoWindowMarker = new google.maps.InfoWindow;
+            var pos = {lat: latitud,lng: longitud};
+            infoWindowMarker.setPosition(pos);
+            var contentString = '<div><p>' + matricula + '</p><p>'+marca+" "+modelo+'</p><p>'+chofer+'</p></div>';
+            infoWindowMarker.setContent(contentString);
+            google.maps.event.addListener(marker, 'click', function () {
+                infoWindowMarker.open(map, marker);
+            });
+        }
+        @foreach (var item in Model.Vehiculos)
+        {
+            @:addMarker(@item.PosicionSatelital.Latitud,@item.PosicionSatelital.Longitud, "@item.Matricula", "@item.Marca", "@item.Modelo","@item.Chofer.Nombre"+" "+"@item.Chofer.Apellido");
+        }
+
+    }
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+            'Error: The Geolocation service failed.' :
+            'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+    }
+</script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08YiU7GpCk0RCQozZWxiIj3Ud3se0_Ec&callback=initMap&libraries=places"></script>
+
+<div>
+    <div id="contenedorBotones" class="row">
+        <div id="btnCuentaNueva" class="col-lg-3 col-lg-push-3">
+            <a style="text-decoration:none" class="btnPersonalizadoIniciarSesion" id="btnFlete">Flete</a>
+        </div>
+        <div id="btnInicioSesion" class="col-lg-3 col-lg-push-3">
+            <a style="text-decoration:none" class="btnPersonalizadoCuentaNueva" id="btnMudanza">Mudanza</a>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div>
+        <p class="text-danger"><b>@TempData["Error"]</b></p>
+    </div>
+    <div id="contenedorFlete">
+        <div class="col-lg-7">
+            <form asp-action="Servicio" asp-controller="Viaje">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group hidden">
+                    <input asp-for="IdViaje" class="form-control" />
+                    <span asp-validation-for="IdViaje" class="text-danger"></span>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <label asp-for="ViajeCompartido">Desea compartir el viaje?</label>
+                        <input type="checkbox" asp-for="ViajeCompartido" id="viajeCompartido" />
+                        <span asp-validation-for="ViajeCompartido" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row" id="direcciones">
+                    <fieldset>
+                        <legend>Direcciones</legend>
+                        <div class="form-group input-sm col-lg-6">
+                            <input type="text" asp-for="Viaje.DireccionOrigen" class="form-control" placeholder="Dirección origen" id="direccionOrigen" value="@Model.Viaje.DireccionOrigen" aria-describedby="fileHelp" />
+                            <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            <span asp-validation-for="Viaje.DireccionOrigen" class="text-danger"></span>
+                        </div>
+                        <div class="form-group input-sm col-lg-6">
+                            <input type="text" asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestino" value="@Model.Viaje.DireccionDestino" aria-describedby="fileHelp"/>
+                            <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            <span asp-validation-for="Viaje.DireccionDestino" class="text-danger"></span>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="row" style="margin-top:20px;">
+                    <fieldset>
+                        <legend>Datos del item</legend>
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                @Html.DropDownListFor(m => Model.TipoItem, Model.ListaTipoItem, new { @class = "form-control" })
+                            </div>
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.Descripcion" class="form-control" placeholder="Descripcion" />
+                                <span asp-validation-for="Item.Descripcion" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Alto" class="form-control" placeholder="Alto(cm)" />
+                                <span asp-validation-for="Item.Alto" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Ancho" class="form-control" placeholder="Ancho(cm)" />
+                                <span asp-validation-for="Item.Ancho" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Profundidad" class="form-control" placeholder="Profundidad(cm)" />
+                                <span asp-validation-for="Item.Profundidad" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <input type="number" min="0" asp-for="Item.Peso" class="form-control" placeholder="Peso(kg)" />
+                                <span asp-validation-for="Item.Peso" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.DireccionOrigen" class="form-control" placeholder="Direccion origen item" id="direccionOrigenItem" aria-describedby="fileHelp" />
+                                <span asp-validation-for="Item.DireccionOrigen" class="text-danger"></span>
+                                <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            </div>
+                            <div class="form-group col-lg-6">
+                                <input type="text" asp-for="Item.DireccionDestino" class="form-control" placeholder="Direccion destino item" id="direccionDestinoItem" aria-describedby="fileHelp"/>
+                                <span asp-validation-for="Item.DireccionDestino" class="text-danger"></span>
+                                <small id="fileHelp" class="form-text text-muted">Ej. 18 de Julio 1234, Montevideo, Uruguay</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-lg-6">
+                                <input type="submit" value="Agregar item" class="btn btn-success btn-block" name="item" />
+                            </div>
+
+                            <div class="form-group col-lg-6">
+                                <input type="submit" value="Solicitar viaje" class="btn btn-info btn-block" name="solicitar" />
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+             
+            </form>
+        </div>
+        <div class="col-lg-5">
+            <div class="form-group">
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th>
+                                @Html.Label("Descripción")
+                            </th>
+                            <th>
+                                @Html.Label("Origen")
+                            </th>
+                            <th>
+                                @Html.Label("Destino")
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Viaje.Items.Count != 0)
+                        {
+
+                            @foreach (var item in Model.Viaje.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Descripcion)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DireccionDestino)
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td></td><td></td><td>@ViewData["Mensaje"]</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 hidden" id="contenedorMudanza">
+        <form asp-action="Mudanza" asp-controller="Viaje">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <input asp-for="Viaje.DireccionOrigen" class="form-control" value="@Model.Viaje.DireccionOrigen" id="direccionOrigenMudanza" />
+                <span asp-validation-for="Viaje.DireccionOrigen" class="text-danger"></span>
+            </div>
+            <div class="form-inline">
+                <div class="form-group">
+                    <label>Desea marcar el destino final? </label>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" class="checkbox" id="sinDestino" />
+                    <span asp-validation-for="MarcarDestino" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group hidden" id="contenedorDestino">
+                <input asp-for="Viaje.DireccionDestino" class="form-control" placeholder="Dirección destino" id="direccionDestinoMudanza" />
+                <span asp-validation-for="Viaje.DireccionDestino" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input asp-for="Observaciones" class="form-control" placeholder="Observaciones" />
+                <span asp-validation-for="Observaciones" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Solicitar presupuesto" name="presupuesto" class="btn btn-info btn-block" id="solicitarViaje" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Solicitar vehiculo por hora" name="mudanza" class="btn btn-success btn-block" id="solicitarViaje" />
+            </div>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div id="mapa">
+        <div id="map"></div>
+        <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

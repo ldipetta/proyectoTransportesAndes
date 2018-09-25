@@ -1,0 +1,181 @@
+﻿@model ProyectoTransportesAndes.ViewModels.ViewModelViaje;
+
+@{
+    ViewData["Title"] = "ResumenViaje";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    #Refresh {
+        display: block;
+        width: 50px;
+        height: 40px;
+        padding: 10px 0 10px 0;
+        margin: 0 auto;
+        background-color: #5cb85c;
+        text-decoration: none;
+        font: 15px Verdana, Sans-Serif;
+        text-align: center;
+        color: white;
+        border-radius: 50px;
+    }
+
+        #Refresh a {
+            color: white;
+        }
+</style>
+<div class="row">
+    <p class="text-danger"><b>@TempData["Error"]</b></p>
+</div>
+<div style="margin-top:50px;">
+    <div class="panel panel-info col-lg-6">
+        <div class="panel-heading">Resumen</div>
+        <div class="panel-body">
+            <table class=" table table-responsive">
+                <tbody>
+                    <tr>
+                        <th scope="row">Fecha</th>
+                        <td>@Html.DisplayFor(model => model.FechaParaMostrar)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Estado</th>
+                        <td>@Html.DisplayFor(model => model.Viaje.Estado)</td>
+                    </tr>
+                    @if (!Model.Viaje.Compartido)
+                    {
+                        <tr>
+                            <th scope="row">Tiempo de llegada</th>
+                            <td>@Html.DisplayFor(model => model.Viaje.DuracionEstimadaHastaCliente.Minutes) minutos</td>
+                        </tr>
+
+                    }
+                    @if (Model.Viaje.Estado.Equals(EstadoViaje.Finalizado) || Model.Viaje.Estado.Equals(EstadoViaje.Cancelado))
+                    {
+                        <tr>
+                            <th scope="row">Hora finalizacion</th>
+                            <td>@Html.DisplayFor(model => model.Viaje.HoraFin)</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Costo final</th>
+                            <td>@Html.DisplayFor(model => model.Viaje.CostoFinal)</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @if (!Model.Viaje.DireccionDestino.Equals(Model.Viaje.DireccionOrigen))
+                        {
+                            <tr>
+                                <th scope="row">Duración</th>
+                                <td>@Html.DisplayFor(model => model.DuracionEstimadaViaje)</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Hora finalizacion</th>
+                                <td>@Html.DisplayFor(model => model.HoraEstimadaFinalizacionViaje)</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Precio estimado</th>
+                                <td>@Html.DisplayFor(model => model.PrecioEstimado)</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <th scope="row">Precio</th>
+                                <td>$ @Html.DisplayFor(model => model.Viaje.Vehiculo.Tarifa) /Hora</td>
+                            </tr>
+                        }
+
+                    }
+                    <tr>
+                        <th scope="row">Chofer</th>
+                        <td>@Html.DisplayFor(model => model.Viaje.Vehiculo.Chofer.Leyenda)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Vehiculo</th>
+                        <td>@Html.DisplayFor(model => model.VehiculoParaMostrar)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Comentarios</th>
+                        <td>@Html.DisplayFor(model => model.Viaje.Comentarios)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.Entregado)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.Descripcion)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.DireccionOrigen)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Item.DireccionDestino)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Viaje.Items.Count != 0)
+                    {
+                        @foreach (var item in Model.Viaje.Items)
+                        {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Entregado)
+                        </td>
+                        @if (item.Tipo.Equals(TipoItem.Otro))
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Descripcion)
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Tipo)
+                            </td>
+                        }
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DireccionOrigen)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DireccionDestino)
+                        </td>
+                    </tr>
+
+                        }
+                    }
+                    else
+                    {
+                        <tr><td>@ViewData["Mensaje"]</td></tr>}
+                </tbody>
+            </table>
+        </div>
+        @if (!Model.DetallesViaje)
+        {
+            <form asp-action="Confirmacion" asp-controller="Viaje">
+                <input asp-for="IdViaje" class="form-control hidden" />
+                <div class="form-group">
+                    <input type="submit" value="Confirmar" name="confirmar" class="btn btn-success btn-block" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Cancelar" name="cancelar" class="btn btn-danger btn-block" />
+                </div>
+            </form>
+        }
+
+    </div>
+    @if (!Model.Viaje.Compartido)
+    {
+        <div class="col-lg-6">
+            @Html.Partial("~/Views/Shared/_mapaConIndicaciones.cshtml", Model.Viaje)
+            <div id="Refresh"><a href="#" title="Refrescar ubicacion"><span class="glyphicon glyphicon-refresh"></span></a></div>
+        </div>
+
+    }
+
+</div>
+
